@@ -462,3 +462,48 @@ function BookingPage() {
     </div>
   );
 }
+
+function WaitlistJoin({ barberId, period }: { barberId: string; period: string }) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [sent, setSent] = useState(false);
+
+  async function join() {
+    if (!name || !phone) {
+      toast.error("Preencha nome e WhatsApp");
+      return;
+    }
+    const { error } = await supabase.from("waitlist").insert({
+      barber_id: barberId,
+      client_name: name,
+      client_whatsapp: phone,
+      preferred_period: period,
+    });
+    if (error) return toast.error(error.message);
+    setSent(true);
+    toast.success("Você está na fila! Avisaremos por WhatsApp.");
+  }
+
+  if (sent) {
+    return <p className="text-xs text-foreground">✓ Adicionado à fila de espera.</p>;
+  }
+
+  return (
+    <div className="space-y-2 text-left">
+      <p className="text-xs">Entre na fila — avisamos se vagar:</p>
+      <Input
+        placeholder="Seu nome"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        placeholder="WhatsApp"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      <Button size="sm" className="w-full" onClick={join}>
+        Entrar na fila
+      </Button>
+    </div>
+  );
+}
