@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ComandaRouteImport } from './routes/comanda'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
@@ -34,6 +35,11 @@ const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilaEsperaRoute = FilaEsperaRouteImport.update({
+  id: '/fila-espera',
+  path: '/fila-espera',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/servicos': typeof ServicosRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/servicos': typeof ServicosRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/servicos': typeof ServicosRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
     | '/servicos'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
     | '/servicos'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
     | '/servicos'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   BarbeirosRoute: typeof BarbeirosRoute
   ComandaRoute: typeof ComandaRoute
   DashboardRoute: typeof DashboardRoute
+  FilaEsperaRoute: typeof FilaEsperaRoute
   LoginRoute: typeof LoginRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ServicosRoute: typeof ServicosRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fila-espera': {
+      id: '/fila-espera'
+      path: '/fila-espera'
+      fullPath: '/fila-espera'
+      preLoaderRoute: typeof FilaEsperaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -271,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   BarbeirosRoute: BarbeirosRoute,
   ComandaRoute: ComandaRoute,
   DashboardRoute: DashboardRoute,
+  FilaEsperaRoute: FilaEsperaRoute,
   LoginRoute: LoginRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ServicosRoute: ServicosRoute,
