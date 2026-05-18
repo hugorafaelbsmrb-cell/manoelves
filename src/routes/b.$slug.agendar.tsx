@@ -325,9 +325,15 @@ function BookingPage() {
 
             <h3 className="mt-6 font-display text-lg tracking-wider">Horários disponíveis</h3>
             {slots.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                Nenhum horário disponível neste dia.
-              </p>
+              <div className="mt-3 space-y-3 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                <p>Nenhum horário disponível neste dia.</p>
+                {barber && (
+                  <WaitlistJoin
+                    barberId={barber.id}
+                    period={format(selectedDate, "EEEE", { locale: ptBR })}
+                  />
+                )}
+              </div>
             ) : (
               <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {slots.map((s) => (
