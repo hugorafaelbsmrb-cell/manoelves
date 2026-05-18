@@ -10,6 +10,7 @@ import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/agenda")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Agenda — Mano Elves" }] }),
   component: AgendaPage,
 });
