@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicosRouteImport } from './routes/servicos'
+import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
@@ -25,6 +26,11 @@ import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
 const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
   path: '/servicos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReengajamentoRoute = ReengajamentoRouteImport.update({
+  id: '/reengajamento',
+  path: '/reengajamento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -181,6 +193,7 @@ export interface RootRouteChildren {
   FilaEsperaRoute: typeof FilaEsperaRoute
   LoginRoute: typeof LoginRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
+  ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   BSlugRoute: typeof BSlugRouteWithChildren
 }
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/servicos'
       fullPath: '/servicos'
       preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reengajamento': {
+      id: '/reengajamento'
+      path: '/reengajamento'
+      fullPath: '/reengajamento'
+      preLoaderRoute: typeof ReengajamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meu-financeiro': {
@@ -294,9 +314,20 @@ const rootRouteChildren: RootRouteChildren = {
   FilaEsperaRoute: FilaEsperaRoute,
   LoginRoute: LoginRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
+  ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   BSlugRoute: BSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
