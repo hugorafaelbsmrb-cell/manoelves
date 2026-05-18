@@ -50,7 +50,7 @@ function Page() {
       .update({ notified_at: new Date().toISOString() })
       .eq("id", id);
     await supabase.from("messages_log").insert({
-      kind: "waitlist_offer",
+      kind: "waitlist",
       to_name: name,
       to_phone: phone,
       payload: `Olá ${name}! Acabou de vagar um horário aqui na Mano Elves. Quer garantir? Toque aqui para agendar.`,
