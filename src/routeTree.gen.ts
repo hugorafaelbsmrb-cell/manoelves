@@ -9,15 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ServicosRouteImport } from './routes/servicos'
+import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ComandaRouteImport } from './routes/comanda'
+import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
 
+const ServicosRoute = ServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
+  id: '/meu-financeiro',
+  path: '/meu-financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComandaRoute = ComandaRouteImport.update({
+  id: '/comanda',
+  path: '/comanda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BarbeirosRoute = BarbeirosRouteImport.update({
+  id: '/barbeiros',
+  path: '/barbeiros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendaRoute = AgendaRouteImport.update({
@@ -44,14 +74,24 @@ const BSlugAgendarRoute = BSlugAgendarRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/barbeiros': typeof BarbeirosRoute
+  '/comanda': typeof ComandaRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/barbeiros': typeof BarbeirosRoute
+  '/comanda': typeof ComandaRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
@@ -59,32 +99,108 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/barbeiros': typeof BarbeirosRoute
+  '/comanda': typeof ComandaRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda' | '/login' | '/b/$slug' | '/b/$slug/agendar'
+  fullPaths:
+    | '/'
+    | '/agenda'
+    | '/barbeiros'
+    | '/comanda'
+    | '/dashboard'
+    | '/login'
+    | '/meu-financeiro'
+    | '/servicos'
+    | '/b/$slug'
+    | '/b/$slug/agendar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agenda' | '/login' | '/b/$slug' | '/b/$slug/agendar'
-  id: '__root__' | '/' | '/agenda' | '/login' | '/b/$slug' | '/b/$slug/agendar'
+  to:
+    | '/'
+    | '/agenda'
+    | '/barbeiros'
+    | '/comanda'
+    | '/dashboard'
+    | '/login'
+    | '/meu-financeiro'
+    | '/servicos'
+    | '/b/$slug'
+    | '/b/$slug/agendar'
+  id:
+    | '__root__'
+    | '/'
+    | '/agenda'
+    | '/barbeiros'
+    | '/comanda'
+    | '/dashboard'
+    | '/login'
+    | '/meu-financeiro'
+    | '/servicos'
+    | '/b/$slug'
+    | '/b/$slug/agendar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
+  BarbeirosRoute: typeof BarbeirosRoute
+  ComandaRoute: typeof ComandaRoute
+  DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  MeuFinanceiroRoute: typeof MeuFinanceiroRoute
+  ServicosRoute: typeof ServicosRoute
   BSlugRoute: typeof BSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/servicos': {
+      id: '/servicos'
+      path: '/servicos'
+      fullPath: '/servicos'
+      preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meu-financeiro': {
+      id: '/meu-financeiro'
+      path: '/meu-financeiro'
+      fullPath: '/meu-financeiro'
+      preLoaderRoute: typeof MeuFinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comanda': {
+      id: '/comanda'
+      path: '/comanda'
+      fullPath: '/comanda'
+      preLoaderRoute: typeof ComandaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/barbeiros': {
+      id: '/barbeiros'
+      path: '/barbeiros'
+      fullPath: '/barbeiros'
+      preLoaderRoute: typeof BarbeirosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agenda': {
@@ -131,9 +247,24 @@ const BSlugRouteWithChildren = BSlugRoute._addFileChildren(BSlugRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
+  BarbeirosRoute: BarbeirosRoute,
+  ComandaRoute: ComandaRoute,
+  DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  MeuFinanceiroRoute: MeuFinanceiroRoute,
+  ServicosRoute: ServicosRoute,
   BSlugRoute: BSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
