@@ -9,6 +9,9 @@ import {
   Wallet,
   LogOut,
   Receipt,
+  CreditCard,
+  Clock,
+  Heart,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,6 +32,9 @@ const links: NavLink[] = [
   { to: "/meu-financeiro", label: "Meu financeiro", icon: <Wallet className="h-4 w-4" />, barberOnly: true },
   { to: "/servicos", label: "Serviços", icon: <Package className="h-4 w-4" />, ownerOnly: true },
   { to: "/barbeiros", label: "Barbeiros", icon: <Users className="h-4 w-4" />, ownerOnly: true },
+  { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
+  { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
+  { to: "/reengajamento", label: "Reengajar", icon: <Heart className="h-4 w-4" />, ownerOnly: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

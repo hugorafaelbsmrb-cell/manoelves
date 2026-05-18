@@ -10,11 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicosRouteImport } from './routes/servicos'
+import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ComandaRouteImport } from './routes/comanda'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
+import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
@@ -25,6 +28,11 @@ const ServicosRoute = ServicosRouteImport.update({
   path: '/servicos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReengajamentoRoute = ReengajamentoRouteImport.update({
+  id: '/reengajamento',
+  path: '/reengajamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
   id: '/meu-financeiro',
   path: '/meu-financeiro',
@@ -33,6 +41,11 @@ const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilaEsperaRoute = FilaEsperaRouteImport.update({
+  id: '/fila-espera',
+  path: '/fila-espera',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -48,6 +61,11 @@ const ComandaRoute = ComandaRouteImport.update({
 const BarbeirosRoute = BarbeirosRouteImport.update({
   id: '/barbeiros',
   path: '/barbeiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssinaturasRoute = AssinaturasRouteImport.update({
+  id: '/assinaturas',
+  path: '/assinaturas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendaRoute = AgendaRouteImport.update({
@@ -74,11 +92,14 @@ const BSlugAgendarRoute = BSlugAgendarRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -86,11 +107,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -99,11 +123,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
   '/dashboard': typeof DashboardRoute
+  '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -113,11 +140,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agenda'
+    | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -125,11 +155,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agenda'
+    | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -137,11 +170,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agenda'
+    | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
     | '/dashboard'
+    | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
     | '/b/$slug/agendar'
@@ -150,11 +186,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
+  AssinaturasRoute: typeof AssinaturasRoute
   BarbeirosRoute: typeof BarbeirosRoute
   ComandaRoute: typeof ComandaRoute
   DashboardRoute: typeof DashboardRoute
+  FilaEsperaRoute: typeof FilaEsperaRoute
   LoginRoute: typeof LoginRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
+  ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   BSlugRoute: typeof BSlugRouteWithChildren
 }
@@ -166,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/servicos'
       fullPath: '/servicos'
       preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reengajamento': {
+      id: '/reengajamento'
+      path: '/reengajamento'
+      fullPath: '/reengajamento'
+      preLoaderRoute: typeof ReengajamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meu-financeiro': {
@@ -180,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fila-espera': {
+      id: '/fila-espera'
+      path: '/fila-espera'
+      fullPath: '/fila-espera'
+      preLoaderRoute: typeof FilaEsperaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -201,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/barbeiros'
       fullPath: '/barbeiros'
       preLoaderRoute: typeof BarbeirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assinaturas': {
+      id: '/assinaturas'
+      path: '/assinaturas'
+      fullPath: '/assinaturas'
+      preLoaderRoute: typeof AssinaturasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agenda': {
@@ -247,11 +307,14 @@ const BSlugRouteWithChildren = BSlugRoute._addFileChildren(BSlugRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
+  AssinaturasRoute: AssinaturasRoute,
   BarbeirosRoute: BarbeirosRoute,
   ComandaRoute: ComandaRoute,
   DashboardRoute: DashboardRoute,
+  FilaEsperaRoute: FilaEsperaRoute,
   LoginRoute: LoginRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
+  ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   BSlugRoute: BSlugRouteWithChildren,
 }
