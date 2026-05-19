@@ -334,7 +334,7 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (!full_name || !email || password.length < 8) {
       toast.error("Preencha nome, e-mail e senha (mín. 8 caracteres).");
