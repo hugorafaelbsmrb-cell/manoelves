@@ -330,3 +330,108 @@ function SchedulesTab() {
     </Card>
   );
 }
+
+function extractYouTubeId(input: string): { kind: "playlist" | "video"; id: string } | null {
+  const s = input.trim();
+  if (!s) return null;
+  try {
+    const url = new URL(s);
+    const list = url.searchParams.get("list");
+    if (list) return { kind: "playlist", id: list };
+    const v = url.searchParams.get("v");
+    if (v) return { kind: "video", id: v };
+    if (url.hostname.includes("youtu.be")) {
+      const id = url.pathname.replace(/^\//, "");
+      if (id) return { kind: "video", id };
+    }
+  } catch {
+    if (/^PL[A-Za-z0-9_-]{10,}$/.test(s)) return { kind: "playlist", id: s };
+    if (/^[A-Za-z0-9_-]{11}$/.test(s)) return { kind: "video", id: s };
+  }
+  return null;
+}
+
+function TvTab() {
+  const [raw, setRaw] = useState("");
+  const parsed = extractYouTubeId(raw);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const tvUrl = parsed
+    ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
+    : `${origin}/signage/tv`;
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(tvUrl);
+      toast.success("Link copiado");
+    } catch {
+      toast.error("Não consegui copiar");
+    }
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Pré-visualização</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
+            <iframe key={tvUrl} src={tvUrl} title="TV" className="h-full w-full" />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Mostra: <strong>vídeo/playlist do YouTube</strong> no centro, atendimento atual à
+            esquerda e os próximos 3 agendamentos à direita. Atualiza automaticamente.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Configurar TV</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">URL ou ID do YouTube</Label>
+            <Input
+              placeholder="https://youtube.com/playlist?list=... ou ID"
+              value={raw}
+              onChange={(e) => setRaw(e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Aceita link da playlist, link do vídeo, link curto youtu.be ou só o ID.
+            </p>
+          </div>
+          {parsed ? (
+            <Badge variant="secondary" className="text-[10px]">
+              {parsed.kind === "playlist" ? "Playlist" : "Vídeo"}: {parsed.id}
+            </Badge>
+          ) : raw ? (
+            <p className="text-xs text-destructive">Não consegui reconhecer este link.</p>
+          ) : null}
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">Link da TV</Label>
+            <div className="flex gap-2">
+              <Input readOnly value={tvUrl} className="font-mono text-xs" />
+              <Button variant="outline" size="icon" onClick={copy}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button asChild className="flex-1">
+              <Link to="/signage/tv" search={parsed ? { [parsed.kind]: parsed.id } as never : ({} as never)} target="_blank">
+                <ExternalLink className="mr-1 h-4 w-4" /> Abrir em nova aba
+              </Link>
+            </Button>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground">
+            Dica: abra esta URL no navegador da TV em tela cheia (F11).
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
