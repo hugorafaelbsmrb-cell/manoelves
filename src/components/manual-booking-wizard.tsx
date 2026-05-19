@@ -216,7 +216,7 @@ export function ManualBookingWizard() {
           <Plus className="mr-1 h-4 w-4" /> Novo agendamento
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-display tracking-wider">
             Novo agendamento manual
