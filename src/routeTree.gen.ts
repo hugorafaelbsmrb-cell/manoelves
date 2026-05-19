@@ -15,6 +15,7 @@ import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComandaRouteImport } from './routes/comanda'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
@@ -22,6 +23,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
+import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
 const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
@@ -51,6 +53,11 @@ const FilaEsperaRoute = FilaEsperaRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComandaRoute = ComandaRouteImport.update({
@@ -88,6 +95,11 @@ const BSlugAgendarRoute = BSlugAgendarRouteImport.update({
   path: '/agendar',
   getParentRoute: () => BSlugRoute,
 } as any)
+const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
+  id: '/api/public/mercadopago',
+  path: '/api/public/mercadopago',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
@@ -102,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRoutesByTo {
@@ -110,6 +124,7 @@ export interface FileRoutesByTo {
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
@@ -117,6 +132,7 @@ export interface FileRoutesByTo {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRoutesById {
@@ -126,6 +142,7 @@ export interface FileRoutesById {
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
@@ -133,6 +150,7 @@ export interface FileRoutesById {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRouteTypes {
@@ -143,6 +161,7 @@ export interface FileRouteTypes {
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
+    | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
     | '/login'
@@ -150,6 +169,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -158,6 +178,7 @@ export interface FileRouteTypes {
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
+    | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
     | '/login'
@@ -165,6 +186,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   id:
     | '__root__'
@@ -173,6 +195,7 @@ export interface FileRouteTypes {
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
+    | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
     | '/login'
@@ -180,6 +203,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesById: FileRoutesById
 }
@@ -189,6 +213,7 @@ export interface RootRouteChildren {
   AssinaturasRoute: typeof AssinaturasRoute
   BarbeirosRoute: typeof BarbeirosRoute
   ComandaRoute: typeof ComandaRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   FilaEsperaRoute: typeof FilaEsperaRoute
   LoginRoute: typeof LoginRoute
@@ -196,6 +221,7 @@ export interface RootRouteChildren {
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   BSlugRoute: typeof BSlugRouteWithChildren
+  ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -240,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comanda': {
@@ -291,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BSlugAgendarRouteImport
       parentRoute: typeof BSlugRoute
     }
+    '/api/public/mercadopago': {
+      id: '/api/public/mercadopago'
+      path: '/api/public/mercadopago'
+      fullPath: '/api/public/mercadopago'
+      preLoaderRoute: typeof ApiPublicMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -310,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssinaturasRoute: AssinaturasRoute,
   BarbeirosRoute: BarbeirosRoute,
   ComandaRoute: ComandaRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   FilaEsperaRoute: FilaEsperaRoute,
   LoginRoute: LoginRoute,
@@ -317,6 +358,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   BSlugRoute: BSlugRouteWithChildren,
+  ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

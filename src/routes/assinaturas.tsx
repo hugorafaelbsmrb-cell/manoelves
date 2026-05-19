@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
@@ -8,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Trash2, RefreshCw } from "lucide-react";
+import { Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { createSubscriptionPreapproval } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/assinaturas")({
   ssr: false,
@@ -78,6 +80,20 @@ function Page() {
     qc.invalidateQueries({ queryKey: ["subs"] });
   }
 
+  const preapprovalFn = useServerFn(createSubscriptionPreapproval);
+  async function generateMPLink(id: string) {
+    const email = window.prompt("E-mail do cliente para Mercado Pago:");
+    if (!email) return;
+    try {
+      const r = await preapprovalFn({ data: { subscriptionId: id, payerEmail: email } });
+      window.open(r.init_point, "_blank");
+      toast.success("Link de assinatura gerado");
+      qc.invalidateQueries({ queryKey: ["subs"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -132,6 +148,14 @@ function Page() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => generateMPLink(s.id)}
+                >
+                  <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                  {s.mp_init_point ? "Reabrir link MP" : "Gerar link MP"}
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"

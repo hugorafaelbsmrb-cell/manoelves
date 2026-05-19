@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Receipt, CheckCircle2 } from "lucide-react";
+import { Plus, Receipt, CheckCircle2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createOrderCheckout } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/comanda")({
   ssr: false,
@@ -39,7 +41,11 @@ function ComandaPage() {
     owner: number;
     barber: number;
     total: number;
+    orderId: string;
+    initPoint?: string | null;
   } | null>(null);
+  const checkoutFn = useServerFn(createOrderCheckout);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   const { data: services } = useQuery({
     queryKey: ["pdv-services"],
@@ -161,11 +167,27 @@ function ComandaPage() {
       owner: Math.round(ownerAmount),
       barber: Math.round(barberAmount),
       total: subtotal,
+      orderId: order.id,
+      initPoint: null,
     });
     setItems([]);
     setClientName("");
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
+  }
+
+  async function generatePaymentLink() {
+    if (!closed) return;
+    setGeneratingLink(true);
+    try {
+      const r = await checkoutFn({ data: { orderId: closed.orderId } });
+      setClosed({ ...closed, initPoint: r.init_point });
+      window.open(r.init_point, "_blank");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao gerar link");
+    } finally {
+      setGeneratingLink(false);
+    }
   }
 
   if (closed) {
@@ -181,7 +203,16 @@ function ComandaPage() {
           <Row label="Comissão do barbeiro" value={brl(closed.barber)} />
           <Row label="Dono da barbearia" value={brl(closed.owner)} />
         </div>
-        <Button className="mt-6 w-full" onClick={() => setClosed(null)}>
+        <Button
+          className="mt-6 w-full"
+          variant="secondary"
+          onClick={generatePaymentLink}
+          disabled={generatingLink}
+        >
+          <ExternalLink className="mr-1 h-4 w-4" />
+          {closed.initPoint ? "Reabrir checkout MP" : generatingLink ? "Gerando..." : "Pagar com Mercado Pago"}
+        </Button>
+        <Button className="mt-2 w-full" onClick={() => setClosed(null)}>
           Abrir nova comanda
         </Button>
       </div>
