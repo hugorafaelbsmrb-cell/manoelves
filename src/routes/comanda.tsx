@@ -41,7 +41,11 @@ function ComandaPage() {
     owner: number;
     barber: number;
     total: number;
+    orderId: string;
+    initPoint?: string | null;
   } | null>(null);
+  const checkoutFn = useServerFn(createOrderCheckout);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   const { data: services } = useQuery({
     queryKey: ["pdv-services"],
