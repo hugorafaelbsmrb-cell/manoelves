@@ -20,6 +20,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComandaRouteImport } from './routes/comanda'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
+import { Route as ApresentacaoRouteImport } from './routes/apresentacao'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignageTvRouteImport } from './routes/signage_.tv'
@@ -82,6 +83,11 @@ const AssinaturasRoute = AssinaturasRouteImport.update({
   path: '/assinaturas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApresentacaoRoute = ApresentacaoRouteImport.update({
+  id: '/apresentacao',
+  path: '/apresentacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgendaRoute = AgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -116,6 +122,7 @@ const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
   '/comanda': typeof ComandaRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agenda'
+    | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agenda'
+    | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agenda'
+    | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
     | '/comanda'
@@ -234,6 +246,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
+  ApresentacaoRoute: typeof ApresentacaoRoute
   AssinaturasRoute: typeof AssinaturasRoute
   BarbeirosRoute: typeof BarbeirosRoute
   ComandaRoute: typeof ComandaRoute
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssinaturasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apresentacao': {
+      id: '/apresentacao'
+      path: '/apresentacao'
+      fullPath: '/apresentacao'
+      preLoaderRoute: typeof ApresentacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agenda': {
       id: '/agenda'
       path: '/agenda'
@@ -387,6 +407,7 @@ const BSlugRouteWithChildren = BSlugRoute._addFileChildren(BSlugRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
+  ApresentacaoRoute: ApresentacaoRoute,
   AssinaturasRoute: AssinaturasRoute,
   BarbeirosRoute: BarbeirosRoute,
   ComandaRoute: ComandaRoute,
@@ -405,3 +426,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
