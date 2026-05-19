@@ -31,6 +31,9 @@ function BarbeirosPage() {
   const { isOwner } = useAuth();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
+  const createBarberFn = useServerFn(createBarber);
+  const deleteBarberFn = useServerFn(deleteBarber);
+  const updatePasswordFn = useServerFn(updateBarberPassword);
 
   const { data: barbers } = useQuery({
     queryKey: ["barbers-list"],
