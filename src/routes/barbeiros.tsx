@@ -126,11 +126,8 @@ function BarbeirosPage() {
               Selecione um barbeiro à esquerda.
             </p>
           ) : (
-            (() => {
-              const b = (barbers ?? []).find((x) => x.id === selected);
-              if (!b) return null;
-              return (
-                <div className="space-y-6">
+            (barbers ?? []).filter((x) => x.id === selected).map((b) => (
+                <div key={b.id} className="space-y-6">
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Perfil</h2>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
