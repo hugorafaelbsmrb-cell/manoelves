@@ -150,6 +150,14 @@ function Page() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
+                  variant="secondary"
+                  onClick={() => generateMPLink(s.id)}
+                >
+                  <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                  {s.mp_init_point ? "Reabrir link MP" : "Gerar link MP"}
+                </Button>
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => recharge(s.id, s.credits_remaining)}
                 >
