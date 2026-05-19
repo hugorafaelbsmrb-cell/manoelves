@@ -160,6 +160,27 @@ function Page() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Sighor — Signage TV</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="API Key"
+            placeholder="sk_live_..."
+            value={s.sighor_api_key}
+            onChange={(v) => setS({ ...s, sighor_api_key: v })}
+            type="password"
+          />
+          <div className="rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium text-foreground">Como obter:</p>
+            <p className="mt-1 text-muted-foreground">
+              Painel Sighor → Configurações → Chaves de API.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Button onClick={save} disabled={saving}>
         {saving ? "Salvando..." : "Salvar"}
       </Button>
