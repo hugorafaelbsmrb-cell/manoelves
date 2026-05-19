@@ -267,6 +267,7 @@ export type Database = {
           mp_access_token: string | null
           mp_public_key: string | null
           mp_webhook_secret: string | null
+          sighor_api_key: string | null
           updated_at: string
           whatsapp_phone_id: string | null
           whatsapp_token: string | null
@@ -276,6 +277,7 @@ export type Database = {
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
+          sighor_api_key?: string | null
           updated_at?: string
           whatsapp_phone_id?: string | null
           whatsapp_token?: string | null
@@ -285,6 +287,7 @@ export type Database = {
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
+          sighor_api_key?: string | null
           updated_at?: string
           whatsapp_phone_id?: string | null
           whatsapp_token?: string | null

@@ -26,6 +26,7 @@ type Settings = {
   mp_webhook_secret: string;
   whatsapp_token: string;
   whatsapp_phone_id: string;
+  sighor_api_key: string;
 };
 
 const empty: Settings = {
@@ -34,6 +35,7 @@ const empty: Settings = {
   mp_webhook_secret: "",
   whatsapp_token: "",
   whatsapp_phone_id: "",
+  sighor_api_key: "",
 };
 
 function Page() {
@@ -49,6 +51,7 @@ function Page() {
         .limit(1)
         .maybeSingle();
       if (data) {
+        const d = data as typeof data & { sighor_api_key?: string | null };
         setS({
           id: data.id,
           mp_access_token: data.mp_access_token ?? "",
@@ -56,6 +59,7 @@ function Page() {
           mp_webhook_secret: data.mp_webhook_secret ?? "",
           whatsapp_token: data.whatsapp_token ?? "",
           whatsapp_phone_id: data.whatsapp_phone_id ?? "",
+          sighor_api_key: d.sighor_api_key ?? "",
         });
       }
     })();
@@ -74,8 +78,9 @@ function Page() {
       mp_webhook_secret: s.mp_webhook_secret || null,
       whatsapp_token: s.whatsapp_token || null,
       whatsapp_phone_id: s.whatsapp_phone_id || null,
+      sighor_api_key: s.sighor_api_key || null,
       updated_at: new Date().toISOString(),
-    };
+    } as never;
     let res;
     if (s.id) {
       res = await supabase.from("integration_settings").update(payload).eq("id", s.id);
@@ -152,6 +157,27 @@ function Page() {
             value={s.whatsapp_phone_id}
             onChange={(v) => setS({ ...s, whatsapp_phone_id: v })}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Sighor — Signage TV</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="API Key"
+            placeholder="sk_live_..."
+            value={s.sighor_api_key}
+            onChange={(v) => setS({ ...s, sighor_api_key: v })}
+            type="password"
+          />
+          <div className="rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium text-foreground">Como obter:</p>
+            <p className="mt-1 text-muted-foreground">
+              Painel Sighor → Configurações → Chaves de API.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

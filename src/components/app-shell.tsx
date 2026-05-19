@@ -13,6 +13,7 @@ import {
   Clock,
   Heart,
   Settings as SettingsIcon,
+  Tv,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,6 +38,7 @@ const links: NavLink[] = [
   { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
   { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
   { to: "/reengajamento", label: "Reengajar", icon: <Heart className="h-4 w-4" />, ownerOnly: true },
+  { to: "/signage", label: "Signage TV", icon: <Tv className="h-4 w-4" />, ownerOnly: true },
   { to: "/configuracoes", label: "Configurações", icon: <SettingsIcon className="h-4 w-4" />, ownerOnly: true },
 ];
 

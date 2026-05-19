@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignageRouteImport } from './routes/signage'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
@@ -25,6 +26,11 @@ import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
+const SignageRoute = SignageRouteImport.update({
+  id: '/signage',
+  path: '/signage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
   path: '/servicos',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/meu-financeiro'
     | '/reengajamento'
     | '/servicos'
+    | '/signage'
     | '/b/$slug'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/meu-financeiro'
     | '/reengajamento'
     | '/servicos'
+    | '/signage'
     | '/b/$slug'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/meu-financeiro'
     | '/reengajamento'
     | '/servicos'
+    | '/signage'
     | '/b/$slug'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
@@ -220,12 +232,20 @@ export interface RootRouteChildren {
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
+  SignageRoute: typeof SignageRoute
   BSlugRoute: typeof BSlugRouteWithChildren
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signage': {
+      id: '/signage'
+      path: '/signage'
+      fullPath: '/signage'
+      preLoaderRoute: typeof SignageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/servicos': {
       id: '/servicos'
       path: '/servicos'
@@ -357,6 +377,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
+  SignageRoute: SignageRoute,
   BSlugRoute: BSlugRouteWithChildren,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }

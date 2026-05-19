@@ -1,0 +1,1 @@
+ALTER TABLE public.integration_settings ADD COLUMN IF NOT EXISTS sighor_api_key text;
