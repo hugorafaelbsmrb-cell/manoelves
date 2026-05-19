@@ -96,7 +96,7 @@ function HomePage() {
             {barbers.map((b) => (
               <Link
                 key={b.id}
-                to="/b/$slug"
+                to="/$slug"
                 params={{ slug: b.slug! }}
                 className="group rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40"
               >
