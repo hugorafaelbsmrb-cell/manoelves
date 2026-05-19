@@ -53,14 +53,16 @@ function Page() {
         </p>
       </div>
 
-      <Tabs defaultValue="media" className="space-y-4">
+      <Tabs defaultValue="tv" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="tv"><Tv className="mr-1 h-4 w-4" /> TV Atendimento</TabsTrigger>
           <TabsTrigger value="media"><ImageIcon className="mr-1 h-4 w-4" /> Mídias</TabsTrigger>
           <TabsTrigger value="playlists"><ListVideo className="mr-1 h-4 w-4" /> Playlists</TabsTrigger>
           <TabsTrigger value="displays"><Monitor className="mr-1 h-4 w-4" /> Displays</TabsTrigger>
           <TabsTrigger value="schedules"><Calendar className="mr-1 h-4 w-4" /> Agendamentos</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="tv"><TvTab /></TabsContent>
         <TabsContent value="media"><MediaTab /></TabsContent>
         <TabsContent value="playlists"><PlaylistsTab /></TabsContent>
         <TabsContent value="displays"><DisplaysTab /></TabsContent>
