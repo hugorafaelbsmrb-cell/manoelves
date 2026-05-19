@@ -17,10 +17,12 @@ async function getKey() {
   return key;
 }
 
+type Json = null | string | number | boolean | Json[] | { [k: string]: Json };
+
 async function sighor(
   path: string,
   init: { method?: string; body?: unknown; query?: Record<string, string> } = {},
-) {
+): Promise<Json> {
   const key = await getKey();
   const qs = init.query ? "?" + new URLSearchParams(init.query).toString() : "";
   const res = await fetch(BASE + path + qs, {
@@ -32,18 +34,19 @@ async function sighor(
     body: init.body ? JSON.stringify(init.body) : undefined,
   });
   const text = await res.text();
-  let json: unknown = null;
+  let json: Json = null;
   try {
-    json = text ? JSON.parse(text) : null;
+    json = text ? (JSON.parse(text) as Json) : null;
   } catch {
     json = text;
   }
   if (!res.ok) {
+    const obj = json && typeof json === "object" && !Array.isArray(json) ? json : null;
     const msg =
-      (json && typeof json === "object" && "error" in json && String((json as { error: unknown }).error)) ||
-      (json && typeof json === "object" && "message" in json && String((json as { message: unknown }).message)) ||
+      (obj && typeof obj.error === "string" && obj.error) ||
+      (obj && typeof obj.message === "string" && obj.message) ||
       `Sighor API ${res.status}`;
-    throw new Error(msg);
+    throw new Error(String(msg));
   }
   return json;
 }
