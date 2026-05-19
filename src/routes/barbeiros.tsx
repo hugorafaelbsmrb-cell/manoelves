@@ -2,12 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { slugify } from "@/lib/format";
+import {
+  createBarber,
+  deleteBarber,
+  updateBarberPassword,
+} from "@/lib/barbers.functions";
 
 export const Route = createFileRoute("/barbeiros")({
   ssr: false,
@@ -25,6 +31,9 @@ function BarbeirosPage() {
   const { isOwner } = useAuth();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
+  const createBarberFn = useServerFn(createBarber);
+  const deleteBarberFn = useServerFn(deleteBarber);
+  const updatePasswordFn = useServerFn(updateBarberPassword);
 
   const { data: barbers } = useQuery({
     queryKey: ["barbers-list"],
@@ -72,9 +81,16 @@ function BarbeirosPage() {
     <>
       <h1 className="font-display text-3xl tracking-wider">Barbeiros</h1>
       <p className="text-sm text-muted-foreground">
-        Cada cadastro de usuário vira automaticamente um barbeiro. Aqui você ajusta perfil
-        público, slug e horários.
+        Cadastre novos barbeiros, defina perfil público, slug e horários.
       </p>
+
+      <NewBarberForm
+        onCreate={async (payload) => {
+          await createBarberFn({ data: payload });
+          await qc.invalidateQueries({ queryKey: ["barbers-list"] });
+          toast.success("Barbeiro cadastrado");
+        }}
+      />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="rounded-xl border border-border bg-card p-2">
@@ -146,7 +162,7 @@ function BarbeirosPage() {
                         />
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -156,8 +172,43 @@ function BarbeirosPage() {
                       >
                         {b.is_active ? "Desativar" : "Reativar"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          const pw = window.prompt("Nova senha (mín. 8 caracteres)");
+                          if (!pw || pw.length < 8) return;
+                          try {
+                            await updatePasswordFn({ data: { barber_id: b.id, password: pw } });
+                            toast.success("Senha atualizada");
+                          } catch (e) {
+                            toast.error((e as Error).message);
+                          }
+                        }}
+                      >
+                        Trocar senha
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={async () => {
+                          if (!window.confirm(`Remover ${b.full_name}? Esta ação não pode ser desfeita.`)) return;
+                          try {
+                            await deleteBarberFn({ data: { barber_id: b.id } });
+                            await qc.invalidateQueries({ queryKey: ["barbers-list"] });
+                            setSelected(null);
+                            toast.success("Barbeiro removido");
+                          } catch (e) {
+                            toast.error((e as Error).message);
+                          }
+                        }}
+                      >
+                        Remover
+                      </Button>
                     </div>
                   </section>
+
 
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
@@ -265,3 +316,63 @@ function WeekRow({
     </div>
   );
 }
+
+
+
+
+interface NewBarberPayload {
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string | null;
+}
+
+function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promise<void> }) {
+  const [full_name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!full_name || !email || password.length < 8) {
+      toast.error("Preencha nome, e-mail e senha (mín. 8 caracteres).");
+      return;
+    }
+    setBusy(true);
+    try {
+      await onCreate({ full_name, email, password, phone: phone || null });
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 sm:grid-cols-2 lg:grid-cols-5"
+    >
+      <div className="lg:col-span-5">
+        <h2 className="font-display text-lg tracking-wide">Cadastrar novo barbeiro</h2>
+        <p className="text-xs text-muted-foreground">
+          O barbeiro receberá acesso com este e-mail e senha. Compartilhe com ele para o primeiro login.
+        </p>
+      </div>
+      <Input placeholder="Nome completo" value={full_name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input placeholder="Senha (mín. 8)" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <Input placeholder="WhatsApp (opcional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Button type="submit" disabled={busy}>
+        {busy ? "Criando..." : "Cadastrar"}
+      </Button>
+    </form>
+  );
+}
+
