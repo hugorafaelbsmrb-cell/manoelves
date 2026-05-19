@@ -150,7 +150,7 @@ function BarbeirosPage() {
                         <AvatarUpload
                           barberId={b.id}
                           url={b.avatar_url ?? ""}
-                          onSaved={(u) => updateProfile(b.id, { avatar_url: u })}
+                          onSaved={(u: string) => updateProfile(b.id, { avatar_url: u })}
                         />
                       </div>
                       <div className="sm:col-span-2">
