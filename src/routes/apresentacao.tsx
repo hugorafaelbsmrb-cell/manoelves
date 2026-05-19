@@ -4,7 +4,10 @@ import {
   Scissors, Calendar, Smartphone, CreditCard, Repeat, Tv, Bell,
   MessageCircle, Wallet, Settings, TrendingUp, ChevronLeft, ChevronRight,
   Maximize, Play, Clock, Star, CheckCircle2, BarChart3, Users, Sparkles,
+  LogIn, MapPin, Instagram, ArrowLeft, Calendar as CalIcon,
 } from "lucide-react";
+import logoUrl from "@/assets/manoelves-logo.png";
+
 
 export const Route = createFileRoute("/apresentacao")({
   ssr: false,
@@ -157,7 +160,7 @@ function Slide({
       </div>
 
       {/* mockup */}
-      <div className="relative flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 p-6 lg:p-10">
+      <div className="relative flex items-center justify-center bg-gradient-to-br from-neutral-900 to-neutral-950 p-6 lg:p-10">
         <div className="w-full max-w-[640px]">{children}</div>
       </div>
     </div>
@@ -217,7 +220,7 @@ function Phone({ children }: { children: React.ReactNode }) {
 function S_Cover() {
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-neutral-950 p-12 text-neutral-100">
-      <div className="absolute inset-0 opacity-[0.06]"
+      <div className="absolute inset-0 opacity-[0.05]"
         style={{
           backgroundImage:
             "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 80% 70%, white 1px, transparent 1px)",
@@ -225,20 +228,15 @@ function S_Cover() {
         }}
       />
       <div className="relative max-w-3xl text-center">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-neutral-400">
+        <img src={logoUrl} alt="Barbearia Mano Elves" className="mx-auto h-44 w-44 object-contain opacity-95" />
+        <div className="mx-auto mt-2 inline-flex items-center gap-2 rounded-full border border-neutral-800 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-neutral-400">
           <Scissors className="h-3 w-3" /> Sistema de gestão · Demo
         </div>
-        <h1
-          className="text-7xl leading-none lg:text-9xl"
-          style={{ fontFamily: '"Bebas Neue", Inter, sans-serif', letterSpacing: "0.02em" }}
-        >
-          MANO ELVES
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm text-neutral-400 lg:text-base">
+        <p className="mx-auto mt-6 max-w-xl text-sm text-neutral-400 lg:text-base">
           Plataforma completa para a barbearia: agenda, comandas, assinaturas,
           TVs, financeiro e relacionamento com o cliente — em um único lugar.
         </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-2 text-[11px] text-neutral-500">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[11px] text-neutral-500">
           <Chip>Agenda online</Chip>
           <Chip>Mercado Pago</Chip>
           <Chip>Assinaturas</Chip>
@@ -255,37 +253,87 @@ function Chip({ children }: { children: React.ReactNode }) {
   return <span className="rounded-full border border-neutral-800 px-3 py-1">{children}</span>;
 }
 
+/* ---------- Reusable "real system" UI fragments (dark theme like the app) ---------- */
+
+function AppBrowser({ url, children }: { url: string; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-950 shadow-2xl">
+      <div className="flex items-center gap-2 border-b border-neutral-800 bg-neutral-900 px-3 py-2">
+        <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+        <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        <div className="ml-3 flex-1 truncate rounded-md bg-neutral-950 px-3 py-1 text-[11px] text-neutral-400 ring-1 ring-neutral-800">
+          {url}
+        </div>
+      </div>
+      <div className="bg-neutral-950 text-neutral-100">{children}</div>
+    </div>
+  );
+}
+
+function DarkPhone({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto w-[290px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
+      <div className="relative overflow-hidden rounded-[26px] bg-neutral-950">
+        <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
+        <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 function S_Home() {
   return (
     <Slide
-      kicker="Página 1 · Home"
+      kicker="Página 1 · Home pública"
       title="Vitrine digital da barbearia"
-      description="A home pública apresenta a marca, os barbeiros e o caminho direto para o agendamento — sem fricção, sem app para baixar."
+      description="A home pública apresenta a marca, os barbeiros e o caminho direto para o agendamento — tema escuro, tipografia forte, zero fricção."
     >
-      <Browser url="manoelves.com.br">
-        <div className="relative">
-          <div className="h-44 bg-neutral-950 px-6 py-5 text-white">
-            <div className="flex items-center justify-between">
-              <p style={{ fontFamily: '"Bebas Neue"' }} className="text-3xl tracking-wider">MANO ELVES</p>
-              <span className="text-[10px] uppercase tracking-widest text-neutral-400">Barbearia</span>
-            </div>
-            <h3 className="mt-6 text-2xl font-semibold leading-tight">Tradição. Estilo. Mano Elves.</h3>
-            <p className="mt-1 text-xs text-neutral-400">Agende online em menos de 1 minuto.</p>
-            <button className="mt-3 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-neutral-900">
-              Agendar agora →
-            </button>
+      <AppBrowser url="manoelves.com.br">
+        {/* header igual ao /index */}
+        <div className="flex items-center justify-between border-b border-neutral-800/60 px-5 py-3">
+          <div className="flex items-center gap-2">
+            <Scissors className="h-4 w-4" />
+            <span style={{ fontFamily: '"Bebas Neue"' }} className="text-base tracking-wider">MANO ELVES</span>
           </div>
-          <div className="grid grid-cols-3 gap-2 p-4">
-            {["Corte", "Barba", "Combo"].map((s) => (
-              <div key={s} className="rounded-md border border-neutral-200 p-3">
-                <Scissors className="h-4 w-4 text-neutral-900" />
-                <p className="mt-2 text-[11px] font-semibold">{s}</p>
-                <p className="text-[10px] text-neutral-500">A partir de R$ 40</p>
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-neutral-800 px-2 py-1 text-[10px] text-neutral-400">
+            <LogIn className="h-3 w-3" /> Painel
+          </span>
+        </div>
+        {/* hero */}
+        <div className="px-5 py-7 text-center">
+          <img src={logoUrl} alt="" className="mx-auto h-16 w-16 object-contain opacity-90" />
+          <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-neutral-500">Barbearia</p>
+          <h1 style={{ fontFamily: '"Bebas Neue"' }} className="mt-1 text-4xl tracking-wide">Mano Elves</h1>
+          <p className="mx-auto mt-2 max-w-xs text-[10px] text-neutral-400">
+            Corte, barba e atendimento de primeira. Escolha seu barbeiro e reserve em segundos.
+          </p>
+          <p className="mt-2 inline-flex items-center gap-1 text-[9px] text-neutral-500">
+            <MapPin className="h-2.5 w-2.5" /> Rua das Tesouras, 123 — Centro
+          </p>
+        </div>
+        {/* barbeiros */}
+        <div className="px-5 pb-5">
+          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="text-sm tracking-wider">Nossos barbeiros</h2>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {["João","Pedro","Carlos"].map((n) => (
+              <div key={n} className="rounded-lg border border-neutral-800 bg-neutral-900 p-2">
+                <div className="flex items-center gap-2">
+                  <div style={{ fontFamily: '"Bebas Neue"' }} className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-800 text-sm">{n[0]}</div>
+                  <div className="min-w-0">
+                    <p style={{ fontFamily: '"Bebas Neue"' }} className="truncate text-[11px] tracking-wide">{n}</p>
+                    <p className="truncate text-[8px] text-neutral-500">barber.me/{n.toLowerCase()}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-[8px] text-neutral-100">Agendar →</p>
               </div>
             ))}
           </div>
         </div>
-      </Browser>
+        <div className="border-t border-neutral-800/60 py-2 text-center text-[8px] text-neutral-500">
+          <Instagram className="mx-auto h-3 w-3" /> @barbearia.mano.elves
+        </div>
+      </AppBrowser>
       <Value
         items={[
           { icon: Sparkles, label: "Marca forte", text: "Identidade visual coesa que transmite profissionalismo desde o primeiro clique." },
@@ -303,42 +351,70 @@ function S_BarberLanding() {
       title="Cada barbeiro com sua própria página"
       description="Um link único para cada profissional (ex.: /b/joao). Ele compartilha no Instagram, no status do WhatsApp, no cartão — e o cliente cai direto na agenda dele."
     >
-      <Phone>
-        <div className="px-4 pt-10">
-          <div className="mx-auto h-16 w-16 rounded-full bg-neutral-200 ring-2 ring-neutral-900" />
-          <p className="mt-3 text-center text-base font-semibold">João Silva</p>
-          <p className="text-center text-[11px] text-neutral-500">Barbeiro · Mano Elves</p>
-          <div className="mt-3 flex items-center justify-center gap-1 text-[11px] text-amber-500">
-            <Star className="h-3 w-3 fill-amber-500" /> 4.9 · 312 avaliações
+      <DarkPhone>
+        {/* header igual ao /b/$slug */}
+        <div className="flex items-center justify-between border-b border-neutral-800/60 px-4 py-3 pt-7">
+          <span className="inline-flex items-center gap-1 text-[9px] text-neutral-400">
+            <ArrowLeft className="h-2.5 w-2.5" /> Mano Elves
+          </span>
+          <span className="inline-flex items-center gap-1 text-[9px] text-neutral-400">
+            <Scissors className="h-2.5 w-2.5" /> barber.me/joao
+          </span>
+        </div>
+        {/* avatar + nome + bio */}
+        <div className="px-5 py-5 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-neutral-800">
+            <span style={{ fontFamily: '"Bebas Neue"' }} className="text-3xl">J</span>
           </div>
-          <div className="mt-4 space-y-2">
+          <h1 style={{ fontFamily: '"Bebas Neue"' }} className="mt-3 text-2xl tracking-wide">João Silva</h1>
+          <p className="mx-auto mt-1 max-w-[200px] text-[10px] leading-snug text-neutral-400">
+            Barbeiro há 8 anos. Especialista em fade e barba na navalha.
+          </p>
+        </div>
+        {/* combos */}
+        <div className="px-4">
+          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="text-[13px] tracking-wider">Combos</h2>
+          <div className="mt-1.5 space-y-1.5">
+            <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
+              <div>
+                <p className="text-[11px] font-medium">Corte + Barba</p>
+                <p className="text-[9px] text-neutral-500">50 min</p>
+              </div>
+              <div className="text-right">
+                <p style={{ fontFamily: '"Bebas Neue"' }} className="text-base">R$ 75</p>
+                <p className="text-[8px] text-neutral-500">Agendar →</p>
+              </div>
+            </div>
+          </div>
+          {/* serviços */}
+          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="mt-3 text-[13px] tracking-wider">Serviços</h2>
+          <div className="mt-1.5 space-y-1.5">
             {[
-              { n: "Corte tradicional", t: "30 min · R$ 50" },
-              { n: "Barba na navalha", t: "20 min · R$ 35" },
-              { n: "Combo corte + barba", t: "50 min · R$ 75" },
+              {n:"Corte tradicional", d:"30 min", p:"R$ 50"},
+              {n:"Barba na navalha", d:"20 min", p:"R$ 35"},
             ].map((s) => (
-              <div key={s.n} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5">
+              <div key={s.n} className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
                 <div>
-                  <p className="text-[12px] font-semibold">{s.n}</p>
-                  <p className="text-[10px] text-neutral-500">{s.t}</p>
+                  <p className="text-[11px] font-medium">{s.n}</p>
+                  <p className="text-[9px] text-neutral-500">{s.d}</p>
                 </div>
-                <button className="rounded-md bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold text-white">
-                  Agendar
-                </button>
+                <p style={{ fontFamily: '"Bebas Neue"' }} className="text-base">{s.p}</p>
               </div>
             ))}
           </div>
         </div>
-      </Phone>
+      </DarkPhone>
       <Value
         items={[
           { icon: Smartphone, label: "Marketing pessoal", text: "Cada barbeiro vira embaixador: link próprio, próprio portfólio, próprios clientes." },
           { icon: TrendingUp, label: "Mais reservas", text: "Sem ligações, sem mensagens — o cliente escolhe serviço e horário sozinho." },
+          { icon: Star, label: "Mesmo visual do sistema", text: "Página pública usa exatamente os mesmos componentes do painel — consistência total." },
         ]}
       />
     </Slide>
   );
 }
+
 
 function S_PublicBooking() {
   return (
@@ -436,7 +512,76 @@ function S_Agenda() {
   );
 }
 
+function S_Dashboard() {
+  const bars = [42, 55, 38, 70, 62, 48, 80, 73, 90, 65, 78, 95, 82, 110];
+  const maxBar = Math.max(...bars);
+  return (
+    <Slide
+      kicker="Painel · Dashboard"
+      title="O dono vê o negócio em um piscar"
+      description="Faturamento do mês, comandas fechadas, ticket médio e margem do dono — tudo em tempo real. Gráfico dos últimos 14 dias e ranking dos barbeiros."
+    >
+      <Browser url="app.manoelves.com.br/dashboard">
+        <div className="p-4">
+          <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Dashboard</p>
+          <p className="text-[10px] text-neutral-500">Visão maio/2026 · dados em tempo real</p>
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {[
+              { l: "Faturamento", v: "R$ 28.450" },
+              { l: "Comandas", v: "186" },
+              { l: "Ticket médio", v: "R$ 153" },
+              { l: "Margem dono", v: "R$ 14.225" },
+            ].map((k) => (
+              <div key={k.l} className="rounded-lg border border-neutral-200 p-2">
+                <p className="text-[8px] uppercase tracking-widest text-neutral-500">{k.l}</p>
+                <p style={{ fontFamily: '"Bebas Neue"' }} className="mt-0.5 text-lg tracking-wide">{k.v}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
+            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Últimos 14 dias</p>
+            <div className="mt-2 flex h-24 items-end gap-1">
+              {bars.map((b, i) => (
+                <div key={i} className="flex-1 rounded-t bg-neutral-900" style={{ height: `${(b/maxBar)*100}%` }} />
+              ))}
+            </div>
+            <div className="mt-1 flex justify-between text-[7px] text-neutral-400">
+              <span>08/05</span><span>14/05</span><span>21/05</span>
+            </div>
+          </div>
+          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
+            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Ranking de barbeiros · mês</p>
+            <ul className="mt-1 divide-y divide-neutral-200 text-[10px]">
+              {[
+                { n: "João Silva", v: "R$ 11.820" },
+                { n: "Pedro Alves", v: "R$ 9.140" },
+                { n: "Carlos Mendes", v: "R$ 7.490" },
+              ].map((r, i) => (
+                <li key={r.n} className="flex items-center justify-between py-1">
+                  <span className="flex items-center gap-2">
+                    <span style={{ fontFamily: '"Bebas Neue"' }} className="w-4 text-center text-sm">{i+1}</span>
+                    {r.n}
+                  </span>
+                  <span className="font-medium">{r.v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Browser>
+      <Value
+        items={[
+          { icon: BarChart3, label: "Decisão por dado", text: "Sai do achismo: dono vê o que dá dinheiro e onde investir." },
+          { icon: TrendingUp, label: "Ranking saudável", text: "Time vê a performance — gera competitividade positiva entre barbeiros." },
+          { icon: CalIcon, label: "Tempo real", text: "Cada comanda fechada atualiza os KPIs imediatamente." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
 function S_Comanda() {
+
   return (
     <Slide
       kicker="Painel 2 · Comanda + Mercado Pago"
@@ -790,7 +935,9 @@ const SLIDES: { title: string; component: () => React.ReactElement }[] = [
   { title: "Landing do barbeiro", component: S_BarberLanding },
   { title: "Agendamento público", component: S_PublicBooking },
   { title: "Agenda interna", component: S_Agenda },
+  { title: "Dashboard do dono", component: S_Dashboard },
   { title: "Comanda + Mercado Pago", component: S_Comanda },
+
   { title: "Assinaturas recorrentes", component: S_Subscriptions },
   { title: "Signage TV", component: S_Signage },
   { title: "Fila de espera", component: S_Waitlist },
