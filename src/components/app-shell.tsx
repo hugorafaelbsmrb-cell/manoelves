@@ -34,6 +34,7 @@ const links: NavLink[] = [
   { to: "/dashboard", label: "Dashboard", icon: <BarChart3 className="h-4 w-4" />, ownerOnly: true },
   { to: "/meu-financeiro", label: "Meu financeiro", icon: <Wallet className="h-4 w-4" />, barberOnly: true },
   { to: "/servicos", label: "Serviços", icon: <Package className="h-4 w-4" />, ownerOnly: true },
+  { to: "/produtos", label: "Produtos", icon: <Package className="h-4 w-4" />, ownerOnly: true },
   { to: "/barbeiros", label: "Barbeiros", icon: <Users className="h-4 w-4" />, ownerOnly: true },
   { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
   { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
