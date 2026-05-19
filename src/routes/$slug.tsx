@@ -120,7 +120,7 @@ function BarberPage() {
             return (
               <Link
                 key={c.id}
-                to="/$slug/agendar"
+                to="/$slug_/agendar"
                 params={{ slug: slug }}
                 search={{ comboId: c.id }}
                 className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition hover:border-foreground/40"
@@ -145,7 +145,7 @@ function BarberPage() {
           {services?.map((s) => (
             <Link
               key={s.id}
-              to="/$slug/agendar"
+              to="/$slug_/agendar"
               params={{ slug }}
               search={{ serviceId: s.id }}
               className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition hover:border-foreground/40"
