@@ -51,6 +51,7 @@ function Page() {
         .limit(1)
         .maybeSingle();
       if (data) {
+        const d = data as typeof data & { sighor_api_key?: string | null };
         setS({
           id: data.id,
           mp_access_token: data.mp_access_token ?? "",
@@ -58,6 +59,7 @@ function Page() {
           mp_webhook_secret: data.mp_webhook_secret ?? "",
           whatsapp_token: data.whatsapp_token ?? "",
           whatsapp_phone_id: data.whatsapp_phone_id ?? "",
+          sighor_api_key: d.sighor_api_key ?? "",
         });
       }
     })();
