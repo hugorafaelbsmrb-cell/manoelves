@@ -22,6 +22,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
+import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
 const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
@@ -88,6 +89,11 @@ const BSlugAgendarRoute = BSlugAgendarRouteImport.update({
   path: '/agendar',
   getParentRoute: () => BSlugRoute,
 } as any)
+const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
+  id: '/api/public/mercadopago',
+  path: '/api/public/mercadopago',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/b/$slug'
+    | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   BSlugRoute: typeof BSlugRouteWithChildren
+  ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BSlugAgendarRouteImport
       parentRoute: typeof BSlugRoute
     }
+    '/api/public/mercadopago': {
+      id: '/api/public/mercadopago'
+      path: '/api/public/mercadopago'
+      fullPath: '/api/public/mercadopago'
+      preLoaderRoute: typeof ApiPublicMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -317,7 +337,18 @@ const rootRouteChildren: RootRouteChildren = {
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   BSlugRoute: BSlugRouteWithChildren,
+  ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
