@@ -4,7 +4,7 @@ import {
   Scissors, Calendar, Smartphone, CreditCard, Repeat, Tv, Bell,
   MessageCircle, Wallet, Settings, TrendingUp, ChevronLeft, ChevronRight,
   Maximize, Play, Clock, Star, CheckCircle2, BarChart3, Users, Sparkles,
-  LogIn, MapPin, Instagram, ArrowLeft, ArrowRight, Calendar as CalIcon,
+  LogIn, MapPin, Instagram, ArrowLeft, Calendar as CalIcon,
 } from "lucide-react";
 import logoUrl from "@/assets/manoelves-logo.png";
 
