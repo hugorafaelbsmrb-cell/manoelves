@@ -48,7 +48,16 @@ function Page() {
         .select("*")
         .limit(1)
         .maybeSingle();
-      if (data) setS({ ...empty, ...data });
+      if (data) {
+        setS({
+          id: data.id,
+          mp_access_token: data.mp_access_token ?? "",
+          mp_public_key: data.mp_public_key ?? "",
+          mp_webhook_secret: data.mp_webhook_secret ?? "",
+          whatsapp_token: data.whatsapp_token ?? "",
+          whatsapp_phone_id: data.whatsapp_phone_id ?? "",
+        });
+      }
     })();
   }, []);
 
