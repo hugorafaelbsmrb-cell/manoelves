@@ -215,14 +215,14 @@ export function ManualBookingWizard() {
           <Plus className="mr-1 h-4 w-4" /> Novo agendamento
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display tracking-wider">
             Novo agendamento manual
           </DialogTitle>
-          <p className="text-xs text-muted-foreground">
+          <DialogDescription>
             Passo {stepIndex} de {stepTotal}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         {step === "barber" && (
