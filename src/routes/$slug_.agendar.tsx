@@ -17,7 +17,7 @@ const searchSchema = z.object({
   serviceId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/$slug/agendar")({
+export const Route = createFileRoute("/$slug_/agendar")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({ meta: [{ title: "Agendar — Mano Elves" }] }),
   component: BookingPage,

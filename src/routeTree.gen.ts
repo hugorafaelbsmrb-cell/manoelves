@@ -26,7 +26,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignageTvRouteImport } from './routes/signage_.tv'
-import { Route as SlugAgendarRouteImport } from './routes/$slug.agendar'
+import { Route as SlugAgendarRouteImport } from './routes/$slug_.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
 const SignageRoute = SignageRouteImport.update({
@@ -115,9 +115,9 @@ const SignageTvRoute = SignageTvRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugAgendarRoute = SlugAgendarRouteImport.update({
-  id: '/agendar',
-  path: '/agendar',
-  getParentRoute: () => SlugRoute,
+  id: '/$slug_/agendar',
+  path: '/$slug/agendar',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
   id: '/api/public/mercadopago',
@@ -127,7 +127,7 @@ const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRouteWithChildren
+  '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
@@ -148,7 +148,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRouteWithChildren
+  '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
@@ -170,7 +170,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$slug': typeof SlugRouteWithChildren
+  '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
@@ -185,7 +185,7 @@ export interface FileRoutesById {
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/signage': typeof SignageRoute
-  '/$slug/agendar': typeof SlugAgendarRoute
+  '/$slug_/agendar': typeof SlugAgendarRoute
   '/signage_/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
@@ -250,14 +250,14 @@ export interface FileRouteTypes {
     | '/reengajamento'
     | '/servicos'
     | '/signage'
-    | '/$slug/agendar'
+    | '/$slug_/agendar'
     | '/signage_/tv'
     | '/api/public/mercadopago'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SlugRoute: typeof SlugRouteWithChildren
+  SlugRoute: typeof SlugRoute
   AgendaRoute: typeof AgendaRoute
   ApresentacaoRoute: typeof ApresentacaoRoute
   AssinaturasRoute: typeof AssinaturasRoute
@@ -272,6 +272,7 @@ export interface RootRouteChildren {
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   SignageRoute: typeof SignageRoute
+  SlugAgendarRoute: typeof SlugAgendarRoute
   SignageTvRoute: typeof SignageTvRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
@@ -397,12 +398,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignageTvRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$slug/agendar': {
-      id: '/$slug/agendar'
-      path: '/agendar'
+    '/$slug_/agendar': {
+      id: '/$slug_/agendar'
+      path: '/$slug/agendar'
       fullPath: '/$slug/agendar'
       preLoaderRoute: typeof SlugAgendarRouteImport
-      parentRoute: typeof SlugRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/mercadopago': {
       id: '/api/public/mercadopago'
@@ -414,19 +415,9 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface SlugRouteChildren {
-  SlugAgendarRoute: typeof SlugAgendarRoute
-}
-
-const SlugRouteChildren: SlugRouteChildren = {
-  SlugAgendarRoute: SlugAgendarRoute,
-}
-
-const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SlugRoute: SlugRouteWithChildren,
+  SlugRoute: SlugRoute,
   AgendaRoute: AgendaRoute,
   ApresentacaoRoute: ApresentacaoRoute,
   AssinaturasRoute: AssinaturasRoute,
@@ -441,9 +432,20 @@ const rootRouteChildren: RootRouteChildren = {
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   SignageRoute: SignageRoute,
+  SlugAgendarRoute: SlugAgendarRoute,
   SignageTvRoute: SignageTvRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
