@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { ManualBookingWizard } from "@/components/manual-booking-wizard";
 
 export const Route = createFileRoute("/agenda")({
   ssr: false,
