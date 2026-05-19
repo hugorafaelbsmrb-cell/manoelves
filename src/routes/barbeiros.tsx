@@ -315,4 +315,61 @@ function WeekRow({
       )}
     </div>
   );
+
+
+interface NewBarberPayload {
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string | null;
 }
+
+function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promise<void> }) {
+  const [full_name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!full_name || !email || password.length < 8) {
+      toast.error("Preencha nome, e-mail e senha (mín. 8 caracteres).");
+      return;
+    }
+    setBusy(true);
+    try {
+      await onCreate({ full_name, email, password, phone: phone || null });
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 sm:grid-cols-2 lg:grid-cols-5"
+    >
+      <div className="lg:col-span-5">
+        <h2 className="font-display text-lg tracking-wide">Cadastrar novo barbeiro</h2>
+        <p className="text-xs text-muted-foreground">
+          O barbeiro receberá acesso com este e-mail e senha. Compartilhe com ele para o primeiro login.
+        </p>
+      </div>
+      <Input placeholder="Nome completo" value={full_name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input placeholder="Senha (mín. 8)" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <Input placeholder="WhatsApp (opcional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Button type="submit" disabled={busy}>
+        {busy ? "Criando..." : "Cadastrar"}
+      </Button>
+    </form>
+  );
+}
+
