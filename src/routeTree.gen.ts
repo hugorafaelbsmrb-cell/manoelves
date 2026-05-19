@@ -22,7 +22,7 @@ import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SignageTvRouteImport } from './routes/signage.tv'
+import { Route as SignageTvRouteImport } from './routes/signage_.tv'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
@@ -93,9 +93,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignageTvRoute = SignageTvRouteImport.update({
-  id: '/tv',
-  path: '/tv',
-  getParentRoute: () => SignageRoute,
+  id: '/signage_/tv',
+  path: '/signage/tv',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BSlugRoute = BSlugRouteImport.update({
   id: '/b/$slug',
@@ -126,7 +126,7 @@ export interface FileRoutesByFullPath {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRouteWithChildren
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
@@ -145,7 +145,7 @@ export interface FileRoutesByTo {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRouteWithChildren
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
@@ -165,9 +165,9 @@ export interface FileRoutesById {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRouteWithChildren
+  '/signage': typeof SignageRoute
   '/b/$slug': typeof BSlugRouteWithChildren
-  '/signage/tv': typeof SignageTvRoute
+  '/signage_/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
@@ -226,7 +226,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/signage'
     | '/b/$slug'
-    | '/signage/tv'
+    | '/signage_/tv'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesById: FileRoutesById
@@ -244,8 +244,9 @@ export interface RootRouteChildren {
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
-  SignageRoute: typeof SignageRouteWithChildren
+  SignageRoute: typeof SignageRoute
   BSlugRoute: typeof BSlugRouteWithChildren
+  SignageTvRoute: typeof SignageTvRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
@@ -342,12 +343,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signage/tv': {
-      id: '/signage/tv'
-      path: '/tv'
+    '/signage_/tv': {
+      id: '/signage_/tv'
+      path: '/signage/tv'
       fullPath: '/signage/tv'
       preLoaderRoute: typeof SignageTvRouteImport
-      parentRoute: typeof SignageRoute
+      parentRoute: typeof rootRouteImport
     }
     '/b/$slug': {
       id: '/b/$slug'
@@ -373,17 +374,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface SignageRouteChildren {
-  SignageTvRoute: typeof SignageTvRoute
-}
-
-const SignageRouteChildren: SignageRouteChildren = {
-  SignageTvRoute: SignageTvRoute,
-}
-
-const SignageRouteWithChildren =
-  SignageRoute._addFileChildren(SignageRouteChildren)
-
 interface BSlugRouteChildren {
   BSlugAgendarRoute: typeof BSlugAgendarRoute
 }
@@ -407,8 +397,9 @@ const rootRouteChildren: RootRouteChildren = {
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
-  SignageRoute: SignageRouteWithChildren,
+  SignageRoute: SignageRoute,
   BSlugRoute: BSlugRouteWithChildren,
+  SignageTvRoute: SignageTvRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
