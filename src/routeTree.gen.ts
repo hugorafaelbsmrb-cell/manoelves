@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignageRouteImport } from './routes/signage'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
+import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
@@ -41,6 +42,11 @@ const ServicosRoute = ServicosRouteImport.update({
 const ReengajamentoRoute = ReengajamentoRouteImport.update({
   id: '/reengajamento',
   path: '/reengajamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/signage': typeof SignageRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/signage': typeof SignageRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/fila-espera': typeof FilaEsperaRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
+  '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
   '/signage': typeof SignageRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/produtos'
     | '/reengajamento'
     | '/servicos'
     | '/signage'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/produtos'
     | '/reengajamento'
     | '/servicos'
     | '/signage'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/login'
     | '/meu-financeiro'
+    | '/produtos'
     | '/reengajamento'
     | '/servicos'
     | '/signage'
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   FilaEsperaRoute: typeof FilaEsperaRoute
   LoginRoute: typeof LoginRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
+  ProdutosRoute: typeof ProdutosRoute
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
   SignageRoute: typeof SignageRoute
@@ -284,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/reengajamento'
       fullPath: '/reengajamento'
       preLoaderRoute: typeof ReengajamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meu-financeiro': {
@@ -416,6 +436,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilaEsperaRoute: FilaEsperaRoute,
   LoginRoute: LoginRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
+  ProdutosRoute: ProdutosRoute,
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
   SignageRoute: SignageRoute,
@@ -426,3 +447,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
