@@ -12,8 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar, Tv, Copy, ExternalLink } from "lucide-react";
+import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar, Tv, Copy, ExternalLink, Pencil, Link as LinkIcon, Settings } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   listMedia,
   createMedia,
@@ -22,7 +24,12 @@ import {
   createPlaylist,
   listDisplays,
   createDisplay,
+  updateDisplay,
   deleteDisplay,
+  linkDisplay,
+  listDisplayPlaylists,
+  assignPlaylistToDisplay,
+  unassignPlaylistFromDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
 
@@ -270,6 +277,17 @@ function PlaylistsTab() {
   );
 }
 
+const RESOLUTIONS = ["1920x1080", "1080x1920", "1280x720", "720x1280", "3840x2160"];
+const WEEKDAYS = [
+  { v: 0, l: "Dom" },
+  { v: 1, l: "Seg" },
+  { v: 2, l: "Ter" },
+  { v: 3, l: "Qua" },
+  { v: 4, l: "Qui" },
+  { v: 5, l: "Sex" },
+  { v: 6, l: "Sáb" },
+];
+
 function DisplaysTab() {
   const list = useServerFn(listDisplays);
   const listP = useServerFn(listPlaylists);
@@ -281,7 +299,8 @@ function DisplaysTab() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [playlistId, setPlaylistId] = useState<string>("");
+  const [resolution, setResolution] = useState<string>("1920x1080");
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
   const [saving, setSaving] = useState(false);
 
   async function submit() {
@@ -293,11 +312,12 @@ function DisplaysTab() {
           name,
           location: location || undefined,
           description: description || undefined,
-          playlist_id: playlistId || undefined,
+          resolution: resolution || undefined,
+          orientation,
         },
       });
       toast.success("Display criado");
-      setName(""); setLocation(""); setDescription(""); setPlaylistId("");
+      setName(""); setLocation(""); setDescription("");
       reload();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
@@ -327,25 +347,15 @@ function DisplaysTab() {
             : err ? <p className="text-sm text-destructive">{err}</p>
             : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum display registrado.</p>
             : (
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {items.map((d) => (
-                  <div key={String(d.id)} className="flex items-start justify-between gap-2 rounded-md border border-border p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-medium">{String(d.name ?? "—")}</p>
-                        <Badge variant={d.status === "online" ? "default" : "secondary"} className="text-[10px]">
-                          {String(d.status ?? "offline")}
-                        </Badge>
-                      </div>
-                      {d.location ? <p className="truncate text-xs text-muted-foreground">{String(d.location)}</p> : null}
-                      {d.pairing_code ? (
-                        <p className="mt-1 font-mono text-xs">Código: <strong>{String(d.pairing_code)}</strong></p>
-                      ) : null}
-                    </div>
-                    <Button size="icon" variant="ghost" onClick={() => remove(String(d.id))}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DisplayCard
+                    key={String(d.id)}
+                    display={d}
+                    playlists={playlists.items}
+                    onChanged={reload}
+                    onRemove={() => remove(String(d.id))}
+                  />
                 ))}
               </div>
             )}
@@ -363,17 +373,26 @@ function DisplaysTab() {
             <Label className="text-xs">Local</Label>
             <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Entrada" />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Playlist (opcional)</Label>
-            <Select value={playlistId || "__none"} onValueChange={(v) => setPlaylistId(v === "__none" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none">Nenhuma</SelectItem>
-                {playlists.items.map((p) => (
-                  <SelectItem key={String(p.id)} value={String(p.id)}>{String(p.name ?? p.id)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Resolução</Label>
+              <Select value={resolution} onValueChange={setResolution}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {RESOLUTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Orientação</Label>
+              <Select value={orientation} onValueChange={(v) => setOrientation(v as "landscape" | "portrait")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="landscape">Paisagem</SelectItem>
+                  <SelectItem value="portrait">Retrato</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Descrição</Label>
@@ -382,8 +401,283 @@ function DisplaysTab() {
           <Button onClick={submit} disabled={saving} className="w-full">
             <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Criar display"}
           </Button>
+          <p className="text-[11px] text-muted-foreground">
+            Após criar, use <strong>Vincular TV</strong> com o código de 6 dígitos exibido em{" "}
+            <span className="font-mono">sighor.lovable.app/player</span>.
+          </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function DisplayCard({
+  display,
+  playlists,
+  onChanged,
+  onRemove,
+}: {
+  display: AnyItem;
+  playlists: AnyItem[];
+  onChanged: () => void;
+  onRemove: () => void;
+}) {
+  const update = useServerFn(updateDisplay);
+  const link = useServerFn(linkDisplay);
+  const listAssign = useServerFn(listDisplayPlaylists);
+  const assign = useServerFn(assignPlaylistToDisplay);
+  const unassign = useServerFn(unassignPlaylistFromDisplay);
+
+  const id = String(display.id);
+  const status = String(display.status ?? "offline");
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [plOpen, setPlOpen] = useState(false);
+
+  const [name, setName] = useState(String(display.name ?? ""));
+  const [location, setLocation] = useState(String(display.location ?? ""));
+  const [description, setDescription] = useState(String(display.description ?? ""));
+  const [resolution, setResolution] = useState(String(display.resolution ?? "1920x1080"));
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">(
+    (display.orientation as "landscape" | "portrait") ?? "landscape",
+  );
+  const [pairing, setPairing] = useState("");
+
+  const [assignments, setAssignments] = useState<AnyItem[]>([]);
+  const [pid, setPid] = useState("");
+  const [priority, setPriority] = useState(0);
+  const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
+  async function loadAssignments() {
+    try {
+      const res = (await listAssign({ data: { id } })) as unknown;
+      const arr = Array.isArray(res)
+        ? res
+        : res && typeof res === "object" && Array.isArray((res as { data?: unknown }).data)
+          ? ((res as { data: unknown[] }).data)
+          : [];
+      setAssignments(arr as AnyItem[]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function save() {
+    try {
+      await update({ data: { id, name, location, description, resolution, orientation } });
+      toast.success("Atualizado");
+      setEditOpen(false);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function doLink() {
+    if (!/^[0-9]{6}$/.test(pairing)) return toast.error("Código de 6 dígitos");
+    try {
+      await link({ data: { id, pairing_code: pairing } });
+      toast.success("TV vinculada");
+      setPairing(""); setLinkOpen(false); onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function doAssign() {
+    if (!pid) return toast.error("Escolha uma playlist");
+    try {
+      await assign({ data: { id, playlist_id: pid, priority, weekdays: days } });
+      toast.success("Playlist atribuída");
+      setPid(""); setPriority(0); setDays([0, 1, 2, 3, 4, 5, 6]);
+      loadAssignments();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  async function doUnassign(aid: string) {
+    try {
+      await unassign({ data: { id, assignment_id: aid } });
+      loadAssignments();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  return (
+    <div className="rounded-md border border-border p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-medium">{String(display.name ?? "—")}</p>
+            <Badge variant={status === "online" ? "default" : "secondary"} className="text-[10px]">{status}</Badge>
+          </div>
+          {display.location ? <p className="truncate text-xs text-muted-foreground">{String(display.location)}</p> : null}
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {String(display.resolution ?? "—")} · {String(display.orientation ?? "—")}
+          </p>
+        </div>
+        <Button size="icon" variant="ghost" onClick={onRemove} title="Excluir">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline"><Pencil className="mr-1 h-3 w-3" /> Editar</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Editar display</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Nome</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Local</Label>
+                <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Resolução</Label>
+                  <Select value={resolution} onValueChange={setResolution}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {RESOLUTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Orientação</Label>
+                  <Select value={orientation} onValueChange={(v) => setOrientation(v as "landscape" | "portrait")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="landscape">Paisagem</SelectItem>
+                      <SelectItem value="portrait">Retrato</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Descrição</Label>
+                <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={save}>Salvar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline"><LinkIcon className="mr-1 h-3 w-3" /> Vincular TV</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Vincular TV</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Abra <span className="font-mono">sighor.lovable.app/player</span> na TV e informe o código de 6 dígitos exibido.
+              </p>
+              <Input
+                value={pairing}
+                onChange={(e) => setPairing(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="123456"
+                className="text-center font-mono text-xl tracking-widest"
+                inputMode="numeric"
+              />
+            </div>
+            <DialogFooter>
+              <Button onClick={doLink} disabled={pairing.length !== 6}>Vincular</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={plOpen}
+          onOpenChange={(o) => { setPlOpen(o); if (o) loadAssignments(); }}
+        >
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline"><Settings className="mr-1 h-3 w-3" /> Playlists</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Playlists do display</DialogTitle></DialogHeader>
+
+            <div className="space-y-2">
+              {assignments.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhuma playlist atribuída.</p>
+              ) : assignments.map((a) => {
+                const pl = (a.playlist as { name?: string } | undefined)?.name;
+                return (
+                  <div key={String(a.id)} className="flex items-center justify-between rounded-md border border-border p-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{String(pl ?? a.playlist_id ?? "—")}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Prioridade {String(a.priority ?? 0)} · {(a.weekdays as number[] | undefined)?.map((w) => WEEKDAYS[w]?.l).join(", ") || "todos os dias"}
+                      </p>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => doUnassign(String(a.id))}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="space-y-3 rounded-md border border-dashed border-border p-3">
+              <p className="text-xs font-medium">Atribuir nova playlist</p>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Playlist</Label>
+                <Select value={pid} onValueChange={setPid}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {playlists.map((p) => (
+                      <SelectItem key={String(p.id)} value={String(p.id)}>{String(p.name ?? p.id)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Prioridade (0 = maior)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={priority}
+                  onChange={(e) => setPriority(Number(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Dias da semana</Label>
+                <div className="flex flex-wrap gap-2">
+                  {WEEKDAYS.map((w) => {
+                    const checked = days.includes(w.v);
+                    return (
+                      <label key={w.v} className="flex items-center gap-1 text-xs">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(c) => {
+                            setDays((prev) =>
+                              c ? Array.from(new Set([...prev, w.v])).sort() : prev.filter((x) => x !== w.v),
+                            );
+                          }}
+                        />
+                        {w.l}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <Button size="sm" onClick={doAssign} className="w-full">
+                <Plus className="mr-1 h-3 w-3" /> Atribuir
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
