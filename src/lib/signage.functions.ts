@@ -98,6 +98,8 @@ export const listDisplays = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/displays"));
 
+const ORIENTATIONS = ["landscape", "portrait"] as const;
+
 export const createDisplay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -106,16 +108,86 @@ export const createDisplay = createServerFn({ method: "POST" })
         name: z.string().min(1).max(200),
         location: z.string().max(200).optional(),
         description: z.string().max(1000).optional(),
-        playlist_id: z.string().optional(),
+        resolution: z.string().max(20).optional(),
+        orientation: z.enum(ORIENTATIONS).optional(),
+        settings: z.record(z.string(), z.unknown()).optional(),
       })
       .parse(d),
   )
   .handler(async ({ data }) => sighor("/displays", { method: "POST", body: data }));
 
+export const updateDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().min(1),
+        name: z.string().min(1).max(200).optional(),
+        location: z.string().max(200).optional(),
+        description: z.string().max(1000).optional(),
+        resolution: z.string().max(20).optional(),
+        orientation: z.enum(ORIENTATIONS).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { id, ...body } = data;
+    return sighor(`/displays/${id}`, { method: "PUT", body });
+  });
+
 export const deleteDisplay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => sighor(`/displays/${data.id}`, { method: "DELETE" }));
+
+export const linkDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().min(1),
+        pairing_code: z.string().regex(/^[0-9]{6}$/, "Código de 6 dígitos"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) =>
+    sighor(`/displays/${data.id}/link`, {
+      method: "POST",
+      body: { pairing_code: data.pairing_code },
+    }),
+  );
+
+export const listDisplayPlaylists = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => sighor(`/displays/${data.id}/playlists`));
+
+export const assignPlaylistToDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().min(1),
+        playlist_id: z.string().min(1),
+        priority: z.number().int().min(0).max(99).optional(),
+        is_active: z.boolean().optional(),
+        weekdays: z.array(z.number().int().min(0).max(6)).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { id, ...body } = data;
+    return sighor(`/displays/${id}/playlists`, { method: "POST", body });
+  });
+
+export const unassignPlaylistFromDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().min(1), assignment_id: z.string().min(1) }).parse(d),
+  )
+  .handler(async ({ data }) =>
+    sighor(`/displays/${data.id}/playlists/${data.assignment_id}`, { method: "DELETE" }),
+  );
 
 /* --------------------- Schedules --------------------- */
 
