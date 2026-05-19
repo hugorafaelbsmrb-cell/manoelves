@@ -111,28 +111,11 @@ function ServicosPage() {
               .map((s) => s.name)
               .join(" + ");
             return (
-              <div
+              <ComboCard
                 key={c.id}
-                className="rounded-xl border border-border bg-card p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-display text-lg tracking-wide">{c.name}</p>
-                    <p className="text-xs text-muted-foreground">{names || "—"}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      await supabase.from("combos").delete().eq("id", c.id);
-                      qc.invalidateQueries({ queryKey: ["combos-admin"] });
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <p className="mt-3 text-xl font-display">{brl(c.price_cents)}</p>
-              </div>
+                combo={{ id: c.id, name: c.name, price_cents: c.price_cents, names }}
+                onChanged={() => qc.invalidateQueries({ queryKey: ["combos-admin"] })}
+              />
             );
           })}
         </div>
