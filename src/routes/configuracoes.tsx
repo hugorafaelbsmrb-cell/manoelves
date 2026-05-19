@@ -78,8 +78,9 @@ function Page() {
       mp_webhook_secret: s.mp_webhook_secret || null,
       whatsapp_token: s.whatsapp_token || null,
       whatsapp_phone_id: s.whatsapp_phone_id || null,
+      sighor_api_key: s.sighor_api_key || null,
       updated_at: new Date().toISOString(),
-    };
+    } as never;
     let res;
     if (s.id) {
       res = await supabase.from("integration_settings").update(payload).eq("id", s.id);
