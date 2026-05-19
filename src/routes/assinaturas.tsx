@@ -80,6 +80,20 @@ function Page() {
     qc.invalidateQueries({ queryKey: ["subs"] });
   }
 
+  const preapprovalFn = useServerFn(createSubscriptionPreapproval);
+  async function generateMPLink(id: string) {
+    const email = window.prompt("E-mail do cliente para Mercado Pago:");
+    if (!email) return;
+    try {
+      const r = await preapprovalFn({ data: { subscriptionId: id, payerEmail: email } });
+      window.open(r.init_point, "_blank");
+      toast.success("Link de assinatura gerado");
+      qc.invalidateQueries({ queryKey: ["subs"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
