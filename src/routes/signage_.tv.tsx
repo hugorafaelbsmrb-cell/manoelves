@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/signage/tv")({
+export const Route = createFileRoute("/signage_/tv")({
   ssr: false,
   head: () => ({ meta: [{ title: "TV — Mano Elves" }] }),
   component: TVPage,
