@@ -82,27 +82,11 @@ function ServicosPage() {
               </thead>
               <tbody>
                 {services.map((s) => (
-                  <tr key={s.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3 font-medium">{s.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {minutesLabel(s.duration_minutes)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium">
-                      {brl(s.price_cents)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={async () => {
-                          await supabase.from("services").delete().eq("id", s.id);
-                          qc.invalidateQueries({ queryKey: ["services-admin"] });
-                        }}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
+                  <ServiceRow
+                    key={s.id}
+                    service={s}
+                    onChanged={() => qc.invalidateQueries({ queryKey: ["services-admin"] })}
+                  />
                 ))}
               </tbody>
             </table>
