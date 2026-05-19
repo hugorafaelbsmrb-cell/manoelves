@@ -113,7 +113,7 @@ function BarbeirosPage() {
               <span className="min-w-0">
                 <p className="truncate font-medium">{b.full_name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  /b/{b.slug ?? "—"}
+                  /{b.slug ?? "—"}
                 </p>
               </span>
             </button>

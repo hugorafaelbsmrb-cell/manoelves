@@ -81,7 +81,7 @@ function Page() {
 
   async function send(r: Row) {
     const b = barberOf(r.barber_id);
-    const link = b?.slug ? `${location.origin}/b/${b.slug}` : `${location.origin}/`;
+    const link = b?.slug ? `${location.origin}/${b.slug}` : `${location.origin}/`;
     const text = `Olá ${r.client_name}, o ${b?.full_name ?? "seu barbeiro"} está com saudades! Faz ${r.days} dias que você não cuida do visual. Toque aqui para garantir seu horário: ${link}`;
     await supabase.from("messages_log").insert({
       kind: "reengagement",

@@ -17,7 +17,7 @@ const searchSchema = z.object({
   serviceId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/b/$slug/agendar")({
+export const Route = createFileRoute("/$slug/agendar")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({ meta: [{ title: "Agendar — Mano Elves" }] }),
   component: BookingPage,
@@ -275,7 +275,7 @@ function BookingPage() {
       <header className="border-b border-border/40">
         <div className="mx-auto flex max-w-xl items-center justify-between px-5 py-4">
           <Link
-            to="/b/$slug"
+            to="/$slug"
             params={{ slug }}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
@@ -450,7 +450,7 @@ function BookingPage() {
               Enviamos a confirmação no seu WhatsApp (simulado).
             </p>
             <Link
-              to="/b/$slug"
+              to="/$slug"
               params={{ slug }}
               className="mt-4 inline-block text-xs text-muted-foreground underline"
             >

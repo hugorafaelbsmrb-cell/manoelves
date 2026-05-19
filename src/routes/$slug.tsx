@@ -4,7 +4,7 @@ import { Scissors, Calendar, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, minutesLabel } from "@/lib/format";
 
-export const Route = createFileRoute("/b/$slug")({
+export const Route = createFileRoute("/$slug")({
   head: ({ params }) => ({
     meta: [
       { title: `Agendar com ${params.slug} — Mano Elves` },
@@ -120,7 +120,7 @@ function BarberPage() {
             return (
               <Link
                 key={c.id}
-                to="/b/$slug/agendar"
+                to="/$slug/agendar"
                 params={{ slug: slug }}
                 search={{ comboId: c.id }}
                 className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition hover:border-foreground/40"
@@ -145,7 +145,7 @@ function BarberPage() {
           {services?.map((s) => (
             <Link
               key={s.id}
-              to="/b/$slug/agendar"
+              to="/$slug/agendar"
               params={{ slug }}
               search={{ serviceId: s.id }}
               className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition hover:border-foreground/40"
