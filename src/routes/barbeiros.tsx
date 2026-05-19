@@ -146,11 +146,13 @@ function BarbeirosPage() {
                         defaultValue={b.phone ?? ""}
                         onSave={(v) => updateProfile(b.id, { phone: v })}
                       />
-                      <Field
-                        label="Foto (URL)"
-                        defaultValue={b.avatar_url ?? ""}
-                        onSave={(v) => updateProfile(b.id, { avatar_url: v })}
-                      />
+                      <div className="sm:col-span-2">
+                        <AvatarUpload
+                          barberId={b.id}
+                          url={b.avatar_url ?? ""}
+                          onSaved={(u: string) => updateProfile(b.id, { avatar_url: u })}
+                        />
+                      </div>
                       <div className="sm:col-span-2">
                         <Field
                           label="Bio"
@@ -372,3 +374,82 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
   );
 }
 
+
+function AvatarUpload({
+  barberId,
+  url,
+  onSaved,
+}: {
+  barberId: string;
+  url: string;
+  onSaved: (url: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 5MB.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${barberId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      onSaved(data.publicUrl);
+      toast.success("Foto atualizada");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <label className="text-xs text-muted-foreground">Foto de perfil</label>
+      <div className="mt-1 flex items-center gap-3">
+        {url ? (
+          <img
+            src={url}
+            alt="Avatar"
+            className="h-16 w-16 rounded-full border border-border object-cover"
+          />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-border text-xs text-muted-foreground">
+            sem foto
+          </div>
+        )}
+        <label className="cursor-pointer">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              e.target.value = "";
+            }}
+          />
+          <span className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm hover:bg-secondary">
+            {busy ? "Enviando..." : url ? "Trocar foto" : "Enviar foto"}
+          </span>
+        </label>
+        {url && (
+          <Button variant="ghost" size="sm" onClick={() => onSaved("")}>
+            Remover
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
