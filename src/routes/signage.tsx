@@ -21,6 +21,8 @@ import {
   listPlaylists,
   createPlaylist,
   listDisplays,
+  createDisplay,
+  deleteDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
 
