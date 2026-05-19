@@ -162,6 +162,25 @@ function BarbeirosPage() {
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {b.slug && (
+                        <>
+                          <Button asChild variant="outline" size="sm">
+                            <a href={`/${b.slug}`} target="_blank" rel="noreferrer">
+                              Ver página pública
+                            </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${location.origin}/${b.slug}`);
+                              toast.success("Link copiado");
+                            }}
+                          >
+                            Copiar link
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
