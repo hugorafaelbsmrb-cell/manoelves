@@ -315,6 +315,9 @@ function WeekRow({
       )}
     </div>
   );
+}
+
+
 
 
 interface NewBarberPayload {
