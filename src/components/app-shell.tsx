@@ -123,6 +123,33 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          {visibleCadastro.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs outline-none ${
+                  cadastroActive
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <FolderCog className="h-4 w-4" /> Cadastros <ChevronDown className="h-3 w-3" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[10rem]">
+                {visibleCadastro.map((l) => (
+                  <DropdownMenuItem key={l.to} asChild>
+                    <Link
+                      to={l.to}
+                      className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm ${
+                        pathname === l.to ? "bg-accent text-accent-foreground" : ""
+                      }`}
+                    >
+                      {l.icon} {l.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
       </header>
 
