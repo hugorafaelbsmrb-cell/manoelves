@@ -26,6 +26,7 @@ type Settings = {
   mp_webhook_secret: string;
   whatsapp_token: string;
   whatsapp_phone_id: string;
+  sighor_api_key: string;
 };
 
 const empty: Settings = {
@@ -34,6 +35,7 @@ const empty: Settings = {
   mp_webhook_secret: "",
   whatsapp_token: "",
   whatsapp_phone_id: "",
+  sighor_api_key: "",
 };
 
 function Page() {
