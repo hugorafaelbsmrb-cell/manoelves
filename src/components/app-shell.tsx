@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavLink {
   to: string;
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {user.email} {isOwner ? "· dono" : isBarber ? "· barbeiro" : ""}
             </span>
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="mr-1 h-3.5 w-3.5" /> Sair
             </Button>
