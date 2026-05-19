@@ -167,11 +167,27 @@ function ComandaPage() {
       owner: Math.round(ownerAmount),
       barber: Math.round(barberAmount),
       total: subtotal,
+      orderId: order.id,
+      initPoint: null,
     });
     setItems([]);
     setClientName("");
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
+  }
+
+  async function generatePaymentLink() {
+    if (!closed) return;
+    setGeneratingLink(true);
+    try {
+      const r = await checkoutFn({ data: { orderId: closed.orderId } });
+      setClosed({ ...closed, initPoint: r.init_point });
+      window.open(r.init_point, "_blank");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao gerar link");
+    } finally {
+      setGeneratingLink(false);
+    }
   }
 
   if (closed) {
@@ -187,7 +203,16 @@ function ComandaPage() {
           <Row label="Comissão do barbeiro" value={brl(closed.barber)} />
           <Row label="Dono da barbearia" value={brl(closed.owner)} />
         </div>
-        <Button className="mt-6 w-full" onClick={() => setClosed(null)}>
+        <Button
+          className="mt-6 w-full"
+          variant="secondary"
+          onClick={generatePaymentLink}
+          disabled={generatingLink}
+        >
+          <ExternalLink className="mr-1 h-4 w-4" />
+          {closed.initPoint ? "Reabrir checkout MP" : generatingLink ? "Gerando..." : "Pagar com Mercado Pago"}
+        </Button>
+        <Button className="mt-2 w-full" onClick={() => setClosed(null)}>
           Abrir nova comanda
         </Button>
       </div>
