@@ -248,3 +248,158 @@ function ComboForm({
     </form>
   );
 }
+
+function ServiceRow({
+  service,
+  onChanged,
+}: {
+  service: { id: string; name: string; duration_minutes: number; price_cents: number };
+  onChanged: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(service.name);
+  const [duration, setDuration] = useState(String(service.duration_minutes));
+  const [price, setPrice] = useState((service.price_cents / 100).toFixed(2));
+
+  async function save() {
+    const cents = Math.round(parseFloat(price.replace(",", ".")) * 100);
+    if (!name || !cents || !duration) return toast.error("Preencha todos os campos.");
+    const { error } = await supabase
+      .from("services")
+      .update({ name, duration_minutes: parseInt(duration), price_cents: cents })
+      .eq("id", service.id);
+    if (error) return toast.error(error.message);
+    toast.success("Serviço atualizado");
+    setEditing(false);
+    onChanged();
+  }
+
+  if (editing) {
+    return (
+      <tr className="border-b border-border bg-secondary/30 last:border-0">
+        <td className="px-4 py-2">
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8" />
+        </td>
+        <td className="px-4 py-2">
+          <Input
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            className="h-8 w-24"
+          />
+        </td>
+        <td className="px-4 py-2 text-right">
+          <Input
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="ml-auto h-8 w-24"
+          />
+        </td>
+        <td className="px-4 py-2 text-right">
+          <Button size="sm" onClick={save} className="mr-1">
+            Salvar
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            X
+          </Button>
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr className="border-b border-border last:border-0">
+      <td className="px-4 py-3 font-medium">{service.name}</td>
+      <td className="px-4 py-3 text-muted-foreground">
+        {minutesLabel(service.duration_minutes)}
+      </td>
+      <td className="px-4 py-3 text-right font-medium">{brl(service.price_cents)}</td>
+      <td className="px-4 py-3 text-right">
+        <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+          Editar
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={async () => {
+            if (!window.confirm(`Remover ${service.name}?`)) return;
+            await supabase.from("services").delete().eq("id", service.id);
+            onChanged();
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </td>
+    </tr>
+  );
+}
+
+function ComboCard({
+  combo,
+  onChanged,
+}: {
+  combo: { id: string; name: string; price_cents: number; names: string };
+  onChanged: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(combo.name);
+  const [price, setPrice] = useState((combo.price_cents / 100).toFixed(2));
+
+  async function save() {
+    const cents = Math.round(parseFloat(price.replace(",", ".")) * 100);
+    if (!name || !cents) return toast.error("Preencha nome e preço.");
+    const { error } = await supabase
+      .from("combos")
+      .update({ name, price_cents: cents })
+      .eq("id", combo.id);
+    if (error) return toast.error(error.message);
+    toast.success("Combo atualizado");
+    setEditing(false);
+    onChanged();
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {editing ? (
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8" />
+          ) : (
+            <p className="font-display text-lg tracking-wide">{combo.name}</p>
+          )}
+          <p className="mt-1 text-xs text-muted-foreground">{combo.names || "—"}</p>
+        </div>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" onClick={() => setEditing(!editing)}>
+            {editing ? "X" : "Editar"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              if (!window.confirm(`Remover ${combo.name}?`)) return;
+              await supabase.from("combos").delete().eq("id", combo.id);
+              onChanged();
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+      {editing ? (
+        <div className="mt-3 flex items-center gap-2">
+          <Input
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="h-8 w-28"
+          />
+          <Button size="sm" onClick={save}>
+            Salvar
+          </Button>
+        </div>
+      ) : (
+        <p className="mt-3 text-xl font-display">{brl(combo.price_cents)}</p>
+      )}
+    </div>
+  );
+}
