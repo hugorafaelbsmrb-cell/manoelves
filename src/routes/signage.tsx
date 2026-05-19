@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar } from "lucide-react";
+import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar, Tv, Copy, ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   listMedia,
   createMedia,
