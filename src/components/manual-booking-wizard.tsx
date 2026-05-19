@@ -130,9 +130,10 @@ export function ManualBookingWizard() {
     },
   });
 
+  const [daysCount, setDaysCount] = useState(7);
   const days = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => addDays(startOfDay(new Date()), i)),
-    [],
+    () => Array.from({ length: daysCount }, (_, i) => addDays(startOfDay(new Date()), i)),
+    [daysCount],
   );
 
   const slots = useMemo(() => {
