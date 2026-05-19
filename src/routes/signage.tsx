@@ -12,8 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar, Tv, Copy, ExternalLink } from "lucide-react";
+import { Trash2, RefreshCw, Plus, Monitor, ListVideo, Image as ImageIcon, Calendar, Tv, Copy, ExternalLink, Pencil, Link as LinkIcon, Settings } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   listMedia,
   createMedia,
@@ -22,7 +24,12 @@ import {
   createPlaylist,
   listDisplays,
   createDisplay,
+  updateDisplay,
   deleteDisplay,
+  linkDisplay,
+  listDisplayPlaylists,
+  assignPlaylistToDisplay,
+  unassignPlaylistFromDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
 
