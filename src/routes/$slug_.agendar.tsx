@@ -182,6 +182,18 @@ function BookingPage() {
     setSelectedSlot(null);
   }, [selectedDate]);
 
+  // Se hoje não tem mais horários disponíveis, avança para o próximo dia útil
+  useEffect(() => {
+    if (!workingHours || !selection) return;
+    if (slots.length > 0) return;
+    if (!isSameDay(selectedDate, startOfDay(new Date()))) return;
+    const next = days.slice(1).find((d) =>
+      workingHours.some((w) => w.weekday === d.getDay()),
+    );
+    if (next) setSelectedDate(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workingHours, selection, slots.length]);
+
   async function submitBooking() {
     if (!barber || !selection || !selectedSlot) return;
     setSubmitting(true);
