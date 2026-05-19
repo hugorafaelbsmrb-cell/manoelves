@@ -22,6 +22,7 @@ import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignageTvRouteImport } from './routes/signage.tv'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as BSlugAgendarRouteImport } from './routes/b.$slug.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
@@ -91,6 +92,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignageTvRoute = SignageTvRouteImport.update({
+  id: '/tv',
+  path: '/tv',
+  getParentRoute: () => SignageRoute,
+} as any)
 const BSlugRoute = BSlugRouteImport.update({
   id: '/b/$slug',
   path: '/b/$slug',
@@ -120,8 +126,9 @@ export interface FileRoutesByFullPath {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRoute
+  '/signage': typeof SignageRouteWithChildren
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
@@ -138,8 +145,9 @@ export interface FileRoutesByTo {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRoute
+  '/signage': typeof SignageRouteWithChildren
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
@@ -157,8 +165,9 @@ export interface FileRoutesById {
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/reengajamento': typeof ReengajamentoRoute
   '/servicos': typeof ServicosRoute
-  '/signage': typeof SignageRoute
+  '/signage': typeof SignageRouteWithChildren
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/b/$slug/agendar': typeof BSlugAgendarRoute
 }
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/signage'
     | '/b/$slug'
+    | '/signage/tv'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesByTo: FileRoutesByTo
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/signage'
     | '/b/$slug'
+    | '/signage/tv'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   id:
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/signage'
     | '/b/$slug'
+    | '/signage/tv'
     | '/api/public/mercadopago'
     | '/b/$slug/agendar'
   fileRoutesById: FileRoutesById
@@ -232,7 +244,7 @@ export interface RootRouteChildren {
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ReengajamentoRoute: typeof ReengajamentoRoute
   ServicosRoute: typeof ServicosRoute
-  SignageRoute: typeof SignageRoute
+  SignageRoute: typeof SignageRouteWithChildren
   BSlugRoute: typeof BSlugRouteWithChildren
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
@@ -330,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signage/tv': {
+      id: '/signage/tv'
+      path: '/tv'
+      fullPath: '/signage/tv'
+      preLoaderRoute: typeof SignageTvRouteImport
+      parentRoute: typeof SignageRoute
+    }
     '/b/$slug': {
       id: '/b/$slug'
       path: '/b/$slug'
@@ -354,6 +373,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface SignageRouteChildren {
+  SignageTvRoute: typeof SignageTvRoute
+}
+
+const SignageRouteChildren: SignageRouteChildren = {
+  SignageTvRoute: SignageTvRoute,
+}
+
+const SignageRouteWithChildren =
+  SignageRoute._addFileChildren(SignageRouteChildren)
+
 interface BSlugRouteChildren {
   BSlugAgendarRoute: typeof BSlugAgendarRoute
 }
@@ -377,7 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ReengajamentoRoute: ReengajamentoRoute,
   ServicosRoute: ServicosRoute,
-  SignageRoute: SignageRoute,
+  SignageRoute: SignageRouteWithChildren,
   BSlugRoute: BSlugRouteWithChildren,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
