@@ -308,6 +308,15 @@ export function ManualBookingWizard() {
                     </button>
                   );
                 })}
+                <button
+                  type="button"
+                  onClick={() => setDaysCount((n) => n + 7)}
+                  className="flex min-w-[56px] flex-col items-center justify-center rounded-md border border-dashed border-border px-2 py-1.5 text-[10px] text-muted-foreground hover:border-foreground hover:text-foreground"
+                  aria-label="Carregar mais dias"
+                >
+                  <span className="text-base">→</span>
+                  <span>+7 dias</span>
+                </button>
               </div>
             </div>
             <div>
