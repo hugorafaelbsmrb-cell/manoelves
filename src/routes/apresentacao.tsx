@@ -935,7 +935,9 @@ const SLIDES: { title: string; component: () => React.ReactElement }[] = [
   { title: "Landing do barbeiro", component: S_BarberLanding },
   { title: "Agendamento público", component: S_PublicBooking },
   { title: "Agenda interna", component: S_Agenda },
+  { title: "Dashboard do dono", component: S_Dashboard },
   { title: "Comanda + Mercado Pago", component: S_Comanda },
+
   { title: "Assinaturas recorrentes", component: S_Subscriptions },
   { title: "Signage TV", component: S_Signage },
   { title: "Fila de espera", component: S_Waitlist },
