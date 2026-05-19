@@ -251,8 +251,7 @@ function BarbeirosPage() {
                     </div>
                   </section>
                 </div>
-              );
-            })()
+              ))
           )}
         </div>
       </div>
