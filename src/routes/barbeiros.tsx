@@ -146,11 +146,13 @@ function BarbeirosPage() {
                         defaultValue={b.phone ?? ""}
                         onSave={(v) => updateProfile(b.id, { phone: v })}
                       />
-                      <Field
-                        label="Foto (URL)"
-                        defaultValue={b.avatar_url ?? ""}
-                        onSave={(v) => updateProfile(b.id, { avatar_url: v })}
-                      />
+                      <div className="sm:col-span-2">
+                        <AvatarUpload
+                          barberId={b.id}
+                          url={b.avatar_url ?? ""}
+                          onSaved={(u) => updateProfile(b.id, { avatar_url: u })}
+                        />
+                      </div>
                       <div className="sm:col-span-2">
                         <Field
                           label="Bio"
