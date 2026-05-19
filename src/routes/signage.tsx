@@ -21,6 +21,8 @@ import {
   listPlaylists,
   createPlaylist,
   listDisplays,
+  createDisplay,
+  deleteDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
 
@@ -270,34 +272,119 @@ function PlaylistsTab() {
 
 function DisplaysTab() {
   const list = useServerFn(listDisplays);
+  const listP = useServerFn(listPlaylists);
+  const create = useServerFn(createDisplay);
+  const del = useServerFn(deleteDisplay);
   const { items, loading, err, reload } = useList(() => list({}));
+  const playlists = useList(() => listP({}));
+
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [playlistId, setPlaylistId] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    if (!name) return toast.error("Informe um nome");
+    setSaving(true);
+    try {
+      await create({
+        data: {
+          name,
+          location: location || undefined,
+          description: description || undefined,
+          playlist_id: playlistId || undefined,
+        },
+      });
+      toast.success("Display criado");
+      setName(""); setLocation(""); setDescription(""); setPlaylistId("");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally { setSaving(false); }
+  }
+
+  async function remove(id: string) {
+    if (!confirm("Excluir este display?")) return;
+    try {
+      await del({ data: { id } });
+      toast.success("Excluído");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Displays</CardTitle>
-        <Button size="sm" variant="ghost" onClick={reload}><RefreshCw className="h-4 w-4" /></Button>
-      </CardHeader>
-      <CardContent>
-        {loading ? <p className="text-sm text-muted-foreground">Carregando...</p>
-          : err ? <p className="text-sm text-destructive">{err}</p>
-          : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum display registrado.</p>
-          : (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {items.map((d) => (
-                <div key={String(d.id)} className="rounded-md border border-border p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{String(d.name ?? "—")}</p>
-                    <Badge variant={d.status === "online" ? "default" : "secondary"} className="text-[10px]">
-                      {String(d.status ?? "offline")}
-                    </Badge>
+    <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Displays</CardTitle>
+          <Button size="sm" variant="ghost" onClick={reload}><RefreshCw className="h-4 w-4" /></Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? <p className="text-sm text-muted-foreground">Carregando...</p>
+            : err ? <p className="text-sm text-destructive">{err}</p>
+            : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum display registrado.</p>
+            : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {items.map((d) => (
+                  <div key={String(d.id)} className="flex items-start justify-between gap-2 rounded-md border border-border p-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium">{String(d.name ?? "—")}</p>
+                        <Badge variant={d.status === "online" ? "default" : "secondary"} className="text-[10px]">
+                          {String(d.status ?? "offline")}
+                        </Badge>
+                      </div>
+                      {d.location ? <p className="truncate text-xs text-muted-foreground">{String(d.location)}</p> : null}
+                      {d.pairing_code ? (
+                        <p className="mt-1 font-mono text-xs">Código: <strong>{String(d.pairing_code)}</strong></p>
+                      ) : null}
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => remove(String(d.id))}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  {d.location ? <p className="text-xs text-muted-foreground">{String(d.location)}</p> : null}
-                </div>
-              ))}
-            </div>
-          )}
-      </CardContent>
-    </Card>
+                ))}
+              </div>
+            )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Novo display</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Nome</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="TV Recepção" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Local</Label>
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Entrada" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Playlist (opcional)</Label>
+            <Select value={playlistId || "__none"} onValueChange={(v) => setPlaylistId(v === "__none" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Nenhuma</SelectItem>
+                {playlists.items.map((p) => (
+                  <SelectItem key={String(p.id)} value={String(p.id)}>{String(p.name ?? p.id)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Descrição</Label>
+            <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <Button onClick={submit} disabled={saving} className="w-full">
+            <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Criar display"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

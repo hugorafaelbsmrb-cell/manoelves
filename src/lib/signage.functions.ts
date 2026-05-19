@@ -98,6 +98,25 @@ export const listDisplays = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/displays"));
 
+export const createDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        name: z.string().min(1).max(200),
+        location: z.string().max(200).optional(),
+        description: z.string().max(1000).optional(),
+        playlist_id: z.string().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => sighor("/displays", { method: "POST", body: data }));
+
+export const deleteDisplay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => sighor(`/displays/${data.id}`, { method: "DELETE" }));
+
 /* --------------------- Schedules --------------------- */
 
 export const listSchedules = createServerFn({ method: "GET" })
