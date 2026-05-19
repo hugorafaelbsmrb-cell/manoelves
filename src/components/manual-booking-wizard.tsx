@@ -328,7 +328,7 @@ export function ManualBookingWizard() {
                   Nenhum horário disponível neste dia.
                 </p>
               ) : (
-                <div className="grid max-h-[200px] grid-cols-4 gap-2 overflow-y-auto">
+                <div className="grid grid-cols-6 gap-1.5">
                   {slots.map((s) => (
                     <button
                       key={s.toISOString()}
