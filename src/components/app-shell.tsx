@@ -82,6 +82,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     return true;
   });
 
+  const visibleCadastro = cadastroLinks.filter((l) => {
+    if (l.ownerOnly && !isOwner) return false;
+    return true;
+  });
+  const cadastroActive = visibleCadastro.some((l) => pathname === l.to);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-sidebar">
