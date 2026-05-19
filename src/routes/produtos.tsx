@@ -43,7 +43,7 @@ function ProdutosPage() {
     );
   }
 
-  async function patch(id: string, p: Record<string, unknown>) {
+  async function patch(id: string, p: Partial<{ name: string; price_cents: number; cost_cents: number; stock: number; low_stock_alert: number; is_active: boolean; is_internal_use: boolean }>) {
     const { error } = await supabase.from("products").update(p).eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["products-admin"] });
