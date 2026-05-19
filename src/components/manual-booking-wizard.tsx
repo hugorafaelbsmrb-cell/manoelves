@@ -216,7 +216,7 @@ export function ManualBookingWizard() {
           <Plus className="mr-1 h-4 w-4" /> Novo agendamento
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-display tracking-wider">
             Novo agendamento manual
@@ -255,7 +255,7 @@ export function ManualBookingWizard() {
           <div className="space-y-2">
             <StepBack onBack={() => isOwner && setStep("barber")} show={isOwner} />
             <p className="text-sm text-muted-foreground">Selecione o serviço</p>
-            <div className="grid max-h-[320px] gap-2 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2">
               {(services ?? []).map((s) => (
                 <button
                   key={s.id}
@@ -328,7 +328,7 @@ export function ManualBookingWizard() {
                   Nenhum horário disponível neste dia.
                 </p>
               ) : (
-                <div className="grid max-h-[200px] grid-cols-4 gap-2 overflow-y-auto">
+                <div className="grid grid-cols-6 gap-1.5">
                   {slots.map((s) => (
                     <button
                       key={s.toISOString()}
