@@ -81,9 +81,16 @@ function BarbeirosPage() {
     <>
       <h1 className="font-display text-3xl tracking-wider">Barbeiros</h1>
       <p className="text-sm text-muted-foreground">
-        Cada cadastro de usuário vira automaticamente um barbeiro. Aqui você ajusta perfil
-        público, slug e horários.
+        Cadastre novos barbeiros, defina perfil público, slug e horários.
       </p>
+
+      <NewBarberForm
+        onCreate={async (payload) => {
+          await createBarberFn({ data: payload });
+          await qc.invalidateQueries({ queryKey: ["barbers-list"] });
+          toast.success("Barbeiro cadastrado");
+        }}
+      />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="rounded-xl border border-border bg-card p-2">
