@@ -162,7 +162,7 @@ function BarbeirosPage() {
                         />
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -172,8 +172,43 @@ function BarbeirosPage() {
                       >
                         {b.is_active ? "Desativar" : "Reativar"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          const pw = window.prompt("Nova senha (mín. 8 caracteres)");
+                          if (!pw || pw.length < 8) return;
+                          try {
+                            await updatePasswordFn({ data: { barber_id: b.id, password: pw } });
+                            toast.success("Senha atualizada");
+                          } catch (e) {
+                            toast.error((e as Error).message);
+                          }
+                        }}
+                      >
+                        Trocar senha
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={async () => {
+                          if (!window.confirm(`Remover ${b.full_name}? Esta ação não pode ser desfeita.`)) return;
+                          try {
+                            await deleteBarberFn({ data: { barber_id: b.id } });
+                            await qc.invalidateQueries({ queryKey: ["barbers-list"] });
+                            setSelected(null);
+                            toast.success("Barbeiro removido");
+                          } catch (e) {
+                            toast.error((e as Error).message);
+                          }
+                        }}
+                      >
+                        Remover
+                      </Button>
                     </div>
                   </section>
+
 
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
