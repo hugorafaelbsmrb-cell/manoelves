@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,11 +126,8 @@ function BarbeirosPage() {
               Selecione um barbeiro à esquerda.
             </p>
           ) : (
-            (() => {
-              const b = (barbers ?? []).find((x) => x.id === selected);
-              if (!b) return null;
-              return (
-                <div className="space-y-6">
+            (barbers ?? []).filter((x) => x.id === selected).map((b) => (
+                <div key={b.id} className="space-y-6">
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Perfil</h2>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -254,8 +251,7 @@ function BarbeirosPage() {
                     </div>
                   </section>
                 </div>
-              );
-            })()
+              ))
           )}
         </div>
       </div>
@@ -334,7 +330,7 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (!full_name || !email || password.length < 8) {
       toast.error("Preencha nome, e-mail e senha (mín. 8 caracteres).");
