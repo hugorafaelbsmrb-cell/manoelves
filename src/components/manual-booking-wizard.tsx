@@ -255,7 +255,7 @@ export function ManualBookingWizard() {
           <div className="space-y-2">
             <StepBack onBack={() => isOwner && setStep("barber")} show={isOwner} />
             <p className="text-sm text-muted-foreground">Selecione o serviço</p>
-            <div className="grid max-h-[320px] gap-2 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2">
               {(services ?? []).map((s) => (
                 <button
                   key={s.id}
