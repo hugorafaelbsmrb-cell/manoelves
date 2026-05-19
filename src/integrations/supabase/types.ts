@@ -261,6 +261,36 @@ export type Database = {
           },
         ]
       }
+      integration_settings: {
+        Row: {
+          id: string
+          mp_access_token: string | null
+          mp_public_key: string | null
+          mp_webhook_secret: string | null
+          updated_at: string
+          whatsapp_phone_id: string | null
+          whatsapp_token: string | null
+        }
+        Insert: {
+          id?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          mp_webhook_secret?: string | null
+          updated_at?: string
+          whatsapp_phone_id?: string | null
+          whatsapp_token?: string | null
+        }
+        Update: {
+          id?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
+          mp_webhook_secret?: string | null
+          updated_at?: string
+          whatsapp_phone_id?: string | null
+          whatsapp_token?: string | null
+        }
+        Relationships: []
+      }
       messages_log: {
         Row: {
           appointment_id: string | null
@@ -349,6 +379,10 @@ export type Database = {
           created_at: string
           id: string
           invoice_number: string | null
+          mp_init_point: string | null
+          mp_payment_id: string | null
+          mp_preference_id: string | null
+          payment_status: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal_cents: number
           total_cents: number
@@ -362,6 +396,10 @@ export type Database = {
           created_at?: string
           id?: string
           invoice_number?: string | null
+          mp_init_point?: string | null
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
@@ -375,6 +413,10 @@ export type Database = {
           created_at?: string
           id?: string
           invoice_number?: string | null
+          mp_init_point?: string | null
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
@@ -559,6 +601,9 @@ export type Database = {
           id: string
           is_active: boolean
           monthly_price_cents: number
+          mp_init_point: string | null
+          mp_preapproval_id: string | null
+          mp_status: string | null
           next_charge_at: string
           plan_name: string
         }
@@ -570,6 +615,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           monthly_price_cents: number
+          mp_init_point?: string | null
+          mp_preapproval_id?: string | null
+          mp_status?: string | null
           next_charge_at: string
           plan_name: string
         }
@@ -581,6 +629,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           monthly_price_cents?: number
+          mp_init_point?: string | null
+          mp_preapproval_id?: string | null
+          mp_status?: string | null
           next_charge_at?: string
           plan_name?: string
         }
