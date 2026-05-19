@@ -2,12 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { slugify } from "@/lib/format";
+import {
+  createBarber,
+  deleteBarber,
+  updateBarberPassword,
+} from "@/lib/barbers.functions";
 
 export const Route = createFileRoute("/barbeiros")({
   ssr: false,
