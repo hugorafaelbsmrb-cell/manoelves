@@ -110,3 +110,80 @@ export const uazapiConnect = createServerFn({ method: "POST" })
 export const uazapiDisconnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => uazapi("/instance/disconnect", { method: "POST" }));
+
+// Public — chamado pelo fluxo de agendamento (cliente não autenticado).
+// Valida o appointment via service role e envia a confirmação por WhatsApp.
+const sendBookingConfirmationSchema = z.object({
+  appointmentId: z.string().uuid(),
+});
+
+export const sendBookingConfirmation = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => sendBookingConfirmationSchema.parse(d))
+  .handler(async ({ data }): Promise<{ ok: boolean; skipped?: string }> => {
+    const { data: appt, error } = await supabaseAdmin
+      .from("appointments")
+      .select("id, client_name, client_whatsapp, start_at, barber_id, status")
+      .eq("id", data.appointmentId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!appt) throw new Error("Agendamento não encontrado");
+    if (!appt.client_whatsapp) return { ok: false, skipped: "sem telefone" };
+
+    const { data: barber } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", appt.barber_id)
+      .maybeSingle();
+    const { data: shop } = await supabaseAdmin
+      .from("barbershop")
+      .select("name")
+      .limit(1)
+      .maybeSingle();
+
+    const when = new Date(appt.start_at);
+    const dia = when.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const hora = when.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const firstName = (appt.client_name ?? "").split(" ")[0] || "tudo bem";
+    const barberName = barber?.full_name ?? "nosso barbeiro";
+    const shopName = shop?.name ?? "a barbearia";
+    const text =
+      `Olá, ${firstName}! 👋\n` +
+      `Seja bem-vindo(a) à ${shopName}.\n\n` +
+      `Seu horário com *${barberName}* está confirmado para *${dia}* às *${hora}*.\n\n` +
+      `Qualquer imprevisto, é só responder esta mensagem. Até breve! ✂️`;
+
+    const number = normalizeNumber(appt.client_whatsapp);
+    try {
+      await uazapi("/send/text", {
+        method: "POST",
+        body: { number, text },
+      });
+    } catch (e) {
+      // log mesmo em falha p/ rastreio
+      await supabaseAdmin.from("messages_log").insert({
+        kind: "confirmation",
+        to_phone: number,
+        to_name: appt.client_name,
+        appointment_id: appt.id,
+        payload: `[ERRO] ${e instanceof Error ? e.message : String(e)} :: ${text}`,
+      });
+      throw e;
+    }
+
+    await supabaseAdmin.from("messages_log").insert({
+      kind: "confirmation",
+      to_phone: number,
+      to_name: appt.client_name,
+      appointment_id: appt.id,
+      payload: text,
+    });
+    return { ok: true };
+  });
+

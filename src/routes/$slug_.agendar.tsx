@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Copy, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -266,7 +267,13 @@ function BookingPage() {
         payload: `Olá ${name}! Seu horário com ${barber?.full_name} está confirmado para ${format(when, "dd/MM 'às' HH:mm", { locale: ptBR })}.`,
       },
     ]);
+    try {
+      await sendBookingConfirmation({ data: { appointmentId: apptId } });
+    } catch (e) {
+      console.warn("Falha ao enviar WhatsApp:", e);
+    }
   }
+
 
   const pixCode = useMemo(
     () =>
