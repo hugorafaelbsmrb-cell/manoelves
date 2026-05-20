@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { uazapiStatus } from "@/lib/uazapi.functions";
+import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
