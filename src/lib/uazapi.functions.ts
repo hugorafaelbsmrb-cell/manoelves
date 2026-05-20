@@ -76,3 +76,37 @@ export const uazapiSendText = createServerFn({ method: "POST" })
     });
     return { ok: true, number };
   });
+
+const connectSchema = z.object({ phone: z.string().max(20).optional() }).optional();
+
+export const uazapiConnect = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => connectSchema.parse(d) ?? {})
+  .handler(async ({ data }) => {
+    const body: Record<string, string> = {};
+    if (data?.phone) body.phone = normalizeNumber(data.phone);
+    const res = (await uazapi("/instance/connect", {
+      method: "POST",
+      body,
+    })) as Record<string, unknown> | null;
+    const obj = (res && typeof res === "object" ? res : {}) as Record<string, unknown>;
+    const instance = (obj.instance ?? {}) as Record<string, unknown>;
+    const qrcode =
+      (typeof obj.qrcode === "string" && obj.qrcode) ||
+      (typeof instance.qrcode === "string" && instance.qrcode) ||
+      (typeof obj.qr === "string" && obj.qr) ||
+      null;
+    const paircode =
+      (typeof obj.paircode === "string" && obj.paircode) ||
+      (typeof instance.paircode === "string" && instance.paircode) ||
+      null;
+    const status =
+      (typeof obj.status === "string" && obj.status) ||
+      (typeof instance.status === "string" && instance.status) ||
+      null;
+    return { qrcode, paircode, status };
+  });
+
+export const uazapiDisconnect = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => uazapi("/instance/disconnect", { method: "POST" }));
