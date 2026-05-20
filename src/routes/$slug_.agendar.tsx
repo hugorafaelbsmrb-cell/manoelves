@@ -267,7 +267,13 @@ function BookingPage() {
         payload: `Olá ${name}! Seu horário com ${barber?.full_name} está confirmado para ${format(when, "dd/MM 'às' HH:mm", { locale: ptBR })}.`,
       },
     ]);
+    try {
+      await sendBookingConfirmation({ data: { appointmentId: apptId } });
+    } catch (e) {
+      console.warn("Falha ao enviar WhatsApp:", e);
+    }
   }
+
 
   const pixCode = useMemo(
     () =>
