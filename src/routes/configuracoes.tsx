@@ -195,10 +195,67 @@ function Page() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">uazapi — WhatsApp API</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="URL do servidor"
+            placeholder="https://seusubdominio.uazapi.com"
+            value={s.uazapi_url}
+            onChange={(v) => setS({ ...s, uazapi_url: v })}
+          />
+          <Field
+            label="Token da instância"
+            placeholder="seu_token_da_instancia"
+            value={s.uazapi_token}
+            onChange={(v) => setS({ ...s, uazapi_token: v })}
+            type="password"
+          />
+          <div className="sm:col-span-2 flex items-center gap-2">
+            <TestUazapi />
+            <p className="text-xs text-muted-foreground">
+              Salve antes de testar. Verifica o status da instância em <code>/instance/status</code>.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Button onClick={save} disabled={saving}>
         {saving ? "Salvando..." : "Salvar"}
       </Button>
     </div>
+  );
+}
+
+function TestUazapi() {
+  const status = useServerFn(uazapiStatus);
+  const [loading, setLoading] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={loading}
+      onClick={async () => {
+        setLoading(true);
+        try {
+          const r = (await status()) as { instance?: { status?: string } } | Record<string, unknown>;
+          const st =
+            (r as { instance?: { status?: string } }).instance?.status ??
+            (r as { status?: string }).status ??
+            "ok";
+          toast.success(`uazapi: ${st}`);
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Falha ao consultar uazapi");
+        } finally {
+          setLoading(false);
+        }
+      }}
+    >
+      {loading ? "Testando..." : "Testar conexão"}
+    </Button>
   );
 }
 
