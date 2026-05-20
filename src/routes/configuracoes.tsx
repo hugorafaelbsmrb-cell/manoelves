@@ -264,12 +264,47 @@ function TestUazapi() {
 
 function ConnectUazapi() {
   const connect = useServerFn(uazapiConnect);
+  const statusFn = useServerFn(uazapiStatus);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [qr, setQr] = useState<string | null>(null);
   const [pair, setPair] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    let stop = false;
+    const tick = async () => {
+      try {
+        const r = (await statusFn()) as
+          | { instance?: { status?: string } }
+          | { status?: string }
+          | Record<string, unknown>;
+        const st =
+          (r as { instance?: { status?: string } }).instance?.status ??
+          (r as { status?: string }).status ??
+          null;
+        if (!stop && st) {
+          setStatus(st);
+          if (st === "connected" || st === "open") {
+            setQr(null);
+            setPair(null);
+            toast.success("WhatsApp conectado");
+            setOpen(false);
+          }
+        }
+      } catch {
+        // ignore polling errors
+      }
+    };
+    const id = setInterval(tick, 3000);
+    void tick();
+    return () => {
+      stop = true;
+      clearInterval(id);
+    };
+  }, [open, statusFn]);
 
   async function run(usePhone: boolean) {
     setLoading(true);
