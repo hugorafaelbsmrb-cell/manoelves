@@ -168,7 +168,7 @@ export const sendBookingConfirmation = createServerFn({ method: "POST" })
     } catch (e) {
       // log mesmo em falha p/ rastreio
       await supabaseAdmin.from("messages_log").insert({
-        kind: "uazapi_text",
+        kind: "confirmation",
         to_phone: number,
         to_name: appt.client_name,
         appointment_id: appt.id,
