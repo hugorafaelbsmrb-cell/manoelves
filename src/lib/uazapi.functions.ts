@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type Settings = { uazapi_url?: string | null; uazapi_token?: string | null };
+type Json = null | string | number | boolean | Json[] | { [k: string]: Json };
 
 async function getConfig() {
   const { data, error } = await supabaseAdmin
@@ -23,7 +24,7 @@ async function getConfig() {
 async function uazapi(
   path: string,
   init: { method?: string; body?: unknown } = {},
-): Promise<Record<string, unknown>> {
+): Promise<Json> {
   const { base, token } = await getConfig();
   const res = await fetch(base + path, {
     method: init.method ?? "GET",
@@ -31,21 +32,21 @@ async function uazapi(
     body: init.body ? JSON.stringify(init.body) : undefined,
   });
   const text = await res.text();
-  let json: unknown = null;
+  let json: Json = null;
   try {
-    json = text ? JSON.parse(text) : null;
+    json = text ? (JSON.parse(text) as Json) : null;
   } catch {
-    json = { raw: text };
+    json = text;
   }
   if (!res.ok) {
-    const obj = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
+    const obj = json && typeof json === "object" && !Array.isArray(json) ? json : null;
     const msg =
       (obj && typeof obj.error === "string" && obj.error) ||
       (obj && typeof obj.message === "string" && obj.message) ||
       `uazapi ${res.status}`;
     throw new Error(String(msg));
   }
-  return (json && typeof json === "object" ? (json as Record<string, unknown>) : { ok: true });
+  return json;
 }
 
 function normalizeNumber(raw: string) {
@@ -57,7 +58,7 @@ function normalizeNumber(raw: string) {
 
 export const uazapiStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async (): Promise<Record<string, unknown>> => uazapi("/instance/status"));
+  .handler(async () => uazapi("/instance/status"));
 
 const sendTextSchema = z.object({
   number: z.string().min(8).max(20),
