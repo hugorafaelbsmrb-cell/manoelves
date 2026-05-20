@@ -214,10 +214,12 @@ function Page() {
             onChange={(v) => setS({ ...s, uazapi_token: v })}
             type="password"
           />
-          <div className="sm:col-span-2 flex items-center gap-2">
+          <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
             <TestUazapi />
+            <ConnectUazapi />
+            <DisconnectUazapi />
             <p className="text-xs text-muted-foreground">
-              Salve antes de testar. Verifica o status da instância em <code>/instance/status</code>.
+              Salve antes de usar. Conectar gera um QR code para parear o WhatsApp.
             </p>
           </div>
         </CardContent>
