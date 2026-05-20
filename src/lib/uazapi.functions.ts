@@ -17,21 +17,17 @@ async function getConfig() {
   if (!url || !token) {
     throw new Error("uazapi não configurada. Adicione URL e token em Configurações.");
   }
-  const base = url.replace(/\/+$/, "");
-  return { base, token };
+  return { base: url.replace(/\/+$/, ""), token };
 }
 
 async function uazapi(
   path: string,
   init: { method?: string; body?: unknown } = {},
-): Promise<unknown> {
+): Promise<Record<string, unknown>> {
   const { base, token } = await getConfig();
   const res = await fetch(base + path, {
     method: init.method ?? "GET",
-    headers: {
-      token,
-      "Content-Type": "application/json",
-    },
+    headers: { token, "Content-Type": "application/json" },
     body: init.body ? JSON.stringify(init.body) : undefined,
   });
   const text = await res.text();
@@ -39,55 +35,43 @@ async function uazapi(
   try {
     json = text ? JSON.parse(text) : null;
   } catch {
-    json = text;
+    json = { raw: text };
   }
   if (!res.ok) {
-    const obj = (json && typeof json === "object" ? (json as Record<string, unknown>) : null);
+    const obj = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
     const msg =
       (obj && typeof obj.error === "string" && obj.error) ||
       (obj && typeof obj.message === "string" && obj.message) ||
       `uazapi ${res.status}`;
     throw new Error(String(msg));
   }
-  return json;
+  return (json && typeof json === "object" ? (json as Record<string, unknown>) : { ok: true });
 }
 
-/* ---------- Status da instância ---------- */
+function normalizeNumber(raw: string) {
+  const digits = raw.replace(/\D+/g, "");
+  if (!digits) return digits;
+  if (digits.length <= 11) return "55" + digits;
+  return digits;
+}
 
 export const uazapiStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => uazapi("/instance/status"));
-
-/* ---------- Enviar texto ---------- */
+  .handler(async (): Promise<Record<string, unknown>> => uazapi("/instance/status"));
 
 const sendTextSchema = z.object({
   number: z.string().min(8).max(20),
   text: z.string().min(1).max(4096),
 });
 
-function normalizeNumber(raw: string) {
-  const digits = raw.replace(/\D+/g, "");
-  if (!digits) return digits;
-  // Garante DDI do Brasil se não tiver
-  if (digits.length <= 11) return "55" + digits;
-  return digits;
-}
-
 export const uazapiSendText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => sendTextSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ ok: true; number: string }> => {
     const number = normalizeNumber(data.number);
-    const result = await uazapi("/send/text", {
+    await uazapi("/send/text", {
       method: "POST",
       body: { number, text: data.text },
     });
-    // Log
-    await supabaseAdmin.from("messages_log").insert({
-      kind: "uazapi_text",
-      to_name: null,
-      to_phone: number,
-      payload: data.text,
-    } as never);
-    return result;
+    return { ok: true, number };
   });
