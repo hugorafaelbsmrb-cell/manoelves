@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { uazapiStatus } from "@/lib/uazapi.functions";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
@@ -27,6 +29,8 @@ type Settings = {
   whatsapp_token: string;
   whatsapp_phone_id: string;
   sighor_api_key: string;
+  uazapi_url: string;
+  uazapi_token: string;
 };
 
 const empty: Settings = {
@@ -36,6 +40,8 @@ const empty: Settings = {
   whatsapp_token: "",
   whatsapp_phone_id: "",
   sighor_api_key: "",
+  uazapi_url: "",
+  uazapi_token: "",
 };
 
 function Page() {
