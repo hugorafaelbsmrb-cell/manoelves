@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { uazapiStatus } from "@/lib/uazapi.functions";
+import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
@@ -213,10 +214,12 @@ function Page() {
             onChange={(v) => setS({ ...s, uazapi_token: v })}
             type="password"
           />
-          <div className="sm:col-span-2 flex items-center gap-2">
+          <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
             <TestUazapi />
+            <ConnectUazapi />
+            <DisconnectUazapi />
             <p className="text-xs text-muted-foreground">
-              Salve antes de testar. Verifica o status da instância em <code>/instance/status</code>.
+              Salve antes de usar. Conectar gera um QR code para parear o WhatsApp.
             </p>
           </div>
         </CardContent>
@@ -255,6 +258,129 @@ function TestUazapi() {
       }}
     >
       {loading ? "Testando..." : "Testar conexão"}
+    </Button>
+  );
+}
+
+function ConnectUazapi() {
+  const connect = useServerFn(uazapiConnect);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [qr, setQr] = useState<string | null>(null);
+  const [pair, setPair] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function run(usePhone: boolean) {
+    setLoading(true);
+    setQr(null);
+    setPair(null);
+    setStatus(null);
+    try {
+      const r = await connect({ data: usePhone && phone ? { phone } : {} });
+      setQr(r.qrcode);
+      setPair(r.paircode);
+      setStatus(r.status);
+      if (!r.qrcode && !r.paircode) {
+        toast.success(`Status: ${r.status ?? "ok"}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao conectar");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const qrSrc = qr
+    ? qr.startsWith("data:")
+      ? qr
+      : `data:image/png;base64,${qr}`
+    : null;
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (o) void run(false);
+      }}
+    >
+      <Button type="button" size="sm" onClick={() => setOpen(true)}>
+        Conectar instância
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Conectar WhatsApp</DialogTitle>
+          <DialogDescription>
+            Escaneie o QR code no WhatsApp → Aparelhos conectados, ou use o código de
+            pareamento informando seu número.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {loading && <p className="text-sm text-muted-foreground">Gerando…</p>}
+          {qrSrc && (
+            <div className="flex justify-center">
+              <img src={qrSrc} alt="QR code" className="h-64 w-64" />
+            </div>
+          )}
+          {pair && (
+            <p className="text-center font-mono text-lg tracking-widest">{pair}</p>
+          )}
+          {status && (
+            <p className="text-center text-xs text-muted-foreground">Status: {status}</p>
+          )}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Número com DDD (opcional, p/ paircode)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              onClick={() => void run(true)}
+            >
+              Código
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={loading}
+              onClick={() => void run(false)}
+            >
+              Atualizar QR
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DisconnectUazapi() {
+  const disconnect = useServerFn(uazapiDisconnect);
+  const [loading, setLoading] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={loading}
+      onClick={async () => {
+        setLoading(true);
+        try {
+          await disconnect();
+          toast.success("Instância desconectada");
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Falha ao desconectar");
+        } finally {
+          setLoading(false);
+        }
+      }}
+    >
+      {loading ? "Desconectando..." : "Desconectar"}
     </Button>
   );
 }
