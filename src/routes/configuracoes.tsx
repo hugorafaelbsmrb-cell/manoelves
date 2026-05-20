@@ -57,7 +57,11 @@ function Page() {
         .limit(1)
         .maybeSingle();
       if (data) {
-        const d = data as typeof data & { sighor_api_key?: string | null };
+        const d = data as typeof data & {
+          sighor_api_key?: string | null;
+          uazapi_url?: string | null;
+          uazapi_token?: string | null;
+        };
         setS({
           id: data.id,
           mp_access_token: data.mp_access_token ?? "",
@@ -66,6 +70,8 @@ function Page() {
           whatsapp_token: data.whatsapp_token ?? "",
           whatsapp_phone_id: data.whatsapp_phone_id ?? "",
           sighor_api_key: d.sighor_api_key ?? "",
+          uazapi_url: d.uazapi_url ?? "",
+          uazapi_token: d.uazapi_token ?? "",
         });
       }
     })();
@@ -85,6 +91,8 @@ function Page() {
       whatsapp_token: s.whatsapp_token || null,
       whatsapp_phone_id: s.whatsapp_phone_id || null,
       sighor_api_key: s.sighor_api_key || null,
+      uazapi_url: s.uazapi_url || null,
+      uazapi_token: s.uazapi_token || null,
       updated_at: new Date().toISOString(),
     } as never;
     let res;
