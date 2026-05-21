@@ -394,33 +394,108 @@ function Field({
   );
 }
 
-function WeekRow({
+interface HourBlock {
+  id: string;
+  start_time: string;
+  end_time: string;
+}
+
+function WeekDayBlocks({
   label,
-  block,
-  onSave,
+  blocks,
+  onAdd,
+  onUpdate,
   onDelete,
 }: {
   label: string;
-  block?: { start_time: string; end_time: string };
-  onSave: (start: string, end: string) => void;
+  blocks: HourBlock[];
+  onAdd: (start: string, end: string) => void;
+  onUpdate: (id: string, start: string, end: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [newStart, setNewStart] = useState("09:00");
+  const [newEnd, setNewEnd] = useState("18:00");
+  const [adding, setAdding] = useState(false);
+  return (
+    <div className="rounded-md border border-border p-3 text-sm">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-medium">{label}</span>
+        {!adding && (
+          <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+            + Adicionar intervalo
+          </Button>
+        )}
+      </div>
+      {blocks.length === 0 && !adding && (
+        <p className="text-xs text-muted-foreground">Folga / sem atendimento.</p>
+      )}
+      <div className="space-y-2">
+        {blocks.map((b) => (
+          <BlockRow
+            key={b.id}
+            block={b}
+            onUpdate={(s, e) => onUpdate(b.id, s, e)}
+            onDelete={() => onDelete(b.id)}
+          />
+        ))}
+        {adding && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              type="time"
+              value={newStart}
+              onChange={(e) => setNewStart(e.target.value)}
+              className="w-28"
+            />
+            <span className="text-muted-foreground">→</span>
+            <Input
+              type="time"
+              value={newEnd}
+              onChange={(e) => setNewEnd(e.target.value)}
+              className="w-28"
+            />
+            <Button
+              size="sm"
+              onClick={() => {
+                onAdd(newStart, newEnd);
+                setAdding(false);
+                setNewStart("09:00");
+                setNewEnd("18:00");
+              }}
+            >
+              Salvar
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+              Cancelar
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BlockRow({
+  block,
+  onUpdate,
+  onDelete,
+}: {
+  block: HourBlock;
+  onUpdate: (start: string, end: string) => void;
   onDelete: () => void;
 }) {
-  const [start, setStart] = useState(block?.start_time?.slice(0, 5) ?? "09:00");
-  const [end, setEnd] = useState(block?.end_time?.slice(0, 5) ?? "18:00");
+  const [start, setStart] = useState(block.start_time.slice(0, 5));
+  const [end, setEnd] = useState(block.end_time.slice(0, 5));
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
-      <span className="w-10 font-medium">{label}</span>
+    <div className="flex flex-wrap items-center gap-2">
       <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="w-28" />
       <span className="text-muted-foreground">→</span>
       <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} className="w-28" />
-      <Button variant="outline" size="sm" onClick={() => onSave(start, end)}>
+      <Button variant="outline" size="sm" onClick={() => onUpdate(start, end)}>
         Salvar
       </Button>
-      {block && (
-        <Button variant="ghost" size="sm" onClick={onDelete}>
-          Limpar
-        </Button>
-      )}
+      <Button variant="ghost" size="sm" onClick={onDelete}>
+        Remover
+      </Button>
     </div>
   );
 }
