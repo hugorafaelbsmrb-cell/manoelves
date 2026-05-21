@@ -32,7 +32,7 @@ type Item = {
 };
 
 function ComandaPage() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const qc = useQueryClient();
   const [clientName, setClientName] = useState("");
   const [clientWhats, setClientWhats] = useState("");
@@ -93,20 +93,21 @@ function ComandaPage() {
 
   // Clientes com agendamento na janela [-30min, +30min] — atalho do PDV
   const { data: nearby } = useQuery({
-    queryKey: ["comanda-nearby", user?.id],
+    queryKey: ["comanda-nearby", user?.id, isOwner],
     enabled: !!user,
     refetchInterval: 60_000,
     queryFn: async () => {
       const from = new Date(Date.now() - 30 * 60_000).toISOString();
       const to = new Date(Date.now() + 30 * 60_000).toISOString();
-      const { data } = await supabase
+      let q = supabase
         .from("appointments")
-        .select("id, client_name, client_whatsapp, start_at, status")
-        .eq("barber_id", user!.id)
+        .select("id, client_name, client_whatsapp, start_at, status, barber_id")
         .gte("start_at", from)
         .lte("start_at", to)
         .neq("status", "canceled" as never)
         .order("start_at", { ascending: true });
+      if (!isOwner) q = q.eq("barber_id", user!.id);
+      const { data } = await q;
       return data ?? [];
     },
   });
