@@ -243,3 +243,83 @@ export const createSubscriptionPreapproval = createServerFn({ method: "POST" })
 
     return { init_point: json.init_point, preapproval_id: json.id };
   });
+
+/**
+ * Gera Pix do PRIMEIRO mês de uma assinatura (sem comanda associada).
+ * Usa orders.appointment_id = null como "ghost order" para reuso
+ * do fluxo de PIX existente.
+ */
+export const createSubscriptionFirstPix = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { subscriptionId: string }) =>
+    z.object({ subscriptionId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const settings = await getSettings();
+
+    const { data: sub } = await supabaseAdmin
+      .from("subscriptions")
+      .select("*")
+      .eq("id", data.subscriptionId)
+      .maybeSingle();
+    if (!sub) throw new Error("Assinatura não encontrada");
+
+    const amount = Number((sub.monthly_price_cents / 100).toFixed(2));
+    const firstName = (sub.client_name ?? "Cliente").split(" ")[0];
+    const lastName =
+      (sub.client_name ?? "").split(" ").slice(1).join(" ") || "Assinatura";
+    const fakeEmail = `sub+${sub.id.slice(0, 8)}@manoelves.app`;
+
+    const res = await fetch("https://api.mercadopago.com/v1/payments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${settings.mp_access_token}`,
+        "Content-Type": "application/json",
+        "X-Idempotency-Key": `sub-pix-${sub.id}`,
+      },
+      body: JSON.stringify({
+        transaction_amount: amount,
+        description: `Assinatura ${sub.plan_name} (1º mês)`,
+        payment_method_id: "pix",
+        external_reference: `sub:${sub.id}`,
+        payer: {
+          email: fakeEmail,
+          first_name: firstName,
+          last_name: lastName,
+        },
+      }),
+    });
+    const json = (await res.json()) as {
+      id?: number | string;
+      message?: string;
+      point_of_interaction?: {
+        transaction_data?: { qr_code?: string; qr_code_base64?: string };
+      };
+    };
+    const pix_code = json.point_of_interaction?.transaction_data?.qr_code;
+    const qr_base64 = json.point_of_interaction?.transaction_data?.qr_code_base64;
+    if (!res.ok || !pix_code) {
+      throw new Error(`Mercado Pago PIX: ${json.message ?? "falha ao gerar PIX"}`);
+    }
+
+    // Persiste como "comanda fantasma" só pra historiar
+    await supabaseAdmin.from("orders").insert({
+      barber_id: context.userId,
+      client_name: sub.client_name,
+      client_whatsapp: sub.client_whatsapp,
+      total_cents: sub.monthly_price_cents,
+      subtotal_cents: sub.monthly_price_cents,
+      status: "open",
+      payment_status: "pending",
+      pix_code,
+      pix_qr_base64: qr_base64 ?? null,
+      mp_payment_pix_id: String(json.id ?? ""),
+      invoice_number: `ASSIN-${sub.id.slice(0, 6).toUpperCase()}`,
+    });
+
+    return {
+      pix_code,
+      qr_base64: qr_base64 ?? null,
+      payment_id: String(json.id ?? ""),
+    };
+  });
