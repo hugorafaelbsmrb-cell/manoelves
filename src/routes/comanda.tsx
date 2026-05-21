@@ -91,7 +91,28 @@ function ComandaPage() {
     },
   });
 
+  // Clientes com agendamento na janela [-30min, +30min] — atalho do PDV
+  const { data: nearby } = useQuery({
+    queryKey: ["comanda-nearby", user?.id],
+    enabled: !!user,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const from = new Date(Date.now() - 30 * 60_000).toISOString();
+      const to = new Date(Date.now() + 30 * 60_000).toISOString();
+      const { data } = await supabase
+        .from("appointments")
+        .select("id, client_name, client_whatsapp, start_at, status")
+        .eq("barber_id", user!.id)
+        .gte("start_at", from)
+        .lte("start_at", to)
+        .neq("status", "canceled" as never)
+        .order("start_at", { ascending: true });
+      return data ?? [];
+    },
+  });
+
   const subtotal = items.reduce((s, i) => s + i.qty * i.unit_price_cents, 0);
+
 
   function addItem(it: Item) {
     setItems((prev) => {
@@ -321,6 +342,49 @@ function ComandaPage() {
         Adicione serviços e produtos. Ao fechar, o sistema calcula o split entre dono e
         barbeiro e simula a emissão da NFS-e.
       </p>
+
+      {(nearby ?? []).length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-card p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Clientes agora · ±30 min
+          </p>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-1">
+            {nearby!.map((a) => {
+              const hhmm = new Date(a.start_at).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const initials = (a.client_name ?? "?")
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((p) => p[0]?.toUpperCase())
+                .join("");
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => {
+                    setClientName(a.client_name);
+                    setClientWhats(a.client_whatsapp ?? "");
+                    toast.success(`Cliente ${a.client_name} carregado`);
+                  }}
+                  className="flex w-20 shrink-0 flex-col items-center gap-1 text-center"
+                  title={`${a.client_name} — ${hhmm}`}
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-background font-display text-lg tracking-wider transition hover:border-primary hover:bg-secondary">
+                    {initials || "?"}
+                  </div>
+                  <span className="line-clamp-1 text-xs font-medium">
+                    {a.client_name.split(" ")[0]}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{hhmm}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">

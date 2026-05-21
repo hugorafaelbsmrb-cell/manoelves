@@ -19,6 +19,7 @@ import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComandaRouteImport } from './routes/comanda'
+import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as ApresentacaoRouteImport } from './routes/apresentacao'
@@ -79,6 +80,11 @@ const ComandaRoute = ComandaRouteImport.update({
   path: '/comanda',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BarbeirosRoute = BarbeirosRouteImport.update({
   id: '/barbeiros',
   path: '/barbeiros',
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
+  '/clientes': typeof ClientesRoute
   '/comanda': typeof ComandaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
+  '/clientes': typeof ClientesRoute
   '/comanda': typeof ComandaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
+  '/clientes': typeof ClientesRoute
   '/comanda': typeof ComandaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
+    | '/clientes'
     | '/comanda'
     | '/configuracoes'
     | '/dashboard'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
+    | '/clientes'
     | '/comanda'
     | '/configuracoes'
     | '/dashboard'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
+    | '/clientes'
     | '/comanda'
     | '/configuracoes'
     | '/dashboard'
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   ApresentacaoRoute: typeof ApresentacaoRoute
   AssinaturasRoute: typeof AssinaturasRoute
   BarbeirosRoute: typeof BarbeirosRoute
+  ClientesRoute: typeof ClientesRoute
   ComandaRoute: typeof ComandaRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComandaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/barbeiros': {
       id: '/barbeiros'
       path: '/barbeiros'
@@ -422,6 +442,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApresentacaoRoute: ApresentacaoRoute,
   AssinaturasRoute: AssinaturasRoute,
   BarbeirosRoute: BarbeirosRoute,
+  ClientesRoute: ClientesRoute,
   ComandaRoute: ComandaRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
