@@ -91,7 +91,28 @@ function ComandaPage() {
     },
   });
 
+  // Clientes com agendamento na janela [-30min, +30min] — atalho do PDV
+  const { data: nearby } = useQuery({
+    queryKey: ["comanda-nearby", user?.id],
+    enabled: !!user,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const from = new Date(Date.now() - 30 * 60_000).toISOString();
+      const to = new Date(Date.now() + 30 * 60_000).toISOString();
+      const { data } = await supabase
+        .from("appointments")
+        .select("id, client_name, client_whatsapp, start_at, status")
+        .eq("barber_id", user!.id)
+        .gte("start_at", from)
+        .lte("start_at", to)
+        .neq("status", "canceled" as never)
+        .order("start_at", { ascending: true });
+      return data ?? [];
+    },
+  });
+
   const subtotal = items.reduce((s, i) => s + i.qty * i.unit_price_cents, 0);
+
 
   function addItem(it: Item) {
     setItems((prev) => {
