@@ -252,6 +252,15 @@ function BarbeirosPage() {
                     </div>
                   </section>
 
+                  <CommissionSection
+                    key={`comm-${b.id}`}
+                    servicePct={Number(commission?.service_pct ?? 50)}
+                    productPct={Number(commission?.product_pct ?? 10)}
+                    onSave={(s, p) => saveCommission(b.id, s, p)}
+                  />
+
+
+
 
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
