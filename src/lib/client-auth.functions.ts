@@ -285,11 +285,11 @@ export const cancelClientAppointment = createServerFn({ method: "POST" })
     if (new Date(appt.start_at).getTime() < Date.now()) {
       throw new Error("Não é possível cancelar horários passados.");
     }
-    if (appt.status === "canceled") return { ok: true };
+    if (appt.status === "cancelled") return { ok: true };
 
     const { error: upErr } = await supabaseAdmin
       .from("appointments")
-      .update({ status: "canceled" })
+      .update({ status: "cancelled" })
       .eq("id", data.appointmentId);
     if (upErr) throw new Error(upErr.message);
     return { ok: true };
