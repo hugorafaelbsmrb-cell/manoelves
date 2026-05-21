@@ -10,7 +10,8 @@ import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createOrderCheckout } from "@/lib/payments.functions";
+import { createOrderCheckout, createOrderPix } from "@/lib/payments.functions";
+import { sendOrderPixWhatsApp } from "@/lib/uazapi.functions";
 
 export const Route = createFileRoute("/comanda")({
   ssr: false,
@@ -34,6 +35,7 @@ function ComandaPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [clientName, setClientName] = useState("");
+  const [clientWhats, setClientWhats] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [method, setMethod] = useState<"pix" | "cash" | "credit" | "debit">("pix");
   const [closed, setClosed] = useState<{
@@ -43,9 +45,15 @@ function ComandaPage() {
     total: number;
     orderId: string;
     initPoint?: string | null;
+    pixCode?: string | null;
+    pixQr?: string | null;
+    whatsSent?: boolean;
   } | null>(null);
   const checkoutFn = useServerFn(createOrderCheckout);
+  const pixFn = useServerFn(createOrderPix);
+  const sendPixWhatsFn = useServerFn(sendOrderPixWhatsApp);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [generatingPix, setGeneratingPix] = useState(false);
 
   const { data: services } = useQuery({
     queryKey: ["pdv-services"],
@@ -120,6 +128,7 @@ function ComandaPage() {
       .insert({
         barber_id: user.id,
         client_name: clientName,
+        client_whatsapp: clientWhats.trim() || null,
         subtotal_cents: subtotal,
         total_cents: subtotal,
         status: "closed" as never,
@@ -162,18 +171,52 @@ function ComandaPage() {
       }
     }
 
-    setClosed({
+    const baseClosed = {
       invoice: order.invoice_number!,
       owner: Math.round(ownerAmount),
       barber: Math.round(barberAmount),
       total: subtotal,
       orderId: order.id,
-      initPoint: null,
-    });
+      initPoint: null as string | null,
+      pixCode: null as string | null,
+      pixQr: null as string | null,
+      whatsSent: false,
+    };
+    setClosed(baseClosed);
     setItems([]);
+    const savedWhats = clientWhats.trim();
     setClientName("");
+    setClientWhats("");
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
+
+    // Fluxo automático: PIX + envio do copia-e-cola via WhatsApp
+    if (method === "pix") {
+      setGeneratingPix(true);
+      try {
+        const pix = await pixFn({ data: { orderId: order.id } });
+        let whatsSent = false;
+        if (savedWhats) {
+          try {
+            await sendPixWhatsFn({ data: { orderId: order.id } });
+            whatsSent = true;
+            toast.success("PIX enviado no WhatsApp do cliente");
+          } catch (e: any) {
+            toast.error(`WhatsApp: ${e.message ?? "falha no envio"}`);
+          }
+        }
+        setClosed({
+          ...baseClosed,
+          pixCode: pix.pix_code,
+          pixQr: pix.qr_base64,
+          whatsSent,
+        });
+      } catch (e: any) {
+        toast.error(e.message ?? "Erro ao gerar PIX");
+      } finally {
+        setGeneratingPix(false);
+      }
+    }
   }
 
   async function generatePaymentLink() {
@@ -203,6 +246,58 @@ function ComandaPage() {
           <Row label="Comissão do barbeiro" value={brl(closed.barber)} />
           <Row label="Dono da barbearia" value={brl(closed.owner)} />
         </div>
+
+        {generatingPix && (
+          <p className="mt-4 text-xs text-muted-foreground">Gerando PIX…</p>
+        )}
+
+        {closed.pixCode && (
+          <div className="mt-6 space-y-3 rounded-lg border border-border bg-background p-4 text-left">
+            <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              PIX Copia e Cola
+            </p>
+            {closed.pixQr && (
+              <img
+                src={`data:image/png;base64,${closed.pixQr}`}
+                alt="QR Code PIX"
+                className="mx-auto h-44 w-44 rounded-md border border-border bg-white p-2"
+              />
+            )}
+            <textarea
+              readOnly
+              value={closed.pixCode}
+              className="h-20 w-full resize-none rounded-md border border-border bg-card p-2 font-mono text-[10px]"
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                navigator.clipboard.writeText(closed.pixCode!);
+                toast.success("Código PIX copiado");
+              }}
+            >
+              Copiar código
+            </Button>
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={generatingPix}
+              onClick={async () => {
+                try {
+                  await sendPixWhatsFn({ data: { orderId: closed.orderId } });
+                  setClosed({ ...closed, whatsSent: true });
+                  toast.success("PIX reenviado no WhatsApp");
+                } catch (e: any) {
+                  toast.error(e.message ?? "Falha ao enviar");
+                }
+              }}
+            >
+              {closed.whatsSent ? "Reenviar no WhatsApp" : "Enviar no WhatsApp"}
+            </Button>
+          </div>
+        )}
+
         <Button
           className="mt-6 w-full"
           variant="secondary"
@@ -229,13 +324,26 @@ function ComandaPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <label className="text-xs text-muted-foreground">Cliente</label>
-            <Input
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Nome do cliente"
-            />
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Cliente</label>
+              <Input
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder="Nome do cliente"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">
+                WhatsApp (para envio automático do PIX)
+              </label>
+              <Input
+                value={clientWhats}
+                onChange={(e) => setClientWhats(e.target.value)}
+                placeholder="(11) 99999-9999"
+                inputMode="tel"
+              />
+            </div>
           </div>
 
           <Section title="Serviços">

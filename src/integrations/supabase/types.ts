@@ -384,14 +384,18 @@ export type Database = {
           appointment_id: string | null
           barber_id: string
           client_name: string
+          client_whatsapp: string | null
           closed_at: string | null
           created_at: string
           id: string
           invoice_number: string | null
           mp_init_point: string | null
           mp_payment_id: string | null
+          mp_payment_pix_id: string | null
           mp_preference_id: string | null
           payment_status: string | null
+          pix_code: string | null
+          pix_qr_base64: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal_cents: number
           total_cents: number
@@ -401,14 +405,18 @@ export type Database = {
           appointment_id?: string | null
           barber_id: string
           client_name: string
+          client_whatsapp?: string | null
           closed_at?: string | null
           created_at?: string
           id?: string
           invoice_number?: string | null
           mp_init_point?: string | null
           mp_payment_id?: string | null
+          mp_payment_pix_id?: string | null
           mp_preference_id?: string | null
           payment_status?: string | null
+          pix_code?: string | null
+          pix_qr_base64?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
@@ -418,14 +426,18 @@ export type Database = {
           appointment_id?: string | null
           barber_id?: string
           client_name?: string
+          client_whatsapp?: string | null
           closed_at?: string | null
           created_at?: string
           id?: string
           invoice_number?: string | null
           mp_init_point?: string | null
           mp_payment_id?: string | null
+          mp_payment_pix_id?: string | null
           mp_preference_id?: string | null
           payment_status?: string | null
+          pix_code?: string | null
+          pix_qr_base64?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal_cents?: number
           total_cents?: number
@@ -797,6 +809,7 @@ export type Database = {
         | "reengagement"
         | "waitlist"
         | "subscription"
+        | "pix"
       order_status: "open" | "closed" | "cancelled"
       payment_method: "pix" | "card" | "cash"
     }
@@ -941,6 +954,7 @@ export const Constants = {
         "reengagement",
         "waitlist",
         "subscription",
+        "pix",
       ],
       order_status: ["open", "closed", "cancelled"],
       payment_method: ["pix", "card", "cash"],
