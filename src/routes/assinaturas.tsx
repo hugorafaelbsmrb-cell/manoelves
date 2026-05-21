@@ -438,7 +438,10 @@ function PlansManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Planos cadastrados</CardTitle>
+        <CardTitle className="text-base">Planos de assinatura</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Cadastre, edite ou remova os planos disponíveis para os clientes assinarem.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-[1.5fr_1fr_1fr_2fr_auto_auto]">
