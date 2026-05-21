@@ -370,7 +370,7 @@ function NewSubscriptionWizard() {
 
 /* ---------------- Planos ---------------- */
 
-function PlansManager() {
+export function PlansManager() {
   const qc = useQueryClient();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
