@@ -143,33 +143,104 @@ function BarberPage() {
         </div>
 
         <h2 className="mt-8 font-display text-xl tracking-wider">Serviços</h2>
-        <div className="mt-3 space-y-2">
-          {services?.map((s) => (
-            <Link
-              key={s.id}
-              to="/$slug/agendar"
-              params={{ slug }}
-              search={{ serviceId: s.id }}
-              className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition hover:border-foreground/40"
-            >
-              <div>
-                <p className="font-medium">{s.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {minutesLabel(s.duration_minutes)}
-                </p>
-              </div>
-              <p className="font-display text-lg">{brl(s.price_cents)}</p>
-            </Link>
-          ))}
-        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Selecione um ou mais serviços para combiná-los.
+        </p>
+        <ServicePicker services={services ?? []} slug={slug} />
 
         <div className="mt-10 rounded-xl border border-dashed border-border p-6 text-center">
           <Calendar className="mx-auto h-6 w-6 text-muted-foreground" />
           <p className="mt-2 text-xs text-muted-foreground">
-            Selecione um combo ou serviço acima para escolher dia e horário.
+            Selecione um combo ou um ou mais serviços acima para escolher dia e horário.
           </p>
         </div>
       </section>
     </div>
+  );
+}
+
+function ServicePicker({
+  services,
+  slug,
+}: {
+  services: Array<{ id: string; name: string; duration_minutes: number; price_cents: number }>;
+  slug: string;
+}) {
+  const navigate = useNavigate();
+  const [picked, setPicked] = useState<string[]>([]);
+  const totals = useMemo(() => {
+    const list = services.filter((s) => picked.includes(s.id));
+    return {
+      minutes: list.reduce((s, x) => s + x.duration_minutes, 0),
+      cents: list.reduce((s, x) => s + x.price_cents, 0),
+    };
+  }, [services, picked]);
+
+  function toggle(id: string) {
+    setPicked((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  return (
+    <>
+      <div className="mt-3 space-y-2">
+        {services.map((s) => {
+          const active = picked.includes(s.id);
+          return (
+            <button
+              key={s.id}
+              onClick={() => toggle(s.id)}
+              className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition ${
+                active
+                  ? "border-foreground bg-secondary"
+                  : "border-border bg-card hover:border-foreground/40"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={`flex h-5 w-5 items-center justify-center rounded border ${
+                    active
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border"
+                  }`}
+                >
+                  {active && <Check className="h-3 w-3" />}
+                </span>
+                <div>
+                  <p className="font-medium">{s.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {minutesLabel(s.duration_minutes)}
+                  </p>
+                </div>
+              </div>
+              <p className="font-display text-lg">{brl(s.price_cents)}</p>
+            </button>
+          );
+        })}
+      </div>
+      {picked.length > 0 && (
+        <div className="sticky bottom-3 mt-4 flex items-center justify-between rounded-lg border border-foreground/40 bg-card p-3 shadow-lg">
+          <div className="text-xs">
+            <p className="font-medium">
+              {picked.length} serviço(s) · {minutesLabel(totals.minutes)}
+            </p>
+            <p className="font-display text-base">{brl(totals.cents)}</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() =>
+              navigate({
+                to: "/$slug/agendar",
+                params: { slug },
+                search: { serviceIds: picked.join(",") },
+              })
+            }
+          >
+            Agendar →
+          </Button>
+        </div>
+      )}
+    </>
   );
 }
