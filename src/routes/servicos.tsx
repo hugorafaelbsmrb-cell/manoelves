@@ -9,6 +9,7 @@ import { brl, minutesLabel } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PlansManager } from "@/routes/assinaturas";
 
 export const Route = createFileRoute("/servicos")({
   ssr: false,
