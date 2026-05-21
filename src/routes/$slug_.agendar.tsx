@@ -16,6 +16,7 @@ import { brl, minutesLabel } from "@/lib/format";
 const searchSchema = z.object({
   comboId: z.string().optional(),
   serviceId: z.string().optional(),
+  serviceIds: z.string().optional(),
 });
 
 export const Route = createFileRoute("/$slug_/agendar")({
