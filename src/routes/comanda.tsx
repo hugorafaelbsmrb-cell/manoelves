@@ -324,13 +324,26 @@ function ComandaPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <label className="text-xs text-muted-foreground">Cliente</label>
-            <Input
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Nome do cliente"
-            />
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Cliente</label>
+              <Input
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder="Nome do cliente"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">
+                WhatsApp (para envio automático do PIX)
+              </label>
+              <Input
+                value={clientWhats}
+                onChange={(e) => setClientWhats(e.target.value)}
+                placeholder="(11) 99999-9999"
+                inputMode="tel"
+              />
+            </div>
           </div>
 
           <Section title="Serviços">
