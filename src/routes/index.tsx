@@ -53,12 +53,14 @@ function HomePage() {
             <Scissors className="h-5 w-5" />
             <span className="font-display text-xl tracking-wider">MANO ELVES</span>
           </div>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <LogIn className="h-3.5 w-3.5" /> Painel
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <LogIn className="h-3.5 w-3.5" /> Área do cliente
+            </Link>
+          </div>
         </div>
       </header>
 
