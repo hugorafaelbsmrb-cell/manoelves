@@ -121,6 +121,13 @@ function ServicosPage() {
           })}
         </div>
       </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl tracking-wide">Planos de assinatura</h2>
+        <div className="mt-4">
+          <PlansManager />
+        </div>
+      </section>
     </>
   );
 }
