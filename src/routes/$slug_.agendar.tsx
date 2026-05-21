@@ -66,8 +66,8 @@ function BookingPage() {
   });
 
   const { data: selection } = useQuery<Selection | null>({
-    queryKey: ["selection", comboId, serviceId],
-    enabled: !!(comboId || serviceId),
+    queryKey: ["selection", comboId, serviceId, serviceIds],
+    enabled: !!(comboId || serviceId || serviceIds),
     queryFn: async () => {
       if (comboId) {
         const { data: combo } = await supabase
@@ -90,21 +90,23 @@ function BookingPage() {
           serviceIds: items.map((cs) => cs.service_id),
         };
       }
-      if (serviceId) {
-        const { data: svc } = await supabase
-          .from("services")
-          .select("id, name, duration_minutes, price_cents")
-          .eq("id", serviceId)
-          .maybeSingle();
-        if (!svc) return null;
-        return {
-          name: svc.name,
-          totalCents: svc.price_cents,
-          totalMinutes: svc.duration_minutes,
-          serviceIds: [svc.id],
-        };
-      }
-      return null;
+      const idList = serviceIds
+        ? serviceIds.split(",").filter(Boolean)
+        : serviceId
+        ? [serviceId]
+        : [];
+      if (idList.length === 0) return null;
+      const { data: svcs } = await supabase
+        .from("services")
+        .select("id, name, duration_minutes, price_cents")
+        .in("id", idList);
+      if (!svcs?.length) return null;
+      return {
+        name: svcs.map((s) => s.name).join(" + "),
+        totalCents: svcs.reduce((s, x) => s + x.price_cents, 0),
+        totalMinutes: svcs.reduce((s, x) => s + x.duration_minutes, 0),
+        serviceIds: svcs.map((s) => s.id),
+      };
     },
   });
 
