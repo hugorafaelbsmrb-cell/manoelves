@@ -372,13 +372,8 @@ function NewSubscriptionWizard() {
 
 function PlansManager() {
   const qc = useQueryClient();
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    monthly_price_cents: 8990,
-    credits: 4,
-    description: "",
-  });
 
   const { data: plans } = useQuery({
     queryKey: ["subscription-plans-all"],
@@ -390,33 +385,6 @@ function PlansManager() {
       return data ?? [];
     },
   });
-
-  function reset() {
-    setEditing(null);
-    setForm({ name: "", monthly_price_cents: 8990, credits: 4, description: "" });
-  }
-
-  async function save() {
-    if (!form.name || form.monthly_price_cents <= 0) {
-      toast.error("Informe nome e preço.");
-      return;
-    }
-    if (editing) {
-      const { error } = await supabase
-        .from("subscription_plans")
-        .update(form)
-        .eq("id", editing);
-      if (error) return toast.error(error.message);
-      toast.success("Plano atualizado");
-    } else {
-      const { error } = await supabase.from("subscription_plans").insert(form);
-      if (error) return toast.error(error.message);
-      toast.success("Plano cadastrado");
-    }
-    reset();
-    qc.invalidateQueries({ queryKey: ["subscription-plans"] });
-    qc.invalidateQueries({ queryKey: ["subscription-plans-all"] });
-  }
 
   async function toggle(id: string, is_active: boolean) {
     await supabase
@@ -435,48 +403,28 @@ function PlansManager() {
     qc.invalidateQueries({ queryKey: ["subscription-plans-all"] });
   }
 
+  const editingPlan = plans?.find((p) => p.id === editing) ?? null;
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Planos de assinatura</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Cadastre, edite ou remova os planos disponíveis para os clientes assinarem.
-        </p>
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+        <div>
+          <CardTitle className="text-base">Planos de assinatura</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Cadastre, edite ou remova os planos disponíveis para os clientes.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditing(null);
+            setWizardOpen(true);
+          }}
+        >
+          <Plus className="mr-1 h-4 w-4" /> Novo plano
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-[1.5fr_1fr_1fr_2fr_auto_auto]">
-          <Input
-            placeholder="Nome do plano"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <Input
-            type="number"
-            placeholder="Preço (centavos)"
-            value={form.monthly_price_cents}
-            onChange={(e) =>
-              setForm({ ...form, monthly_price_cents: Number(e.target.value) })
-            }
-          />
-          <Input
-            type="number"
-            placeholder="Créditos/mês"
-            value={form.credits}
-            onChange={(e) => setForm({ ...form, credits: Number(e.target.value) })}
-          />
-          <Input
-            placeholder="Descrição (opcional)"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-          <Button onClick={save}>{editing ? "Atualizar" : "Adicionar"}</Button>
-          {editing && (
-            <Button variant="ghost" onClick={reset}>
-              Cancelar
-            </Button>
-          )}
-        </div>
-
         <div className="divide-y divide-border rounded-md border border-border">
           {(plans ?? []).map((p) => (
             <div
@@ -504,12 +452,7 @@ function PlansManager() {
                   variant="ghost"
                   onClick={() => {
                     setEditing(p.id);
-                    setForm({
-                      name: p.name,
-                      monthly_price_cents: p.monthly_price_cents,
-                      credits: p.credits,
-                      description: p.description ?? "",
-                    });
+                    setWizardOpen(true);
                   }}
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -529,14 +472,250 @@ function PlansManager() {
           ))}
           {!plans?.length && (
             <p className="px-3 py-4 text-xs text-muted-foreground">
-              Nenhum plano cadastrado. Crie o primeiro acima.
+              Nenhum plano cadastrado. Clique em "Novo plano" para começar.
             </p>
           )}
         </div>
       </CardContent>
+
+      <PlanWizard
+        open={wizardOpen}
+        onOpenChange={(v) => {
+          setWizardOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={
+          editingPlan
+            ? {
+                id: editingPlan.id,
+                name: editingPlan.name,
+                monthly_price_cents: editingPlan.monthly_price_cents,
+                credits: editingPlan.credits,
+                description: editingPlan.description ?? "",
+              }
+            : null
+        }
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["subscription-plans"] });
+          qc.invalidateQueries({ queryKey: ["subscription-plans-all"] });
+        }}
+      />
     </Card>
   );
 }
+
+/* ---------------- Wizard de plano ---------------- */
+
+type PlanForm = {
+  id?: string;
+  name: string;
+  monthly_price_cents: number;
+  credits: number;
+  description: string;
+};
+
+function PlanWizard({
+  open,
+  onOpenChange,
+  initial,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initial: PlanForm | null;
+  onSaved: () => void;
+}) {
+  const isEdit = !!initial?.id;
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState<PlanForm>(
+    initial ?? { name: "", monthly_price_cents: 8990, credits: 4, description: "" },
+  );
+  const [priceReais, setPriceReais] = useState(
+    ((initial?.monthly_price_cents ?? 8990) / 100).toFixed(2).replace(".", ","),
+  );
+  const [saving, setSaving] = useState(false);
+
+  // sincroniza quando abrir
+  function handleOpenChange(v: boolean) {
+    if (v) {
+      setStep(1);
+      const base =
+        initial ?? { name: "", monthly_price_cents: 8990, credits: 4, description: "" };
+      setForm(base);
+      setPriceReais((base.monthly_price_cents / 100).toFixed(2).replace(".", ","));
+    }
+    onOpenChange(v);
+  }
+
+  function parsePrice(v: string) {
+    const cleaned = v.replace(/\./g, "").replace(",", ".");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? Math.round(n * 100) : 0;
+  }
+
+  async function save() {
+    const cents = parsePrice(priceReais);
+    if (!form.name.trim() || cents <= 0) {
+      toast.error("Informe nome e preço válido.");
+      setStep(1);
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      name: form.name.trim(),
+      monthly_price_cents: cents,
+      credits: form.credits,
+      description: form.description?.trim() || null,
+    };
+    try {
+      if (isEdit && initial?.id) {
+        const { error } = await supabase
+          .from("subscription_plans")
+          .update(payload)
+          .eq("id", initial.id);
+        if (error) throw error;
+        toast.success("Plano atualizado");
+      } else {
+        const { error } = await supabase.from("subscription_plans").insert(payload);
+        if (error) throw error;
+        toast.success("Plano cadastrado");
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const cents = parsePrice(priceReais);
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Editar plano" : "Novo plano de assinatura"}</DialogTitle>
+          <DialogDescription>
+            Passo {step} de 3 ·{" "}
+            {step === 1 ? "Identificação" : step === 2 ? "Preço e créditos" : "Revisão"}
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Nome do plano</Label>
+              <Input
+                autoFocus
+                placeholder="Ex.: Clube do Corte"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Descrição (opcional)</Label>
+              <Input
+                placeholder="Ex.: 4 cortes por mês + 10% off em produtos"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Preço mensal (R$)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder="89,90"
+                value={priceReais}
+                onChange={(e) => setPriceReais(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Valor cobrado mensalmente do cliente.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Créditos por mês</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.credits}
+                onChange={(e) =>
+                  setForm({ ...form, credits: Math.max(0, Number(e.target.value)) })
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Quantos agendamentos o cliente pode marcar por mês com a assinatura.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Nome</span>
+              <span className="font-medium">{form.name || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Preço/mês</span>
+              <span className="font-medium">{brl(cents)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Créditos/mês</span>
+              <span className="font-medium">{form.credits}</span>
+            </div>
+            {form.description && (
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Descrição</span>
+                <span className="max-w-[60%] text-right font-medium">
+                  {form.description}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 pt-2">
+          <Button
+            variant="ghost"
+            onClick={() => (step === 1 ? onOpenChange(false) : setStep(step - 1))}
+            disabled={saving}
+          >
+            {step === 1 ? "Cancelar" : "Voltar"}
+          </Button>
+          {step < 3 ? (
+            <Button
+              onClick={() => {
+                if (step === 1 && !form.name.trim()) {
+                  toast.error("Informe o nome do plano.");
+                  return;
+                }
+                if (step === 2 && parsePrice(priceReais) <= 0) {
+                  toast.error("Informe um preço válido.");
+                  return;
+                }
+                setStep(step + 1);
+              }}
+            >
+              Continuar
+            </Button>
+          ) : (
+            <Button onClick={save} disabled={saving}>
+              <Check className="mr-1 h-4 w-4" />
+              {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Criar plano"}
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /* ---------------- Janelas exclusivas por plano ---------------- */
 
