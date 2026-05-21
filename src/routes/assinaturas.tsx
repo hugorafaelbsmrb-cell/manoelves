@@ -8,17 +8,33 @@ import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Trash2, RefreshCw, ExternalLink, Pencil } from "lucide-react";
-import { createSubscriptionPreapproval } from "@/lib/payments.functions";
+import {
+  Trash2,
+  RefreshCw,
+  ExternalLink,
+  Pencil,
+  Plus,
+  Check,
+  Calendar,
+  Send,
+} from "lucide-react";
+import {
+  createSubscriptionPreapproval,
+  createSubscriptionFirstPix,
+} from "@/lib/payments.functions";
+import { sendSubscriptionLinksWhatsApp } from "@/lib/uazapi.functions";
+import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
 
 export const Route = createFileRoute("/assinaturas")({
   ssr: false,
@@ -33,23 +49,6 @@ export const Route = createFileRoute("/assinaturas")({
 function Page() {
   const qc = useQueryClient();
   const { isOwner } = useAuth();
-  const [form, setForm] = useState({
-    client_name: "",
-    client_whatsapp: "",
-    plan_id: "",
-  });
-
-  const { data: plans } = useQuery({
-    queryKey: ["subscription-plans"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("subscription_plans")
-        .select("*")
-        .eq("is_active", true)
-        .order("monthly_price_cents");
-      return data ?? [];
-    },
-  });
 
   const { data: subs } = useQuery({
     queryKey: ["subs"],
@@ -61,32 +60,6 @@ function Page() {
       return data ?? [];
     },
   });
-
-  async function create() {
-    if (!form.client_name || !form.client_whatsapp) {
-      toast.error("Preencha nome e WhatsApp");
-      return;
-    }
-    const plan = plans?.find((p) => p.id === form.plan_id);
-    if (!plan) {
-      toast.error("Selecione um plano");
-      return;
-    }
-    const next = new Date();
-    next.setMonth(next.getMonth() + 1);
-    const { error } = await supabase.from("subscriptions").insert({
-      client_name: form.client_name,
-      client_whatsapp: form.client_whatsapp,
-      plan_name: plan.name,
-      monthly_price_cents: plan.monthly_price_cents,
-      credits_remaining: plan.credits,
-      next_charge_at: next.toISOString(),
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Assinatura criada");
-    setForm({ client_name: "", client_whatsapp: "", plan_id: "" });
-    qc.invalidateQueries({ queryKey: ["subs"] });
-  }
 
   async function recharge(id: string, credits: number) {
     const next = new Date();
@@ -109,64 +82,30 @@ function Page() {
     const email = window.prompt("E-mail do cliente para Mercado Pago:");
     if (!email) return;
     try {
-      const r = await preapprovalFn({ data: { subscriptionId: id, payerEmail: email } });
+      const r = await preapprovalFn({
+        data: { subscriptionId: id, payerEmail: email },
+      });
       window.open(r.init_point, "_blank");
       toast.success("Link de assinatura gerado");
       qc.invalidateQueries({ queryKey: ["subs"] });
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
     }
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl tracking-wide">Assinaturas</h1>
-        <p className="text-sm text-muted-foreground">
-          Planos recorrentes com Pix automático e créditos mensais.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl tracking-wide">Assinaturas</h1>
+          <p className="text-sm text-muted-foreground">
+            Planos recorrentes com Pix automático e créditos mensais.
+          </p>
+        </div>
+        <NewSubscriptionWizard />
       </div>
 
       {isOwner && <PlansManager />}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Nova assinatura</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-4">
-          <Input
-            placeholder="Nome do cliente"
-            value={form.client_name}
-            onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-          />
-          <Input
-            placeholder="WhatsApp"
-            value={form.client_whatsapp}
-            onChange={(e) => setForm({ ...form, client_whatsapp: e.target.value })}
-          />
-          <Select
-            value={form.plan_id}
-            onValueChange={(v) => setForm({ ...form, plan_id: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um plano" />
-            </SelectTrigger>
-            <SelectContent>
-              {(plans ?? []).map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} · {brl(p.monthly_price_cents)} · {p.credits} créditos
-                </SelectItem>
-              ))}
-              {!plans?.length && (
-                <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  Nenhum plano cadastrado.
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-          <Button onClick={create}>Criar</Button>
-        </CardContent>
-      </Card>
 
       <div className="grid gap-3">
         {subs?.map((s) => (
@@ -210,6 +149,226 @@ function Page() {
     </div>
   );
 }
+
+/* ---------------- Wizard de nova assinatura ---------------- */
+
+function NewSubscriptionWizard() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [client, setClient] = useState<ClientPick>({ name: "", phone: "" });
+  const [planId, setPlanId] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+
+  const createPix = useServerFn(createSubscriptionFirstPix);
+  const createMP = useServerFn(createSubscriptionPreapproval);
+  const sendLinks = useServerFn(sendSubscriptionLinksWhatsApp);
+
+  const { data: plans } = useQuery({
+    queryKey: ["subscription-plans"],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscription_plans")
+        .select("*")
+        .eq("is_active", true)
+        .order("monthly_price_cents");
+      return data ?? [];
+    },
+  });
+
+  function reset() {
+    setStep(1);
+    setClient({ name: "", phone: "" });
+    setPlanId("");
+  }
+
+  async function finalize() {
+    const plan = plans?.find((p) => p.id === planId);
+    if (!plan || !client.name || !client.phone) {
+      toast.error("Preencha cliente e plano.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const next = new Date();
+      next.setMonth(next.getMonth() + 1);
+      const { data: sub, error } = await supabase
+        .from("subscriptions")
+        .insert({
+          client_name: client.name,
+          client_whatsapp: client.phone,
+          plan_name: plan.name,
+          monthly_price_cents: plan.monthly_price_cents,
+          credits_remaining: plan.credits,
+          next_charge_at: next.toISOString(),
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+
+      const email = `sub+${sub.id.slice(0, 8)}@manoelves.app`;
+      const [mp, pix] = await Promise.all([
+        createMP({ data: { subscriptionId: sub.id, payerEmail: email } }),
+        createPix({ data: { subscriptionId: sub.id } }),
+      ]);
+
+      await sendLinks({
+        data: {
+          subscriptionId: sub.id,
+          mpInitPoint: mp.init_point,
+          pixCode: pix.pix_code,
+        },
+      });
+
+      toast.success("Assinatura criada e links enviados no WhatsApp!");
+      qc.invalidateQueries({ queryKey: ["subs"] });
+      qc.invalidateQueries({ queryKey: ["known-clients"] });
+      setOpen(false);
+      reset();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) reset();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="mr-1 h-4 w-4" /> Nova assinatura
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display tracking-wider">
+            Nova assinatura
+          </DialogTitle>
+          <DialogDescription>Passo {step} de 3</DialogDescription>
+        </DialogHeader>
+
+        {step === 1 && (
+          <div className="space-y-3">
+            <ClientCombobox value={client} onChange={setClient} />
+            <Button
+              className="w-full"
+              disabled={!client.name || !client.phone}
+              onClick={() => setStep(2)}
+            >
+              Continuar
+            </Button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Escolha o plano</p>
+            <div className="grid gap-2">
+              {(plans ?? []).map((p) => {
+                const active = planId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setPlanId(p.id)}
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-sm ${
+                      active
+                        ? "border-foreground bg-secondary"
+                        : "border-border hover:border-foreground"
+                    }`}
+                  >
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.credits} créditos/mês
+                        {p.description ? ` · ${p.description}` : ""}
+                      </p>
+                    </div>
+                    <span className="font-display">
+                      {brl(p.monthly_price_cents)}
+                    </span>
+                  </button>
+                );
+              })}
+              {!plans?.length && (
+                <p className="text-xs text-muted-foreground">
+                  Cadastre um plano primeiro.
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setStep(1)}
+              >
+                Voltar
+              </Button>
+              <Button
+                className="flex-1"
+                disabled={!planId}
+                onClick={() => setStep(3)}
+              >
+                Continuar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-3">
+            <div className="rounded-md border border-border bg-card p-3 text-sm">
+              <p>
+                <span className="text-muted-foreground">Cliente:</span>{" "}
+                <span className="font-medium">{client.name}</span> ·{" "}
+                {client.phone}
+              </p>
+              <p className="mt-1">
+                <span className="text-muted-foreground">Plano:</span>{" "}
+                <span className="font-medium">
+                  {plans?.find((p) => p.id === planId)?.name}
+                </span>{" "}
+                ·{" "}
+                {brl(
+                  plans?.find((p) => p.id === planId)?.monthly_price_cents ?? 0,
+                )}
+                /mês
+              </p>
+            </div>
+            <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
+              Ao confirmar enviaremos no WhatsApp do cliente dois botões:
+              <ul className="ml-4 mt-1 list-disc">
+                <li>💳 Assinar com cartão (cobrança automática)</li>
+                <li>📱 Pix do 1º mês (copia e cola)</li>
+              </ul>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setStep(2)}
+              >
+                Voltar
+              </Button>
+              <Button className="flex-1" disabled={busy} onClick={finalize}>
+                <Send className="mr-2 h-4 w-4" />
+                {busy ? "Enviando..." : "Confirmar e enviar"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------------- Planos ---------------- */
 
 function PlansManager() {
   const qc = useQueryClient();
@@ -260,7 +419,10 @@ function PlansManager() {
   }
 
   async function toggle(id: string, is_active: boolean) {
-    await supabase.from("subscription_plans").update({ is_active: !is_active }).eq("id", id);
+    await supabase
+      .from("subscription_plans")
+      .update({ is_active: !is_active })
+      .eq("id", id);
     qc.invalidateQueries({ queryKey: ["subscription-plans"] });
     qc.invalidateQueries({ queryKey: ["subscription-plans-all"] });
   }
@@ -333,6 +495,7 @@ function PlansManager() {
                 </div>
               </div>
               <div className="flex gap-1">
+                <PlanWindowsDialog planId={p.id} planName={p.name} />
                 <Button
                   size="sm"
                   variant="ghost"
@@ -348,7 +511,11 @@ function PlansManager() {
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => toggle(p.id, p.is_active)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toggle(p.id, p.is_active)}
+                >
                   {p.is_active ? "Desativar" : "Ativar"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => remove(p.id)}>
@@ -365,5 +532,127 @@ function PlansManager() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/* ---------------- Janelas exclusivas por plano ---------------- */
+
+const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function PlanWindowsDialog({
+  planId,
+  planName,
+}: {
+  planId: string;
+  planName: string;
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [wd, setWd] = useState(1);
+  const [start, setStart] = useState("09:00");
+  const [end, setEnd] = useState("18:00");
+
+  const { data: windows } = useQuery({
+    queryKey: ["plan-windows", planId],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("subscription_plan_windows")
+        .select("*")
+        .eq("plan_id", planId)
+        .order("weekday");
+      return data ?? [];
+    },
+  });
+
+  async function add() {
+    const { error } = await supabase.from("subscription_plan_windows").insert({
+      plan_id: planId,
+      weekday: wd,
+      start_time: start,
+      end_time: end,
+    });
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["plan-windows", planId] });
+    toast.success("Janela adicionada");
+  }
+
+  async function remove(id: string) {
+    await supabase.from("subscription_plan_windows").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["plan-windows", planId] });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          <Calendar className="mr-1 h-3.5 w-3.5" /> Agenda
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Agenda exclusiva — {planName}</DialogTitle>
+          <DialogDescription>
+            Assinantes desse plano só podem agendar nas janelas abaixo. Se
+            estiver vazio, o plano usa a agenda padrão do barbeiro.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          {(windows ?? []).map((w) => (
+            <div
+              key={w.id}
+              className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+            >
+              <span>
+                {WEEKDAYS[w.weekday]} · {w.start_time.slice(0, 5)} →{" "}
+                {w.end_time.slice(0, 5)}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => remove(w.id)}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+          {!windows?.length && (
+            <p className="rounded-md border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+              Sem janelas exclusivas — usa a agenda padrão.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2 border-t border-border pt-3">
+          <Label>Adicionar janela</Label>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={wd}
+              onChange={(e) => setWd(Number(e.target.value))}
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+            >
+              {WEEKDAYS.map((d, i) => (
+                <option key={i} value={i}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <Input
+              type="time"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              className="w-28"
+            />
+            <span className="text-muted-foreground">→</span>
+            <Input
+              type="time"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              className="w-28"
+            />
+            <Button size="sm" onClick={add}>
+              <Check className="mr-1 h-3.5 w-3.5" /> Adicionar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
