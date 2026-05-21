@@ -128,6 +128,7 @@ function ComandaPage() {
       .insert({
         barber_id: user.id,
         client_name: clientName,
+        client_whatsapp: clientWhats.trim() || null,
         subtotal_cents: subtotal,
         total_cents: subtotal,
         status: "closed" as never,
@@ -170,18 +171,52 @@ function ComandaPage() {
       }
     }
 
-    setClosed({
+    const baseClosed = {
       invoice: order.invoice_number!,
       owner: Math.round(ownerAmount),
       barber: Math.round(barberAmount),
       total: subtotal,
       orderId: order.id,
-      initPoint: null,
-    });
+      initPoint: null as string | null,
+      pixCode: null as string | null,
+      pixQr: null as string | null,
+      whatsSent: false,
+    };
+    setClosed(baseClosed);
     setItems([]);
+    const savedWhats = clientWhats.trim();
     setClientName("");
+    setClientWhats("");
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
+
+    // Fluxo automático: PIX + envio do copia-e-cola via WhatsApp
+    if (method === "pix") {
+      setGeneratingPix(true);
+      try {
+        const pix = await pixFn({ data: { orderId: order.id } });
+        let whatsSent = false;
+        if (savedWhats) {
+          try {
+            await sendPixWhatsFn({ data: { orderId: order.id } });
+            whatsSent = true;
+            toast.success("PIX enviado no WhatsApp do cliente");
+          } catch (e: any) {
+            toast.error(`WhatsApp: ${e.message ?? "falha no envio"}`);
+          }
+        }
+        setClosed({
+          ...baseClosed,
+          pixCode: pix.pix_code,
+          pixQr: pix.qr_base64,
+          whatsSent,
+        });
+      } catch (e: any) {
+        toast.error(e.message ?? "Erro ao gerar PIX");
+      } finally {
+        setGeneratingPix(false);
+      }
+    }
   }
 
   async function generatePaymentLink() {
