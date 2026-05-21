@@ -343,6 +343,49 @@ function ComandaPage() {
         barbeiro e simula a emissão da NFS-e.
       </p>
 
+      {(nearby ?? []).length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-card p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Clientes agora · ±30 min
+          </p>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-1">
+            {nearby!.map((a) => {
+              const hhmm = new Date(a.start_at).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const initials = (a.client_name ?? "?")
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((p) => p[0]?.toUpperCase())
+                .join("");
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => {
+                    setClientName(a.client_name);
+                    setClientWhats(a.client_whatsapp ?? "");
+                    toast.success(`Cliente ${a.client_name} carregado`);
+                  }}
+                  className="flex w-20 shrink-0 flex-col items-center gap-1 text-center"
+                  title={`${a.client_name} — ${hhmm}`}
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-background font-display text-lg tracking-wider transition hover:border-primary hover:bg-secondary">
+                    {initials || "?"}
+                  </div>
+                  <span className="line-clamp-1 text-xs font-medium">
+                    {a.client_name.split(" ")[0]}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{hhmm}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
