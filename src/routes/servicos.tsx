@@ -9,6 +9,7 @@ import { brl, minutesLabel } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PlansManager } from "@/routes/assinaturas";
 
 export const Route = createFileRoute("/servicos")({
   ssr: false,
@@ -118,6 +119,13 @@ function ServicosPage() {
               />
             );
           })}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl tracking-wide">Planos de assinatura</h2>
+        <div className="mt-4">
+          <PlansManager />
         </div>
       </section>
     </>
