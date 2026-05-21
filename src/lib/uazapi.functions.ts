@@ -187,3 +187,97 @@ export const sendBookingConfirmation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+// ============================================================
+// Envio de cobrança PIX (copia e cola) via WhatsApp.
+// Usa o endpoint /send/menu (type:button) com botão "copy:" —
+// gera nativamente o botão "copiar código" no WhatsApp.
+// ============================================================
+const sendOrderPixSchema = z.object({ orderId: z.string().uuid() });
+
+function brl(cents: number) {
+  return (cents / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+export const sendOrderPixWhatsApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => sendOrderPixSchema.parse(d))
+  .handler(async ({ data }): Promise<{ ok: boolean; skipped?: string }> => {
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select(
+        "id, client_name, client_whatsapp, total_cents, invoice_number, pix_code",
+      )
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!order) throw new Error("Comanda não encontrada");
+    if (!order.client_whatsapp) return { ok: false, skipped: "sem telefone" };
+    if (!order.pix_code) return { ok: false, skipped: "sem código pix" };
+
+    const { data: shop } = await supabaseAdmin
+      .from("barbershop")
+      .select("name")
+      .limit(1)
+      .maybeSingle();
+
+    const firstName = (order.client_name ?? "").split(" ")[0] || "tudo bem";
+    const shopName = shop?.name ?? "a barbearia";
+    const valor = brl(order.total_cents);
+    const text =
+      `Olá, ${firstName}! ✂️\n` +
+      `Aqui está o PIX da sua comanda *${order.invoice_number ?? ""}* na ${shopName}.\n\n` +
+      `Valor: *${valor}*\n\n` +
+      `Toque em *Copiar código PIX* abaixo, abra o app do seu banco em *Pix › Pix Copia e Cola* e cole o código. Pronto! 🚀`;
+
+    const number = normalizeNumber(order.client_whatsapp);
+
+    try {
+      await uazapi("/send/menu", {
+        method: "POST",
+        body: {
+          number,
+          type: "button",
+          text,
+          footerText: "Pagamento seguro via Mercado Pago",
+          choices: [`Copiar código PIX|copy:${order.pix_code}`],
+        },
+      });
+    } catch (e) {
+      // Fallback: alguns dispositivos/contas não aceitam botões.
+      // Enviar como texto puro contendo o código.
+      try {
+        await uazapi("/send/text", {
+          method: "POST",
+          body: {
+            number,
+            text:
+              `${text}\n\n*Código PIX (copia e cola):*\n` +
+              "```" +
+              `\n${order.pix_code}\n` +
+              "```",
+          },
+        });
+      } catch (err) {
+        await supabaseAdmin.from("messages_log").insert({
+          kind: "pix",
+          to_phone: number,
+          to_name: order.client_name,
+          payload: `[ERRO] ${err instanceof Error ? err.message : String(err)}`,
+        });
+        throw err;
+      }
+    }
+
+    await supabaseAdmin.from("messages_log").insert({
+      kind: "pix",
+      to_phone: number,
+      to_name: order.client_name,
+      payload: `PIX ${order.invoice_number ?? ""} ${valor}`,
+    });
+    return { ok: true };
+  });
+
