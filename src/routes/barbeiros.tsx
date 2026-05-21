@@ -265,39 +265,37 @@ function BarbeirosPage() {
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
                     <p className="text-xs text-muted-foreground">
-                      Defina os blocos disponíveis para cada dia da semana.
+                      Defina os blocos disponíveis para cada dia. Você pode criar
+                      vários intervalos no mesmo dia (ex.: manhã e tarde).
                     </p>
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 space-y-3">
                       {WEEKDAYS.map((label, wd) => {
-                        const block = (hours ?? []).find((h) => h.weekday === wd);
+                        const blocks = (hours ?? []).filter((h) => h.weekday === wd);
                         return (
-                          <WeekRow
+                          <WeekDayBlocks
                             key={wd}
                             label={label}
-                            block={block}
-                            onSave={async (start, end) => {
-                              if (block) {
-                                await supabase
-                                  .from("working_hours")
-                                  .update({ start_time: start, end_time: end })
-                                  .eq("id", block.id);
-                              } else {
-                                await supabase.from("working_hours").insert({
-                                  barber_id: b.id,
-                                  weekday: wd,
-                                  start_time: start,
-                                  end_time: end,
-                                });
-                              }
+                            blocks={blocks}
+                            onAdd={async (start, end) => {
+                              await supabase.from("working_hours").insert({
+                                barber_id: b.id,
+                                weekday: wd,
+                                start_time: start,
+                                end_time: end,
+                              });
+                              qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
+                              toast.success("Intervalo adicionado");
+                            }}
+                            onUpdate={async (id, start, end) => {
+                              await supabase
+                                .from("working_hours")
+                                .update({ start_time: start, end_time: end })
+                                .eq("id", id);
                               qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
                               toast.success("Horário salvo");
                             }}
-                            onDelete={async () => {
-                              if (!block) return;
-                              await supabase
-                                .from("working_hours")
-                                .delete()
-                                .eq("id", block.id);
+                            onDelete={async (id) => {
+                              await supabase.from("working_hours").delete().eq("id", id);
                               qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
                             }}
                           />
