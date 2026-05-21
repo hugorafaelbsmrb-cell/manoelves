@@ -246,6 +246,58 @@ function ComandaPage() {
           <Row label="Comissão do barbeiro" value={brl(closed.barber)} />
           <Row label="Dono da barbearia" value={brl(closed.owner)} />
         </div>
+
+        {generatingPix && (
+          <p className="mt-4 text-xs text-muted-foreground">Gerando PIX…</p>
+        )}
+
+        {closed.pixCode && (
+          <div className="mt-6 space-y-3 rounded-lg border border-border bg-background p-4 text-left">
+            <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              PIX Copia e Cola
+            </p>
+            {closed.pixQr && (
+              <img
+                src={`data:image/png;base64,${closed.pixQr}`}
+                alt="QR Code PIX"
+                className="mx-auto h-44 w-44 rounded-md border border-border bg-white p-2"
+              />
+            )}
+            <textarea
+              readOnly
+              value={closed.pixCode}
+              className="h-20 w-full resize-none rounded-md border border-border bg-card p-2 font-mono text-[10px]"
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                navigator.clipboard.writeText(closed.pixCode!);
+                toast.success("Código PIX copiado");
+              }}
+            >
+              Copiar código
+            </Button>
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={generatingPix}
+              onClick={async () => {
+                try {
+                  await sendPixWhatsFn({ data: { orderId: closed.orderId } });
+                  setClosed({ ...closed, whatsSent: true });
+                  toast.success("PIX reenviado no WhatsApp");
+                } catch (e: any) {
+                  toast.error(e.message ?? "Falha ao enviar");
+                }
+              }}
+            >
+              {closed.whatsSent ? "Reenviar no WhatsApp" : "Enviar no WhatsApp"}
+            </Button>
+          </div>
+        )}
+
         <Button
           className="mt-6 w-full"
           variant="secondary"
