@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Plus, Trash2, AlertTriangle } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, Trash2, AlertTriangle, ImageIcon, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,6 +20,17 @@ export const Route = createFileRoute("/produtos")({
   ),
 });
 
+async function uploadProductImage(file: File): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("products")
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from("products").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 function ProdutosPage() {
   const { isOwner } = useAuth();
   const qc = useQueryClient();
@@ -27,10 +38,7 @@ function ProdutosPage() {
   const { data: products } = useQuery({
     queryKey: ["products-admin"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at");
+      const { data } = await supabase.from("products").select("*").order("created_at");
       return data ?? [];
     },
   });
@@ -43,17 +51,39 @@ function ProdutosPage() {
     );
   }
 
-  async function patch(id: string, p: Partial<{ name: string; price_cents: number; cost_cents: number; stock: number; low_stock_alert: number; is_active: boolean; is_internal_use: boolean }>) {
+  async function patch(
+    id: string,
+    p: Partial<{
+      name: string;
+      price_cents: number;
+      cost_cents: number;
+      stock: number;
+      low_stock_alert: number;
+      is_active: boolean;
+      is_internal_use: boolean;
+      image_url: string | null;
+    }>,
+  ) {
     const { error } = await supabase.from("products").update(p).eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["products-admin"] });
+  }
+
+  async function uploadAndPatch(id: string, file: File) {
+    try {
+      const url = await uploadProductImage(file);
+      await patch(id, { image_url: url });
+      toast.success("Foto atualizada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro no upload");
+    }
   }
 
   return (
     <>
       <h1 className="font-display text-3xl tracking-wider">Produtos</h1>
       <p className="text-sm text-muted-foreground">
-        Cadastre produtos para revenda e uso interno; gerencie estoque e alertas.
+        Cadastre produtos para revenda e uso interno; gerencie estoque, fotos e alertas.
       </p>
 
       <ProductForm onCreated={() => qc.invalidateQueries({ queryKey: ["products-admin"] })} />
@@ -67,6 +97,7 @@ function ProdutosPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
+                <th className="px-4 py-3">Foto</th>
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3 text-right">Preço</th>
                 <th className="px-4 py-3 text-right">Custo</th>
@@ -82,6 +113,13 @@ function ProdutosPage() {
                 const low = p.stock <= p.low_stock_alert;
                 return (
                   <tr key={p.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3">
+                      <ImageCell
+                        url={p.image_url}
+                        onUpload={(file) => uploadAndPatch(p.id, file)}
+                        onClear={() => patch(p.id, { image_url: null })}
+                      />
+                    </td>
                     <td className="px-4 py-3 font-medium">
                       <EditCell value={p.name} onSave={(v) => patch(p.id, { name: v })} />
                     </td>
@@ -173,6 +211,54 @@ function ProdutosPage() {
   );
 }
 
+function ImageCell({
+  url,
+  onUpload,
+  onClear,
+}: {
+  url: string | null;
+  onUpload: (file: File) => void;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary hover:opacity-80"
+        title={url ? "Trocar foto" : "Adicionar foto"}
+      >
+        {url ? (
+          <img src={url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      {url && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-[10px] text-muted-foreground underline hover:text-destructive"
+        >
+          remover
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onUpload(f);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
 function EditCell({
   value,
   onSave,
@@ -232,27 +318,48 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
   const [cost, setCost] = useState("");
   const [stock, setStock] = useState("0");
   const [internal, setInternal] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const price_cents = Math.round(parseFloat(price.replace(",", ".")) * 100);
-    const cost_cents = Math.round(parseFloat((cost || "0").replace(",", ".")) * 100);
-    if (!name || !price_cents) return toast.error("Preencha nome e preço.");
-    const { error } = await supabase.from("products").insert({
-      name,
-      price_cents,
-      cost_cents,
-      stock: parseInt(stock) || 0,
-      is_internal_use: internal,
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Produto cadastrado");
-    setName("");
-    setPrice("");
-    setCost("");
-    setStock("0");
-    setInternal(false);
-    onCreated();
+    setBusy(true);
+    try {
+      const price_cents = Math.round(parseFloat(price.replace(",", ".")) * 100);
+      const cost_cents = Math.round(parseFloat((cost || "0").replace(",", ".")) * 100);
+      if (!name || !price_cents) {
+        toast.error("Preencha nome e preço.");
+        return;
+      }
+      let image_url: string | null = null;
+      if (file) {
+        image_url = await uploadProductImage(file);
+      }
+      const { error } = await supabase.from("products").insert({
+        name,
+        price_cents,
+        cost_cents,
+        stock: parseInt(stock) || 0,
+        is_internal_use: internal,
+        image_url,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Produto cadastrado");
+      setName("");
+      setPrice("");
+      setCost("");
+      setStock("0");
+      setInternal(false);
+      setFile(null);
+      onCreated();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -276,6 +383,19 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
         <label className="text-xs text-muted-foreground">Estoque</label>
         <Input type="number" value={stock} onChange={(e) => setStock(e.target.value)} />
       </div>
+      <div>
+        <label className="text-xs text-muted-foreground">Foto</label>
+        <label className="flex h-9 cursor-pointer items-center gap-2 rounded-md border border-border px-3 text-xs hover:bg-secondary">
+          <Upload className="h-3.5 w-3.5" />
+          {file ? file.name.slice(0, 18) : "Escolher"}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+        </label>
+      </div>
       <label className="flex items-center gap-2 text-xs text-muted-foreground">
         <input
           type="checkbox"
@@ -284,8 +404,8 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
         />
         Uso interno
       </label>
-      <Button type="submit">
-        <Plus className="mr-1 h-4 w-4" /> Adicionar
+      <Button type="submit" disabled={busy}>
+        <Plus className="mr-1 h-4 w-4" /> {busy ? "Salvando..." : "Adicionar"}
       </Button>
     </form>
   );
