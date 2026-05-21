@@ -281,3 +281,97 @@ export const sendOrderPixWhatsApp = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+// ============================================================
+// Envio dos links de assinatura (cartão recorrente + Pix do 1º mês).
+// O cliente recebe uma mensagem com 2 botões.
+// ============================================================
+const sendSubscriptionLinksSchema = z.object({
+  subscriptionId: z.string().uuid(),
+  mpInitPoint: z.string().url(),
+  pixCode: z.string().min(1),
+});
+
+export const sendSubscriptionLinksWhatsApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => sendSubscriptionLinksSchema.parse(d))
+  .handler(async ({ data }): Promise<{ ok: boolean; skipped?: string }> => {
+    const { data: sub, error } = await supabaseAdmin
+      .from("subscriptions")
+      .select("id, client_name, client_whatsapp, plan_name, monthly_price_cents")
+      .eq("id", data.subscriptionId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!sub) throw new Error("Assinatura não encontrada");
+    if (!sub.client_whatsapp) return { ok: false, skipped: "sem telefone" };
+
+    const { data: shop } = await supabaseAdmin
+      .from("barbershop")
+      .select("name")
+      .limit(1)
+      .maybeSingle();
+
+    const firstName = (sub.client_name ?? "").split(" ")[0] || "tudo bem";
+    const shopName = shop?.name ?? "a barbearia";
+    const valor = brl(sub.monthly_price_cents);
+    const text =
+      `Olá, ${firstName}! ✂️\n` +
+      `Sua assinatura *${sub.plan_name}* na ${shopName} está pronta!\n\n` +
+      `Valor: *${valor}/mês*\n\n` +
+      `Escolha como ativar:\n` +
+      `• *Cartão recorrente* — cobrança automática todo mês.\n` +
+      `• *Pix do 1º mês* — pague hoje e renove depois.`;
+
+    const number = normalizeNumber(sub.client_whatsapp);
+
+    try {
+      await uazapi("/send/menu", {
+        method: "POST",
+        body: {
+          number,
+          type: "button",
+          text,
+          footerText: "Pagamento seguro via Mercado Pago",
+          choices: [
+            `💳 Assinar com cartão|url:${data.mpInitPoint}`,
+            `📱 Copiar Pix do 1º mês|copy:${data.pixCode}`,
+          ],
+        },
+      });
+    } catch (e) {
+      // Fallback: texto puro com link e código
+      try {
+        await uazapi("/send/text", {
+          method: "POST",
+          body: {
+            number,
+            text:
+              `${text}\n\n` +
+              `💳 *Assinar com cartão:* ${data.mpInitPoint}\n\n` +
+              `📱 *Pix do 1º mês (copia e cola):*\n` +
+              "```" +
+              `\n${data.pixCode}\n` +
+              "```",
+          },
+        });
+      } catch (err) {
+        await supabaseAdmin.from("messages_log").insert({
+          kind: "subscription",
+          to_phone: number,
+          to_name: sub.client_name,
+          payload: `[ERRO] ${err instanceof Error ? err.message : String(err)} :: ${e instanceof Error ? e.message : String(e)}`,
+        });
+        throw err;
+      }
+    }
+
+    await supabaseAdmin.from("messages_log").insert({
+      kind: "subscription",
+      to_phone: number,
+      to_name: sub.client_name,
+      payload: `Links assinatura ${sub.plan_name} (${valor})`,
+    });
+    return { ok: true };
+  });
+
+

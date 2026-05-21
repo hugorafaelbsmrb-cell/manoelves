@@ -295,11 +295,24 @@ function ClientePage() {
                 {data.products.map((p) => (
                   <div
                     key={p.id}
-                    className="rounded-lg border border-border/60 p-3 text-center"
+                    className="overflow-hidden rounded-lg border border-border/60 text-center"
                   >
-                    <div className="text-sm font-medium">{p.name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {brl(p.price_cents)}
+                    {p.image_url ? (
+                      <img
+                        src={p.image_url}
+                        alt={p.name}
+                        className="aspect-square w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-square w-full items-center justify-center bg-secondary text-muted-foreground">
+                        <ShoppingBag className="h-6 w-6" />
+                      </div>
+                    )}
+                    <div className="p-3">
+                      <div className="text-sm font-medium">{p.name}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {brl(p.price_cents)}
+                      </div>
                     </div>
                   </div>
                 ))}

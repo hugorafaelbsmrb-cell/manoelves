@@ -209,7 +209,7 @@ export const getClientPortalData = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("products")
-        .select("id, name, price_cents")
+        .select("id, name, price_cents, image_url")
         .eq("is_active", true)
         .eq("is_internal_use", false)
         .order("name"),

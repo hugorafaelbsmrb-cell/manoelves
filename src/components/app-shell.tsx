@@ -101,6 +101,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {user.email} {isOwner ? "· dono" : isBarber ? "· barbeiro" : ""}
             </span>
+            <Link
+              to="/cliente"
+              className="hidden text-xs text-muted-foreground underline hover:text-foreground sm:inline"
+            >
+              Área do cliente
+            </Link>
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="mr-1 h-3.5 w-3.5" /> Sair
