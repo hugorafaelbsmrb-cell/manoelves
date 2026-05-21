@@ -1,8 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Scissors, Calendar, ArrowLeft } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Scissors, Calendar, ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, minutesLabel } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$slug")({
   head: ({ params }) => ({
