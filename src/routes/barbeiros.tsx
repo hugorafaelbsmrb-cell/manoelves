@@ -66,6 +66,31 @@ function BarbeirosPage() {
     },
   });
 
+  const { data: commission } = useQuery({
+    queryKey: ["commission-rules", selected],
+    enabled: !!selected,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("barber_id", selected!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  async function saveCommission(barberId: string, service_pct: number, product_pct: number) {
+    const { error } = await supabase
+      .from("commission_rules")
+      .upsert({ barber_id: barberId, service_pct, product_pct }, { onConflict: "barber_id" });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["commission-rules", barberId] });
+    toast.success("Comissão salva");
+  }
+
   if (!isOwner) {
     return (
       <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar barbeiros.</p>
