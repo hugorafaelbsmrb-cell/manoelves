@@ -537,6 +537,7 @@ export type Database = {
           cost_cents: number
           created_at: string
           id: string
+          image_url: string | null
           is_active: boolean
           is_internal_use: boolean
           low_stock_alert: number
@@ -549,6 +550,7 @@ export type Database = {
           cost_cents?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_internal_use?: boolean
           low_stock_alert?: number
@@ -561,6 +563,7 @@ export type Database = {
           cost_cents?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_internal_use?: boolean
           low_stock_alert?: number
@@ -636,6 +639,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      subscription_plan_windows: {
+        Row: {
+          barber_id: string | null
+          created_at: string
+          end_time: string
+          id: string
+          plan_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          barber_id?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          plan_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          barber_id?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          plan_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_windows_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
