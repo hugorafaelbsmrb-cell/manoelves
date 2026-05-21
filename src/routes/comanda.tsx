@@ -10,7 +10,8 @@ import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createOrderCheckout } from "@/lib/payments.functions";
+import { createOrderCheckout, createOrderPix } from "@/lib/payments.functions";
+import { sendOrderPixWhatsApp } from "@/lib/uazapi.functions";
 
 export const Route = createFileRoute("/comanda")({
   ssr: false,
