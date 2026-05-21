@@ -89,31 +89,49 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
   const cadastroActive = visibleCadastro.some((l) => pathname === l.to);
 
+  // Bottom nav (mobile only): essential items based on role
+  const bottomNav: NavLink[] = isOwner
+    ? [
+        { to: "/dashboard", label: "Início", icon: <BarChart3 className="h-5 w-5" /> },
+        { to: "/agenda", label: "Agenda", icon: <Calendar className="h-5 w-5" /> },
+        { to: "/comanda", label: "Comanda", icon: <Receipt className="h-5 w-5" /> },
+        { to: "/clientes", label: "Clientes", icon: <Users className="h-5 w-5" /> },
+        { to: "/assinaturas", label: "Assinar", icon: <CreditCard className="h-5 w-5" /> },
+      ]
+    : [
+        { to: "/agenda", label: "Agenda", icon: <Calendar className="h-5 w-5" /> },
+        { to: "/comanda", label: "Comanda", icon: <Receipt className="h-5 w-5" /> },
+        { to: "/clientes", label: "Clientes", icon: <Users className="h-5 w-5" /> },
+        { to: "/meu-financeiro", label: "Financeiro", icon: <Wallet className="h-5 w-5" /> },
+        { to: "/fila-espera", label: "Fila", icon: <Clock className="h-5 w-5" /> },
+      ];
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-sidebar">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
-            <span className="font-display text-lg tracking-wider">MANO ELVES</span>
+            <span className="font-display text-base sm:text-lg tracking-wider">MANO ELVES</span>
           </Link>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm">
+            <span className="hidden text-xs text-muted-foreground lg:inline">
               {user.email} {isOwner ? "· dono" : isBarber ? "· barbeiro" : ""}
             </span>
             <Link
               to="/cliente"
-              className="hidden text-xs text-muted-foreground underline hover:text-foreground sm:inline"
+              className="hidden text-xs text-muted-foreground underline hover:text-foreground lg:inline"
             >
               Área do cliente
             </Link>
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="mr-1 h-3.5 w-3.5" /> Sair
+              <LogOut className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-5 pb-2 text-sm">
+        {/* Desktop / tablet top nav */}
+        <nav className="mx-auto hidden max-w-6xl gap-1 overflow-x-auto px-5 pb-2 text-sm md:flex">
           {visible.map((l) => {
             const active = pathname === l.to;
             return (
@@ -158,9 +176,63 @@ export function AppShell({ children }: { children: ReactNode }) {
             </DropdownMenu>
           )}
         </nav>
+        {/* Mobile: full menu access via dropdown */}
+        <div className="flex md:hidden items-center gap-2 px-4 pb-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs outline-none">
+              <FolderCog className="h-4 w-4" /> Menu completo <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[12rem] max-h-[70vh] overflow-y-auto">
+              {visible.map((l) => (
+                <DropdownMenuItem key={l.to} asChild>
+                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                    {l.icon} {l.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              {visibleCadastro.map((l) => (
+                <DropdownMenuItem key={l.to} asChild>
+                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                    {l.icon} {l.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem asChild>
+                <Link to="/cliente" className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                  <Users className="h-4 w-4" /> Área do cliente
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-5 sm:py-8 pb-24 md:pb-8">{children}</main>
+
+      {/* Mobile bottom nav */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-sidebar md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <ul className="mx-auto flex max-w-md items-stretch justify-between">
+          {bottomNav.map((l) => {
+            const active = pathname === l.to;
+            return (
+              <li key={l.to} className="flex-1">
+                <Link
+                  to={l.to}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] ${
+                    active ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {l.icon}
+                  <span className="leading-tight">{l.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 }
