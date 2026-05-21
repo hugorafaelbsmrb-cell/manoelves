@@ -35,6 +35,7 @@ function ComandaPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [clientName, setClientName] = useState("");
+  const [clientWhats, setClientWhats] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [method, setMethod] = useState<"pix" | "cash" | "credit" | "debit">("pix");
   const [closed, setClosed] = useState<{
@@ -44,9 +45,15 @@ function ComandaPage() {
     total: number;
     orderId: string;
     initPoint?: string | null;
+    pixCode?: string | null;
+    pixQr?: string | null;
+    whatsSent?: boolean;
   } | null>(null);
   const checkoutFn = useServerFn(createOrderCheckout);
+  const pixFn = useServerFn(createOrderPix);
+  const sendPixWhatsFn = useServerFn(sendOrderPixWhatsApp);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [generatingPix, setGeneratingPix] = useState(false);
 
   const { data: services } = useQuery({
     queryKey: ["pdv-services"],
