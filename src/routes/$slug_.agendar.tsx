@@ -35,7 +35,7 @@ interface Selection {
 
 function BookingPage() {
   const { slug } = Route.useParams();
-  const { comboId, serviceId } = Route.useSearch();
+  const { comboId, serviceId, serviceIds } = Route.useSearch();
 
   const [step, setStep] = useState<"date" | "form" | "pix" | "done">("date");
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
