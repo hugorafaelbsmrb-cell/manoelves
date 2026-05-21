@@ -105,7 +105,8 @@ function Page() {
         <NewSubscriptionWizard />
       </div>
 
-      {isOwner && <PlansManager />}
+
+
 
       <div className="grid gap-3">
         {subs?.map((s) => (
