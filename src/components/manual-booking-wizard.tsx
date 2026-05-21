@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Check, ChevronLeft, Plus } from "lucide-react";
@@ -8,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { brl, minutesLabel } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
+import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 
 type Step = "barber" | "service" | "datetime" | "client";
 
@@ -31,24 +32,32 @@ interface SelectedService {
 export function ManualBookingWizard() {
   const { isOwner, user } = useAuth();
   const qc = useQueryClient();
+  const sendConfirmationFn = useServerFn(sendBookingConfirmation);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>(isOwner ? "barber" : "service");
   const [barberId, setBarberId] = useState<string | null>(isOwner ? null : user?.id ?? null);
-  const [service, setService] = useState<SelectedService | null>(null);
+  const [selected, setSelected] = useState<SelectedService[]>([]);
   const [date, setDate] = useState(() => startOfDay(new Date()));
   const [slot, setSlot] = useState<Date | null>(null);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [client, setClient] = useState<ClientPick>({ name: "", phone: "" });
   const [submitting, setSubmitting] = useState(false);
+
+  const totalMinutes = useMemo(
+    () => selected.reduce((s, x) => s + x.duration_minutes, 0),
+    [selected],
+  );
+  const totalCents = useMemo(
+    () => selected.reduce((s, x) => s + x.price_cents, 0),
+    [selected],
+  );
 
   function reset() {
     setStep(isOwner ? "barber" : "service");
     setBarberId(isOwner ? null : user?.id ?? null);
-    setService(null);
+    setSelected([]);
     setDate(startOfDay(new Date()));
     setSlot(null);
-    setName("");
-    setPhone("");
+    setClient({ name: "", phone: "" });
   }
 
   useEffect(() => {
@@ -137,12 +146,12 @@ export function ManualBookingWizard() {
   );
 
   const slots = useMemo(() => {
-    if (!service || !workingHours) return [] as Date[];
+    if (totalMinutes === 0 || !workingHours) return [] as Date[];
     const weekday = date.getDay();
     const windows = workingHours.filter((w) => w.weekday === weekday);
     if (windows.length === 0) return [];
     const stepMin = 15;
-    const totalMin = service.duration_minutes + (buffer ?? 10);
+    const totalMin = totalMinutes + (buffer ?? 10);
     const out: Date[] = [];
     for (const w of windows) {
       const [sh, sm] = w.start_time.split(":").map(Number);
@@ -162,40 +171,57 @@ export function ManualBookingWizard() {
       }
     }
     return out;
-  }, [service, workingHours, date, buffer, dayAppts]);
+  }, [totalMinutes, workingHours, date, buffer, dayAppts]);
 
   useEffect(() => {
     setSlot(null);
   }, [date]);
 
+  function toggleService(s: SelectedService) {
+    setSelected((prev) =>
+      prev.find((x) => x.id === s.id)
+        ? prev.filter((x) => x.id !== s.id)
+        : [...prev, s],
+    );
+  }
+
   async function submit() {
-    if (!barberId || !service || !slot) return;
+    if (!barberId || selected.length === 0 || !slot || !client.name || !client.phone) return;
     setSubmitting(true);
     try {
       const start = slot;
-      const end = addMinutes(start, service.duration_minutes);
+      const end = addMinutes(start, totalMinutes);
       const { data: appt, error } = await supabase
         .from("appointments")
         .insert({
           barber_id: barberId,
-          client_name: name,
-          client_whatsapp: phone,
+          client_name: client.name,
+          client_whatsapp: client.phone,
           start_at: start.toISOString(),
           end_at: end.toISOString(),
           status: "confirmed",
-          total_cents: service.price_cents,
+          total_cents: totalCents,
         })
         .select("id")
         .single();
       if (error) throw error;
-      await supabase.from("appointment_items").insert({
-        appointment_id: appt.id,
-        service_id: service.id,
-        price_cents: service.price_cents,
-        duration_minutes: service.duration_minutes,
-      });
-      toast.success("Agendamento criado!");
+      await supabase.from("appointment_items").insert(
+        selected.map((s) => ({
+          appointment_id: appt.id,
+          service_id: s.id,
+          price_cents: s.price_cents,
+          duration_minutes: s.duration_minutes,
+        })),
+      );
+      // Notifica o cliente no WhatsApp
+      try {
+        await sendConfirmationFn({ data: { appointmentId: appt.id } });
+      } catch (e) {
+        console.warn("Falha ao enviar WhatsApp:", e);
+      }
+      toast.success("Agendamento criado e cliente notificado!");
       qc.invalidateQueries({ queryKey: ["agenda-appts"] });
+      qc.invalidateQueries({ queryKey: ["known-clients"] });
       setOpen(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao criar agendamento");
@@ -252,39 +278,73 @@ export function ManualBookingWizard() {
         )}
 
         {step === "service" && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <StepBack onBack={() => isOwner && setStep("barber")} show={isOwner} />
-            <p className="text-sm text-muted-foreground">Selecione o serviço</p>
-            <div className="grid grid-cols-2 gap-2">
-              {(services ?? []).map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    setService(s);
-                    setStep("datetime");
-                  }}
-                  className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-left text-sm hover:border-foreground"
-                >
-                  <div>
-                    <p className="font-medium">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {minutesLabel(s.duration_minutes)}
-                    </p>
-                  </div>
-                  <span className="font-display">{brl(s.price_cents)}</span>
-                </button>
-              ))}
+            <p className="text-sm text-muted-foreground">
+              Selecione um ou mais serviços
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {(services ?? []).map((s) => {
+                const active = selected.some((x) => x.id === s.id);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => toggleService(s)}
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition ${
+                      active
+                        ? "border-foreground bg-secondary"
+                        : "border-border hover:border-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`flex h-4 w-4 items-center justify-center rounded border ${
+                          active
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border"
+                        }`}
+                      >
+                        {active && <Check className="h-3 w-3" />}
+                      </span>
+                      <div>
+                        <p className="font-medium">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {minutesLabel(s.duration_minutes)}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="font-display">{brl(s.price_cents)}</span>
+                  </button>
+                );
+              })}
             </div>
+            {selected.length > 0 && (
+              <div className="flex items-center justify-between rounded-md border border-border bg-card p-3 text-sm">
+                <span>
+                  {selected.length} serviço(s) · {minutesLabel(totalMinutes)}
+                </span>
+                <span className="font-display">{brl(totalCents)}</span>
+              </div>
+            )}
+            <Button
+              className="w-full"
+              disabled={selected.length === 0}
+              onClick={() => setStep("datetime")}
+            >
+              Continuar
+            </Button>
           </div>
         )}
 
-        {step === "datetime" && service && (
+        {step === "datetime" && selected.length > 0 && (
           <div className="space-y-3">
             <StepBack onBack={() => setStep("service")} show />
             <div className="rounded-md border border-border bg-card p-2 text-xs">
-              <span className="text-muted-foreground">Serviço:</span>{" "}
-              <span className="font-medium">{service.name}</span> ·{" "}
-              {minutesLabel(service.duration_minutes)}
+              <span className="text-muted-foreground">Serviços:</span>{" "}
+              <span className="font-medium">
+                {selected.map((s) => s.name).join(" + ")}
+              </span>{" "}
+              · {minutesLabel(totalMinutes)} · {brl(totalCents)}
             </div>
             <div>
               <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -347,7 +407,7 @@ export function ManualBookingWizard() {
           </div>
         )}
 
-        {step === "client" && slot && service && (
+        {step === "client" && slot && selected.length > 0 && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -364,35 +424,21 @@ export function ManualBookingWizard() {
                 </span>
               </p>
               <p className="mt-1">
-                <span className="text-muted-foreground">Serviço:</span>{" "}
-                <span className="font-medium">{service.name}</span> ·{" "}
-                {brl(service.price_cents)}
+                <span className="text-muted-foreground">Serviços:</span>{" "}
+                <span className="font-medium">
+                  {selected.map((s) => s.name).join(" + ")}
+                </span>{" "}
+                · {brl(totalCents)}
               </p>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="m-name">Nome do cliente</Label>
-              <Input
-                id="m-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={120}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="m-phone">WhatsApp</Label>
-              <Input
-                id="m-phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                maxLength={20}
-                placeholder="(11) 91234-5678"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <ClientCombobox value={client} onChange={setClient} />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={submitting || !client.name || !client.phone}
+            >
               <Check className="mr-2 h-4 w-4" />
-              {submitting ? "Criando..." : "Confirmar agendamento"}
+              {submitting ? "Criando..." : "Confirmar e notificar cliente"}
             </Button>
           </form>
         )}
