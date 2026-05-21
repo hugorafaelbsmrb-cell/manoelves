@@ -66,6 +66,31 @@ function BarbeirosPage() {
     },
   });
 
+  const { data: commission } = useQuery({
+    queryKey: ["commission-rules", selected],
+    enabled: !!selected,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_rules")
+        .select("*")
+        .eq("barber_id", selected!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  async function saveCommission(barberId: string, service_pct: number, product_pct: number) {
+    const { error } = await supabase
+      .from("commission_rules")
+      .upsert({ barber_id: barberId, service_pct, product_pct }, { onConflict: "barber_id" });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["commission-rules", barberId] });
+    toast.success("Comissão salva");
+  }
+
   if (!isOwner) {
     return (
       <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar barbeiros.</p>
@@ -227,6 +252,15 @@ function BarbeirosPage() {
                     </div>
                   </section>
 
+                  <CommissionSection
+                    key={`comm-${b.id}`}
+                    servicePct={Number(commission?.service_pct ?? 50)}
+                    productPct={Number(commission?.product_pct ?? 10)}
+                    onSave={(s, p) => saveCommission(b.id, s, p)}
+                  />
+
+
+
 
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
@@ -279,6 +313,65 @@ function BarbeirosPage() {
     </>
   );
 }
+
+function CommissionSection({
+  servicePct,
+  productPct,
+  onSave,
+}: {
+  servicePct: number;
+  productPct: number;
+  onSave: (service: number, product: number) => void;
+}) {
+  const [service, setService] = useState(String(servicePct));
+  const [product, setProduct] = useState(String(productPct));
+  return (
+    <section className="rounded-xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl tracking-wide">Comissão (margem do barbeiro)</h2>
+      <p className="text-xs text-muted-foreground">
+        Percentual que o barbeiro recebe sobre serviços e produtos vendidos (0–100%).
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div>
+          <label className="text-xs text-muted-foreground">Serviços (%)</label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step="0.1"
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground">Produtos (%)</label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step="0.1"
+            value={product}
+            onChange={(e) => setProduct(e.target.value)}
+          />
+        </div>
+        <Button
+          onClick={() => {
+            const s = Number(service);
+            const p = Number(product);
+            if (Number.isNaN(s) || Number.isNaN(p) || s < 0 || s > 100 || p < 0 || p > 100) {
+              toast.error("Informe valores entre 0 e 100.");
+              return;
+            }
+            onSave(s, p);
+          }}
+        >
+          Salvar comissão
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 
 function Field({
   label,
