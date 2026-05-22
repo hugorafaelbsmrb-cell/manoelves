@@ -8,5 +8,5 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  plugins: isVercelBuild ? [nitro()] : [],
+  plugins: isVercelBuild ? [nitro({ preset: "vercel", vercel: { entryFormat: "node" } })] : [],
 });
