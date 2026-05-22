@@ -1,10 +1,12 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { nitro } from "nitro/vite";
 
+const isVercelBuild = process.env.VERCEL === "1";
+
 export default defineConfig({
-  cloudflare: false,
+  cloudflare: isVercelBuild ? false : undefined,
   tanstackStart: {
     server: { entry: "server" },
   },
-  plugins: [nitro()],
+  plugins: isVercelBuild ? [nitro()] : [],
 });
