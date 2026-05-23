@@ -370,6 +370,55 @@ function ClientePage() {
           )}
         </Card>
       </main>
+
+      <Dialog
+        open={birthdayOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            localStorage.setItem("birthday_prompt_dismissed_at", String(Date.now()));
+          }
+          setBirthdayOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>🎂 Quando é seu aniversário?</DialogTitle>
+            <DialogDescription>
+              Queremos te mandar um mimo no seu dia. Prometemos não esquecer ✨
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="birthday-input">Data de nascimento</Label>
+            <Input
+              id="birthday-input"
+              type="date"
+              value={birthdayValue}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setBirthdayValue(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                localStorage.setItem(
+                  "birthday_prompt_dismissed_at",
+                  String(Date.now()),
+                );
+                setBirthdayOpen(false);
+              }}
+            >
+              Agora não
+            </Button>
+            <Button
+              disabled={!birthdayValue || birthdayMut.isPending}
+              onClick={() => birthdayMut.mutate(birthdayValue)}
+            >
+              {birthdayMut.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
