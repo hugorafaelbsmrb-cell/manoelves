@@ -8,6 +8,14 @@ import {
   KeyRound, Download, Cake, Gift, Image as ImageIcon, BellRing, Lock,
 } from "lucide-react";
 import logoUrl from "@/assets/manoelves-logo.png";
+import cutFadeAlto from "@/assets/cuts/fade-alto.jpg";
+import cutMidTaper from "@/assets/cuts/mid-taper.jpg";
+import cutBuzzCut from "@/assets/cuts/buzz-cut.jpg";
+import cutTexturizado from "@/assets/cuts/texturizado.jpg";
+import cutPompadour from "@/assets/cuts/pompadour.jpg";
+import cutCrewCut from "@/assets/cuts/crew-cut.jpg";
+import cutBarbaCompleta from "@/assets/cuts/barba-completa.jpg";
+import cutUndercut from "@/assets/cuts/undercut.jpg";
 
 
 export const Route = createFileRoute("/apresentacao")({
@@ -494,17 +502,29 @@ function S_Catalog() {
         <p className="text-[10px] uppercase tracking-widest text-neutral-500">Catálogo de cortes</p>
         <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider text-neutral-100">Inspirações da casa</p>
         <div className="mt-3 grid grid-cols-4 gap-2">
-          {["Fade alto","Mid taper","Buzz cut","Texturizado","Pompadour","Crew cut","Barba completa","Undercut"].map((n, i) => (
+          {[
+            { n: "Fade alto", src: cutFadeAlto },
+            { n: "Mid taper", src: cutMidTaper },
+            { n: "Buzz cut", src: cutBuzzCut },
+            { n: "Texturizado", src: cutTexturizado },
+            { n: "Pompadour", src: cutPompadour },
+            { n: "Crew cut", src: cutCrewCut },
+            { n: "Barba completa", src: cutBarbaCompleta },
+            { n: "Undercut", src: cutUndercut },
+          ].map((c, i) => (
             <div
-              key={n}
-              className="group relative aspect-[3/4] overflow-hidden rounded-lg border border-neutral-800 bg-gradient-to-br from-neutral-800 to-neutral-900"
+              key={c.n}
+              className="group relative aspect-[3/4] overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900"
               style={{ animation: `fade-in 0.4s ease-out ${i * 60}ms both` }}
             >
-              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 to-transparent p-2">
-                <div>
-                  <ImageIcon className="h-3 w-3 text-neutral-500" />
-                  <p className="mt-1 text-[10px] font-semibold text-neutral-100">{n}</p>
-                </div>
+              <img
+                src={c.src}
+                alt={c.n}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/85 via-black/30 to-transparent p-2">
+                <p className="text-[10px] font-semibold text-neutral-100">{c.n}</p>
               </div>
             </div>
           ))}
