@@ -43,7 +43,7 @@ function fmtTime(iso: string) {
 }
 
 function TVPage() {
-  const { playlist, video, barber } = Route.useSearch();
+  const { playlist, video, barber, sighor } = Route.useSearch();
   const [appts, setAppts] = useState<Appt[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [now, setNow] = useState(() => new Date());
