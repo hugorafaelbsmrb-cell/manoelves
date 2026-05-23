@@ -19,9 +19,20 @@ import { Badge } from "@/components/ui/badge";
 import {
   cancelClientAppointment,
   getClientPortalData,
+  updateClientBirthday,
 } from "@/lib/client-auth.functions";
 import { HaircutCatalog } from "@/components/haircut-catalog";
 import { PwaInstallBanner } from "@/components/pwa-install-banner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/cliente")({
   head: () => ({ meta: [{ title: "Área do cliente — Mano Elves" }] }),
