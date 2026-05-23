@@ -183,38 +183,119 @@ function MediaTab() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Nova mídia</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Nome</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Banner promo" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Tipo</Label>
-            <Select value={type} onValueChange={(v) => setType(v as MediaType)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MEDIA_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">URL</Label>
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Descrição</Label>
-            <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-          <Button onClick={submit} disabled={saving} className="w-full">
-            <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Adicionar"}
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <UploadMediaCard onCreated={reload} />
+        <Card>
+          <CardHeader><CardTitle className="text-base">Nova mídia por URL</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Nome</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Banner promo" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tipo</Label>
+              <Select value={type} onValueChange={(v) => setType(v as MediaType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MEDIA_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">URL</Label>
+              <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Descrição</Label>
+              <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <Button onClick={submit} disabled={saving} className="w-full">
+              <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Adicionar"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
+
+function UploadMediaCard({ onCreated }: { onCreated: () => void }) {
+  const create = useServerFn(createMedia);
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState("");
+
+  async function upload() {
+    if (!file) return toast.error("Selecione um arquivo");
+    const finalName = (name || file.name).trim();
+    if (!finalName) return toast.error("Informe um nome");
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    if (!isImage && !isVideo) {
+      return toast.error("Apenas imagens ou vídeos são suportados");
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      return toast.error("Arquivo muito grande (máx 50MB)");
+    }
+    setUploading(true);
+    setProgress("Enviando arquivo...");
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("signage")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("signage").getPublicUrl(path);
+      setProgress("Registrando mídia...");
+      await create({
+        data: {
+          name: finalName,
+          type: isImage ? "image" : "video",
+          url: pub.publicUrl,
+        },
+      });
+      toast.success("Mídia enviada");
+      setFile(null);
+      setName("");
+      onCreated();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+      setProgress("");
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Enviar do computador</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Arquivo (imagem ou vídeo, máx 50MB)</Label>
+          <Input
+            type="file"
+            accept="image/*,video/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setFile(f);
+              if (f && !name) setName(f.name.replace(/\.[^.]+$/, ""));
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Nome</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da mídia" />
+        </div>
+        <Button onClick={upload} disabled={uploading || !file} className="w-full">
+          <Plus className="mr-1 h-4 w-4" /> {uploading ? progress || "Enviando..." : "Enviar e adicionar"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 function PlaylistsTab() {
   const list = useServerFn(listPlaylists);
