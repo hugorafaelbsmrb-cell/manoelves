@@ -21,6 +21,7 @@ import {
   getClientPortalData,
 } from "@/lib/client-auth.functions";
 import { HaircutCatalog } from "@/components/haircut-catalog";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 
 export const Route = createFileRoute("/cliente")({
   head: () => ({ meta: [{ title: "Área do cliente — Mano Elves" }] }),
@@ -136,6 +137,8 @@ function ClientePage() {
           <h1 className="font-display text-3xl tracking-wide">Olá, {firstName} 👋</h1>
           <p className="text-sm text-muted-foreground">Sua área pessoal.</p>
         </div>
+
+        <PwaInstallBanner />
 
         <HaircutCatalog
           title="Inspirações de corte"
