@@ -372,8 +372,10 @@ function ComandaPage() {
                 <button
                   key={a.id}
                   onClick={() => {
-                    setClientName(a.client_name);
-                    setClientWhats(a.client_whatsapp ?? "");
+                    setClientPick({
+                      name: a.client_name,
+                      phone: a.client_whatsapp ?? "",
+                    });
                     toast.success(`Cliente ${a.client_name} carregado`);
                   }}
                   className="flex w-20 shrink-0 flex-col items-center gap-1 text-center"
