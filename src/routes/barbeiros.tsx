@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BannerUpload } from "@/components/banner-upload";
 import { slugify } from "@/lib/format";
 import {
   createBarber,
