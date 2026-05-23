@@ -502,23 +502,66 @@ function BookingPage() {
         )}
 
         {step === "done" && selectedSlot && (
-          <div className="mt-6 rounded-xl border border-border bg-card p-6 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success text-success-foreground">
-              <Check className="h-6 w-6" />
+          <div className="mt-6 space-y-4">
+            <div className="rounded-xl border border-border bg-card p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success text-success-foreground">
+                <Check className="h-6 w-6" />
+              </div>
+              <h3 className="mt-3 font-display text-2xl tracking-wider">
+                Agendamento confirmado!
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {format(selectedSlot, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+              </p>
             </div>
-            <h3 className="mt-3 font-display text-2xl tracking-wider">
-              Agendamento confirmado!
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {format(selectedSlot, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Enviamos a confirmação no seu WhatsApp (simulado).
-            </p>
+
+            <div className="rounded-xl border border-primary/40 bg-primary/5 p-6">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-primary" />
+                <h4 className="font-display text-lg tracking-wide">
+                  Acesse sua área de cliente
+                </h4>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {otpReused
+                  ? "Você já possui um código válido enviado recentemente. Digite-o abaixo."
+                  : `Enviamos um código de 6 dígitos no WhatsApp ${clientWhatsapp}. Válido por 48 horas.`}
+              </p>
+              <form onSubmit={confirmOtp} className="mt-4 space-y-3">
+                <Input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-lg tracking-[0.5em]"
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={otpLoading || otpCode.length !== 6}
+                >
+                  {otpLoading ? "Verificando..." : "Entrar na minha área"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtpCode("");
+                }}
+                className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Não recebi — reenviar código
+              </button>
+            </div>
+
             <Link
               to="/$slug"
               params={{ slug }}
-              className="mt-4 inline-block text-xs text-muted-foreground underline"
+              className="block text-center text-xs text-muted-foreground underline"
             >
               Voltar para a página do barbeiro
             </Link>
