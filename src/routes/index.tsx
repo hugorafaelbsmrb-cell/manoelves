@@ -91,7 +91,18 @@ function HomePage() {
             <MapPin className="h-3.5 w-3.5" /> {shop.address}
           </p>
         )}
+        <div className="mt-8 flex justify-center">
+          <a
+            href="#barbeiros"
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-foreground px-8 py-4 text-sm font-semibold uppercase tracking-widest text-background shadow-[0_0_0_0_rgba(255,255,255,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_30px_0_rgba(255,255,255,0.25)]"
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+            <CalendarCheck className="h-4 w-4" />
+            Agendar agora
+          </a>
+        </div>
       </section>
+
 
       <section className="mx-auto max-w-5xl px-5 pb-10">
         <HaircutCatalog />
