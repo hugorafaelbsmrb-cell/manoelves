@@ -208,6 +208,35 @@ function BookingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingHours, selection, slots.length]);
 
+  // Quando o agendamento for concluído, envia o código de acesso por WhatsApp.
+  useEffect(() => {
+    if (step !== "done" || otpSent || !clientWhatsapp) return;
+    setOtpSent(true);
+    askOtp({ data: { phone: clientWhatsapp } })
+      .then((r) => setOtpReused(r.reused))
+      .catch((e) => {
+        console.warn("Falha ao enviar OTP:", e);
+        setOtpSent(false);
+      });
+  }, [step, otpSent, clientWhatsapp, askOtp]);
+
+  async function confirmOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (otpCode.length !== 6) return;
+    setOtpLoading(true);
+    try {
+      const res = await checkOtp({ data: { phone: clientWhatsapp, code: otpCode } });
+      localStorage.setItem("client_token", res.token);
+      toast.success("Acesso liberado!");
+      navigate({ to: "/cliente" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Código inválido");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+
   async function submitBooking() {
     if (!barber || !selection || !selectedSlot) return;
     setSubmitting(true);
