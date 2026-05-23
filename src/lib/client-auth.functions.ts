@@ -80,30 +80,31 @@ function verifyToken(token: string): { phone: string } {
 }
 
 // ---------- requestClientOtp ----------
+// Código válido por 48h. Se já existir um código não expirado para o telefone,
+// não reenviamos a mensagem (economia de envios via API).
+const OTP_TTL_MS = 48 * 60 * 60 * 1000;
+
 export const requestClientOtp = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z.object({ phone: z.string().min(8).max(20) }).parse(d),
   )
-  .handler(async ({ data }): Promise<{ ok: true }> => {
+  .handler(async ({ data }): Promise<{ ok: true; reused: boolean }> => {
     const phone = normalizePhone(data.phone);
     if (phone.length < 12) throw new Error("Número de telefone inválido.");
 
-    // Rate-limit: 1 envio por 60s
+    // Reaproveita código válido existente — não reenvia mensagem.
     const { data: existing } = await supabaseAdmin
       .from("client_otp_codes")
-      .select("created_at")
+      .select("expires_at")
       .eq("phone", phone)
       .maybeSingle();
-    if (existing) {
-      const ageMs = Date.now() - new Date(existing.created_at).getTime();
-      if (ageMs < 60_000) {
-        throw new Error("Aguarde alguns segundos antes de pedir um novo código.");
-      }
+    if (existing && new Date(existing.expires_at).getTime() > Date.now()) {
+      return { ok: true, reused: true };
     }
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
     const code_hash = hashCode(phone, code);
-    const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const expires_at = new Date(Date.now() + OTP_TTL_MS).toISOString();
 
     const { error } = await supabaseAdmin
       .from("client_otp_codes")
@@ -121,10 +122,10 @@ export const requestClientOtp = createServerFn({ method: "POST" })
     const shopName = shop?.name ?? "a barbearia";
     const text =
       `Seu código de acesso na *${shopName}*: *${code}*\n` +
-      `Válido por 10 minutos. Se não foi você, ignore esta mensagem.`;
+      `Válido por 48 horas. Se não foi você, ignore esta mensagem.`;
 
     await sendWhatsAppText(phone, text);
-    return { ok: true };
+    return { ok: true, reused: false };
   });
 
 // ---------- verifyClientOtp ----------
@@ -167,8 +168,11 @@ export const verifyClientOtp = createServerFn({ method: "POST" })
       throw new Error("Código incorreto.");
     }
 
-    // Consumir o código
-    await supabaseAdmin.from("client_otp_codes").delete().eq("phone", phone);
+    // Mantém o código válido até expirar (48h) — apenas zera as tentativas.
+    await supabaseAdmin
+      .from("client_otp_codes")
+      .update({ attempts: 0 })
+      .eq("phone", phone);
     return { ok: true, token: signToken(phone) };
   });
 
