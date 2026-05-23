@@ -184,6 +184,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          {isOwner && (
+            <Link
+              to={settingsLink.to}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
+                pathname === settingsLink.to
+                  ? "bg-secondary text-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {settingsLink.icon} {settingsLink.label}
+            </Link>
           )}
         </nav>
         {/* Mobile: full menu access via dropdown */}
