@@ -85,7 +85,6 @@ async function sighor(
 /* --------------------- Media --------------------- */
 
 export const listMedia = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/media"));
 
 const mediaSchema = z.object({
@@ -96,23 +95,19 @@ const mediaSchema = z.object({
 });
 
 export const createMedia = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => mediaSchema.parse(d))
   .handler(async ({ data }) => sighor("/media", { method: "POST", body: data }));
 
 export const deleteMedia = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => sighor(`/media/${data.id}`, { method: "DELETE" }));
 
 /* --------------------- Playlists --------------------- */
 
 export const listPlaylists = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/playlists"));
 
 export const createPlaylist = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -126,13 +121,11 @@ export const createPlaylist = createServerFn({ method: "POST" })
 /* --------------------- Displays --------------------- */
 
 export const listDisplays = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/displays"));
 
 const ORIENTATIONS = ["landscape", "portrait"] as const;
 
 export const createDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -148,7 +141,6 @@ export const createDisplay = createServerFn({ method: "POST" })
   .handler(async ({ data }) => sighor("/displays", { method: "POST", body: data }));
 
 export const updateDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -167,12 +159,10 @@ export const updateDisplay = createServerFn({ method: "POST" })
   });
 
 export const deleteDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => sighor(`/displays/${data.id}`, { method: "DELETE" }));
 
 export const linkDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -189,12 +179,10 @@ export const linkDisplay = createServerFn({ method: "POST" })
   );
 
 export const listDisplayPlaylists = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => sighor(`/displays/${data.id}/playlists`));
 
 export const assignPlaylistToDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -212,7 +200,6 @@ export const assignPlaylistToDisplay = createServerFn({ method: "POST" })
   });
 
 export const unassignPlaylistFromDisplay = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({ id: z.string().min(1), assignment_id: z.string().min(1) }).parse(d),
   )
@@ -223,5 +210,4 @@ export const unassignPlaylistFromDisplay = createServerFn({ method: "POST" })
 /* --------------------- Schedules --------------------- */
 
 export const listSchedules = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .handler(async () => sighor("/schedules"));
