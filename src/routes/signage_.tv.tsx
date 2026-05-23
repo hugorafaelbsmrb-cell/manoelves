@@ -219,10 +219,12 @@ function TVPage() {
           )}
         </section>
 
-        {/* Video */}
+        {/* Video / Playlist */}
         <section className="col-span-6 flex flex-col overflow-hidden">
           <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border bg-black">
-            {ytSrc ? (
+            {currentMedia ? (
+              <SighorMediaRenderer media={currentMedia} />
+            ) : ytSrc ? (
               <iframe
                 key={ytSrc}
                 src={ytSrc}
@@ -235,16 +237,22 @@ function TVPage() {
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-sm text-muted-foreground">
                 <p className="mb-2 text-lg font-semibold text-foreground">Configure a playlist</p>
                 <p className="max-w-md">
-                  Adicione <code className="rounded bg-muted px-1">?playlist=PLAYLIST_ID</code> ou
-                  <code className="ml-1 rounded bg-muted px-1">?video=VIDEO_ID</code> na URL para
-                  exibir conteúdo do YouTube.
-                </p>
-                <p className="mt-3 text-xs">
-                  Ex.:{" "}
-                  <code className="rounded bg-muted px-1">/signage/tv?playlist=PLrAXtmRdnEQy...</code>
+                  Adicione <code className="rounded bg-muted px-1">?sighor=PLAYLIST_ID</code> para
+                  tocar uma playlist do painel Sighor, ou{" "}
+                  <code className="rounded bg-muted px-1">?playlist=YT_ID</code> /{" "}
+                  <code className="rounded bg-muted px-1">?video=YT_ID</code> para conteúdo do
+                  YouTube.
                 </p>
               </div>
             )}
+            {currentMedia && sighorItems.length > 1 ? (
+              <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[11px] text-white backdrop-blur">
+                <span className="font-medium">{currentMedia.name}</span>
+                <span className="opacity-60">
+                  {(sighorIdx % sighorItems.length) + 1}/{sighorItems.length}
+                </span>
+              </div>
+            ) : null}
           </div>
         </section>
 
