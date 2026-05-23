@@ -937,78 +937,81 @@ function S_WhatsAppFlows() {
       title="Cliente sempre avisado, no canal que ele já usa"
       description="Toda interação importante vira mensagem no WhatsApp: código de acesso, confirmação de agendamento, lembrete, link de pagamento PIX ao fechar a comanda, aniversário e reengajamento."
     >
-      <WAPhone>
-        <WABubble
-          delay={0}
-          time="09:12"
-          text={
-            <>
-              <span className="font-semibold">Mano Elves:</span> seu código de acesso é <span className="font-mono font-bold">482910</span>. Válido por 48h.
-            </>
-          }
+      <div className="grid items-center gap-6 lg:grid-cols-[260px_1fr]">
+        <WAPhone>
+          <WABubble
+            delay={0}
+            time="09:12"
+            text={
+              <>
+                <span className="font-semibold">Mano Elves:</span> seu código de acesso é <span className="font-mono font-bold">482910</span>. Válido por 48h.
+              </>
+            }
+          />
+          <WABubble
+            delay={150}
+            time="09:14"
+            text={
+              <>
+                ✅ <span className="font-semibold">Agendamento confirmado</span><br />
+                Lucas · Corte + Barba<br />
+                Sex, 24/05 às <span className="font-semibold">15:30</span>
+              </>
+            }
+          />
+          <WABubble
+            delay={300}
+            time="14:30"
+            text={
+              <>
+                ⏰ Faltam <span className="font-semibold">1h</span> para o seu horário com o Lucas. Te esperamos!
+              </>
+            }
+          />
+          <WABubble
+            delay={450}
+            time="16:02"
+            text={
+              <>
+                💳 <span className="font-semibold">Sua comanda: R$ 130,00</span><br />
+                Pague no PIX:<br />
+                <span className="font-mono text-[10px] break-all">00020126…5204000053039865802BR…6304A1B2</span><br />
+                <span className="text-emerald-700">Toque para copiar</span>
+              </>
+            }
+          />
+          <WABubble
+            delay={600}
+            time="16:03"
+            text={
+              <>
+                🎉 Pagamento recebido. Obrigado, João! Já liberamos sua próxima reserva.
+              </>
+            }
+          />
+          <WABubble
+            delay={750}
+            time="ontem"
+            text={
+              <>
+                🎂 <span className="font-semibold">Feliz aniversário, João!</span> Presente da casa: <span className="font-semibold">20% off</span> no próximo corte.
+              </>
+            }
+          />
+        </WAPhone>
+        <Value
+          items={[
+            { icon: KeyRound, label: "Login sem senha", text: "OTP de 6 dígitos enviado no WhatsApp, válido por 48h." },
+            { icon: CheckCircle2, label: "Confirmação + lembrete", text: "Resumo do horário na hora da reserva e aviso 1h antes." },
+            { icon: CreditCard, label: "PIX no fechamento", text: "Ao finalizar a comanda, o copia-e-cola PIX vai direto pro chat." },
+            { icon: Cake, label: "Aniversário e retorno", text: "Mensagens automáticas em datas e quando o cliente some." },
+          ]}
         />
-        <WABubble
-          delay={150}
-          time="09:14"
-          text={
-            <>
-              ✅ <span className="font-semibold">Agendamento confirmado</span><br />
-              Lucas · Corte + Barba<br />
-              Sex, 24/05 às <span className="font-semibold">15:30</span>
-            </>
-          }
-        />
-        <WABubble
-          delay={300}
-          time="14:30"
-          text={
-            <>
-              ⏰ Faltam <span className="font-semibold">1h</span> para o seu horário com o Lucas. Te esperamos!
-            </>
-          }
-        />
-        <WABubble
-          delay={450}
-          time="16:02"
-          text={
-            <>
-              💳 <span className="font-semibold">Sua comanda: R$ 130,00</span><br />
-              Pague no PIX:<br />
-              <span className="font-mono text-[10px]">00020126…5204000053039865802BR…6304A1B2</span><br />
-              <span className="text-emerald-700">Toque para copiar</span>
-            </>
-          }
-        />
-        <WABubble
-          delay={600}
-          time="16:03"
-          text={
-            <>
-              🎉 Pagamento recebido. Obrigado, João! Já liberamos sua próxima reserva.
-            </>
-          }
-        />
-        <WABubble
-          delay={750}
-          time="ontem"
-          text={
-            <>
-              🎂 <span className="font-semibold">Feliz aniversário, João!</span> Presente da casa: <span className="font-semibold">20% off</span> no próximo corte.
-            </>
-          }
-        />
-      </WAPhone>
-      <Value
-        items={[
-          { icon: KeyRound, label: "Login sem senha", text: "OTP de 6 dígitos enviado no WhatsApp, válido por 48h para economizar envios." },
-          { icon: CheckCircle2, label: "Confirmação + lembrete", text: "Cliente recebe o resumo do horário na hora da reserva e um aviso 1h antes." },
-          { icon: CreditCard, label: "PIX no fechamento", text: "Ao finalizar a comanda, o copia-e-cola PIX do Mercado Pago vai direto pro chat." },
-          { icon: Cake, label: "Aniversário e retorno", text: "Mensagens automáticas em datas e quando o cliente some há mais de X dias." },
-        ]}
-      />
+      </div>
     </Slide>
   );
 }
+
 
 function S_Subscriptions() {
   return (
