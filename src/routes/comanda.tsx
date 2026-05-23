@@ -36,8 +36,9 @@ type Item = {
 function ComandaPage() {
   const { user, isOwner } = useAuth();
   const qc = useQueryClient();
-  const [clientName, setClientName] = useState("");
-  const [clientWhats, setClientWhats] = useState("");
+  const [clientPick, setClientPick] = useState<ClientPick>({ name: "", phone: "" });
+  const clientName = clientPick.name;
+  const clientWhats = clientPick.phone;
   const [items, setItems] = useState<Item[]>([]);
   const [method, setMethod] = useState<"pix" | "cash" | "credit" | "debit">("pix");
   const [closed, setClosed] = useState<{
