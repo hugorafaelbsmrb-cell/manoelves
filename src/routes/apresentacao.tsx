@@ -422,47 +422,297 @@ function S_BarberLanding() {
 function S_PublicBooking() {
   return (
     <Slide
-      kicker="Página 3 · Agendamento público"
-      title="Reserva online em 3 toques"
-      description="Serviço, horário e dados do cliente. Confirmação automática via WhatsApp, com lembretes e proteção contra no-show via PIX."
+      kicker="Página 3 · Agendamento + login por SMS"
+      title="Agenda, recebe código, já entra no app"
+      description="O cliente escolhe serviço e horário, recebe um código de 6 dígitos no WhatsApp (válido por 48h para economizar mensagens) e é direcionado para a área dele — pronto para virar cliente recorrente."
     >
-      <Phone>
-        <div className="px-4 pt-8">
-          <p className="text-[11px] uppercase tracking-widest text-neutral-500">Escolha o horário</p>
-          <p className="mt-1 text-sm font-semibold">Quarta, 21 de maio</p>
-          <div className="mt-3 grid grid-cols-3 gap-1.5">
-            {["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00"].map((h, idx) => (
-              <button
-                key={h}
-                className={`rounded-md border py-2 text-[11px] ${
-                  idx === 4 ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200"
-                }`}
-              >{h}</button>
-            ))}
+      <div className="grid grid-cols-2 gap-4">
+        <DarkPhone>
+          <div className="px-4 pt-8 animate-fade-in">
+            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Escolha o horário</p>
+            <p className="mt-1 text-[12px] font-semibold">Quarta, 21 de maio</p>
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              {["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00"].map((h, idx) => (
+                <div
+                  key={h}
+                  className={`rounded-md border py-1.5 text-center text-[10px] ${
+                    idx === 4 ? "border-neutral-100 bg-neutral-100 text-neutral-900" : "border-neutral-800 text-neutral-300"
+                  }`}
+                >{h}</div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
+              <p className="text-[9px] uppercase tracking-widest text-neutral-500">Resumo</p>
+              <p className="mt-1 text-[11px] font-semibold">Corte + Barba · 50 min</p>
+              <p className="text-[10px] text-neutral-500">Qua 21/05 · 11:00 · R$ 75</p>
+            </div>
+            <div className="mt-2 rounded-md bg-neutral-100 py-2 text-center text-[11px] font-semibold text-neutral-900">
+              Receber código no WhatsApp
+            </div>
           </div>
-          <div className="mt-4 rounded-lg border border-neutral-200 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Resumo</p>
-            <p className="mt-1 text-[12px] font-semibold">Corte + Barba · 50 min</p>
-            <p className="text-[11px] text-neutral-500">Quarta 21/05 às 11:00</p>
-            <p className="mt-1 text-[12px] font-semibold">R$ 75,00</p>
+        </DarkPhone>
+        <DarkPhone>
+          <div className="px-4 pt-8 animate-fade-in">
+            <div className="flex items-center gap-2 text-emerald-400">
+              <KeyRound className="h-3.5 w-3.5" />
+              <p className="text-[10px] uppercase tracking-widest">Confirme seu número</p>
+            </div>
+            <p className="mt-2 text-[11px] text-neutral-300">Enviamos um código para</p>
+            <p className="text-[12px] font-semibold">+55 11 9•••• 4321</p>
+            <div className="mt-3 grid grid-cols-6 gap-1">
+              {["4","8","2","9","1","7"].map((d, i) => (
+                <div key={i} className="flex h-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 text-[14px] font-bold">
+                  {d}
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[9px] text-neutral-500">Código válido por 48h · economiza envios</p>
+            <div className="mt-3 rounded-md bg-emerald-500/15 p-2 text-[10px] text-emerald-300">
+              ✓ Agendamento confirmado<br />Redirecionando para sua área…
+            </div>
           </div>
-          <button className="mt-3 w-full rounded-md bg-neutral-900 py-2.5 text-[12px] font-semibold text-white">
-            Confirmar agendamento
-          </button>
-          <p className="mt-1 text-center text-[9px] text-neutral-500">
-            Você receberá a confirmação no WhatsApp
-          </p>
-        </div>
-      </Phone>
+        </DarkPhone>
+      </div>
       <Value
         items={[
-          { icon: CheckCircle2, label: "Zero retrabalho", text: "A agenda nunca dá conflito: o sistema controla buffers entre atendimentos." },
-          { icon: Bell, label: "Confirmações automáticas", text: "Cliente recebe lembrete no WhatsApp — reduz drasticamente o no-show." },
+          { icon: KeyRound, label: "Autenticação sem fricção", text: "Sem senha, sem cadastro chato — código no WhatsApp e pronto." },
+          { icon: Wallet, label: "Economia no envio", text: "Código vale 48h: 1 mensagem cobre várias sessões do mesmo cliente." },
         ]}
       />
     </Slide>
   );
 }
+
+function S_Catalog() {
+  return (
+    <Slide
+      kicker="Novidade · Catálogo de cortes"
+      title="Carrossel visual para o cliente escolher o estilo"
+      description="O dono sobe fotos dos cortes pelo painel. O carrossel aparece na home e na área do cliente — quem agenda já sabe exatamente o que quer."
+    >
+      <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 p-5 shadow-2xl">
+        <p className="text-[10px] uppercase tracking-widest text-neutral-500">Catálogo de cortes</p>
+        <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider text-neutral-100">Inspirações da casa</p>
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {["Fade alto","Mid taper","Buzz cut","Texturizado","Pompadour","Crew cut","Barba completa","Undercut"].map((n, i) => (
+            <div
+              key={n}
+              className="group relative aspect-[3/4] overflow-hidden rounded-lg border border-neutral-800 bg-gradient-to-br from-neutral-800 to-neutral-900"
+              style={{ animation: `fade-in 0.4s ease-out ${i * 60}ms both` }}
+            >
+              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 to-transparent p-2">
+                <div>
+                  <ImageIcon className="h-3 w-3 text-neutral-500" />
+                  <p className="mt-1 text-[10px] font-semibold text-neutral-100">{n}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center justify-between text-[9px] text-neutral-500">
+          <span>← Deslize para ver mais</span>
+          <span>8 estilos · gerenciado em /configurações</span>
+        </div>
+      </div>
+      <Value
+        items={[
+          { icon: Sparkles, label: "Vende o resultado", text: "Cliente compra estilo, não corte genérico — eleva ticket e satisfação." },
+          { icon: ImageIcon, label: "Editável pelo dono", text: "Sem mexer em código: upload de foto, nome e ordem — pronto." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
+function S_ClientArea() {
+  return (
+    <Slide
+      kicker="Novidade · Área do cliente"
+      title="Cada cliente com seu app de bolso"
+      description="Histórico, próximos cortes, catálogo e ofertas — tudo na palma da mão. Instalável como app (PWA) e popup pedindo a data de nascimento na primeira entrada."
+    >
+      <div className="relative grid grid-cols-2 gap-4">
+        <DarkPhone>
+          <div className="px-4 pt-8 animate-fade-in">
+            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Olá, Lucas</p>
+            <p className="text-[9px] text-neutral-500">cliente desde mar/2024</p>
+
+            <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-2.5">
+              <div className="flex items-start gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/20 text-primary">
+                  <Download className="h-3.5 w-3.5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-neutral-100">Instale o app</p>
+                  <p className="text-[8px] text-neutral-400">Acesso rápido ao seu agendamento</p>
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Próximo corte</p>
+            <div className="mt-1 rounded-lg border border-neutral-800 bg-neutral-900 p-2">
+              <p className="text-[11px] font-semibold">Qua, 21/05 · 11:00</p>
+              <p className="text-[9px] text-neutral-500">Corte + Barba · com João</p>
+            </div>
+
+            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Inspirações</p>
+            <div className="mt-1 flex gap-1.5 overflow-hidden">
+              {["Fade","Taper","Buzz","Pomp"].map((n, i) => (
+                <div
+                  key={n}
+                  className="aspect-[3/4] w-12 shrink-0 overflow-hidden rounded-md border border-neutral-800 bg-gradient-to-br from-neutral-700 to-neutral-900 p-1"
+                  style={{ animation: `slide-in-right 0.35s ease-out ${i * 80}ms both` }}
+                >
+                  <p className="mt-auto text-[7px] font-semibold text-neutral-200">{n}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DarkPhone>
+        <DarkPhone>
+          <div className="relative px-4 pt-8">
+            <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 opacity-50">
+              <p className="text-[10px] text-neutral-500">Olá, Lucas…</p>
+              <div className="mt-2 h-12 rounded bg-neutral-800" />
+              <div className="mt-2 h-10 rounded bg-neutral-800" />
+            </div>
+            {/* popup aniversário */}
+            <div
+              className="absolute inset-x-3 top-12 rounded-xl border border-pink-500/40 bg-neutral-950 p-3 shadow-2xl"
+              style={{ animation: "scale-in 0.4s ease-out 0.2s both" }}
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-300">
+                  <Cake className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-neutral-100">Quando você nasceu?</p>
+                  <p className="text-[8px] text-neutral-400">Para ganhar mimo de aniversário 🎁</p>
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
+                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">15</div>
+                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">Jun</div>
+                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">1992</div>
+              </div>
+              <div className="mt-2 rounded-md bg-pink-500 py-1.5 text-center text-[10px] font-semibold text-white">
+                Salvar
+              </div>
+            </div>
+          </div>
+        </DarkPhone>
+      </div>
+      <Value
+        items={[
+          { icon: Smartphone, label: "PWA instalável", text: "Banner discreto convida a instalar — o cliente vira recorrente." },
+          { icon: Gift, label: "Aniversário capturado", text: "Popup amigável na primeira entrada alimenta campanhas automáticas." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
+function S_OwnerNotification() {
+  return (
+    <Slide
+      kicker="Novidade · Alerta em tempo real"
+      title="Novo agendamento? O dono ouve na hora"
+      description="Toda reserva dispara um toast no painel do dono — com som de alerta sintetizado (sem arquivo externo). Operação acompanha o pulso da loja sem precisar dar F5."
+    >
+      <div className="relative overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 p-4 shadow-2xl">
+        {/* fake dashboard background */}
+        <div className="opacity-40">
+          <p style={{ fontFamily: '"Bebas Neue"' }} className="text-lg tracking-wider text-neutral-100">Agenda · hoje</p>
+          <div className="mt-2 grid grid-cols-3 gap-1">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="h-8 rounded bg-neutral-800" />
+            ))}
+          </div>
+        </div>
+
+        {/* toast notification animated in */}
+        <div
+          className="absolute right-4 top-4 w-[260px] rounded-xl border border-emerald-500/40 bg-neutral-900 p-3 shadow-2xl"
+          style={{ animation: "slide-in-right 0.5s ease-out 0.3s both" }}
+        >
+          <div className="flex items-start gap-2">
+            <div className="relative">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
+                <BellRing className="h-4 w-4" />
+              </div>
+              <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" style={{ animation: "ping 1.5s cubic-bezier(0,0,0.2,1) infinite" }} />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold text-neutral-100">Novo agendamento</p>
+              <p className="text-[10px] text-neutral-400">Lucas marcou Corte + Barba</p>
+              <p className="mt-0.5 text-[10px] text-emerald-300">Hoje · 11:00 · com João</p>
+            </div>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[9px] text-neutral-500">
+            <span>🔔 ding · 0.4s</span>
+            <span>Agora</span>
+          </div>
+        </div>
+      </div>
+      <Value
+        items={[
+          { icon: BellRing, label: "Som sintetizado", text: "Ding gerado via WebAudio (A5 + E6) — sem dependência de arquivo MP3." },
+          { icon: Bell, label: "Realtime do banco", text: "Postgres changes via Supabase Realtime — toast aparece em < 1s." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
+function S_AdminAccess() {
+  return (
+    <Slide
+      kicker="Segurança · Contas controladas"
+      title="Só o dono cria barbeiros"
+      description="Login público de equipe foi removido. Quem entra no painel é cadastrado pelo dono na tela de Barbeiros — zero risco de auto-cadastro indevido."
+    >
+      <Browser url="app.manoelves.com.br/barbeiros">
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-lg tracking-wider">Equipe</p>
+            <div className="rounded-md bg-neutral-900 px-3 py-1.5 text-[11px] font-semibold text-white">
+              + Novo barbeiro
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            {[
+              {n:"João Silva",e:"joao@manoelves.com.br",r:"barbeiro"},
+              {n:"Pedro Alves",e:"pedro@manoelves.com.br",r:"barbeiro"},
+              {n:"Elves (dono)",e:"elves@manoelves.com.br",r:"dono"},
+            ].map((u) => (
+              <div key={u.e} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5 text-[11px]">
+                <div>
+                  <p className="font-semibold">{u.n}</p>
+                  <p className="text-[9px] text-neutral-500">{u.e}</p>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${u.r==="dono"?"bg-neutral-900 text-white":"bg-neutral-100 text-neutral-700"}`}>{u.r}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-md border border-amber-300 bg-amber-50 p-2 text-[10px] text-amber-800">
+            <Lock className="mr-1 inline h-3 w-3" />
+            Página de login não tem mais "Criar conta" — apenas e-mail e senha.
+          </div>
+        </div>
+      </Browser>
+      <Value
+        items={[
+          { icon: Lock, label: "Sem auto-cadastro", text: "Ninguém entra no painel sem aprovação do dono." },
+          { icon: Users, label: "Papéis claros", text: "owner × barber separados via user_roles + RLS — segurança em camadas." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
 
 function S_Agenda() {
   return (
