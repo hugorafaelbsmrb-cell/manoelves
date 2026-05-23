@@ -155,8 +155,6 @@ function ClientLoginForm() {
 
 function StaffLoginForm() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -165,24 +163,11 @@ function StaffLoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "sign-up") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/agenda`,
-          },
-        });
-        if (error) throw error;
-        toast.success("Conta criada! Você já está logado.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
       navigate({ to: "/agenda" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao autenticar");
@@ -193,28 +178,12 @@ function StaffLoginForm() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl tracking-wide">
-        {mode === "sign-in" ? "Entrar no painel" : "Criar conta"}
-      </h1>
+      <h1 className="font-display text-2xl tracking-wide">Entrar no painel</h1>
       <p className="mt-1 text-xs text-muted-foreground">
-        {mode === "sign-in"
-          ? "Acesso para dono e barbeiros."
-          : "O primeiro cadastro vira o dono da barbearia."}
+        Acesso para dono e barbeiros.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        {mode === "sign-up" && (
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Nome completo</Label>
-            <Input
-              id="name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              maxLength={120}
-            />
-          </div>
-        )}
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail</Label>
           <Input
@@ -237,22 +206,13 @@ function StaffLoginForm() {
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading
-            ? "Aguarde..."
-            : mode === "sign-in"
-              ? "Entrar"
-              : "Criar conta"}
+          {loading ? "Aguarde..." : "Entrar"}
         </Button>
       </form>
 
-      <button
-        onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
-        className="mt-4 w-full text-xs text-muted-foreground hover:text-foreground"
-      >
-        {mode === "sign-in"
-          ? "Não tem conta? Criar agora"
-          : "Já tem conta? Entrar"}
-      </button>
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Apenas o dono pode criar novas contas pelo painel de barbeiros.
+      </p>
     </div>
   );
 }
