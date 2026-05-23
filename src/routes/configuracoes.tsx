@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BannerUpload } from "@/components/banner-upload";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
