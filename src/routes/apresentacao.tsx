@@ -8,6 +8,14 @@ import {
   KeyRound, Download, Cake, Gift, Image as ImageIcon, BellRing, Lock,
 } from "lucide-react";
 import logoUrl from "@/assets/manoelves-logo.png";
+import cutFadeAlto from "@/assets/cuts/fade-alto.jpg";
+import cutMidTaper from "@/assets/cuts/mid-taper.jpg";
+import cutBuzzCut from "@/assets/cuts/buzz-cut.jpg";
+import cutTexturizado from "@/assets/cuts/texturizado.jpg";
+import cutPompadour from "@/assets/cuts/pompadour.jpg";
+import cutCrewCut from "@/assets/cuts/crew-cut.jpg";
+import cutBarbaCompleta from "@/assets/cuts/barba-completa.jpg";
+import cutUndercut from "@/assets/cuts/undercut.jpg";
 
 
 export const Route = createFileRoute("/apresentacao")({
