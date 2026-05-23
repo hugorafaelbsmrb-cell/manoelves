@@ -5,6 +5,7 @@ import {
   MessageCircle, Wallet, Settings, TrendingUp, ChevronLeft, ChevronRight,
   Maximize, Play, Clock, Star, CheckCircle2, BarChart3, Users, Sparkles,
   LogIn, MapPin, Instagram, ArrowLeft, Calendar as CalIcon,
+  KeyRound, Download, Cake, Gift, Image as ImageIcon, BellRing, Lock,
 } from "lucide-react";
 import logoUrl from "@/assets/manoelves-logo.png";
 
