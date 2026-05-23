@@ -10,8 +10,22 @@ export const Route = createFileRoute("/signage_/tv")({
     playlist: typeof s.playlist === "string" ? s.playlist : "",
     video: typeof s.video === "string" ? s.video : "",
     barber: typeof s.barber === "string" ? s.barber : "",
+    sighor: typeof s.sighor === "string" ? s.sighor : "",
   }),
 });
+
+type SighorMedia = {
+  id: string;
+  name: string;
+  type: "image" | "video" | "url" | "html" | "youtube" | "google_drive" | "rss";
+  url: string;
+};
+type SighorItem = {
+  id: string;
+  position: number;
+  duration: number | null;
+  media?: SighorMedia | null;
+};
 
 type Appt = {
   id: string;
