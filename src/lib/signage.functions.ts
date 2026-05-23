@@ -1,12 +1,43 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
 
 const BASE = "https://bbblepjlvjtuatqdiwla.supabase.co/functions/v1/api";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  "https://oofelrvpupitncswylcm.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vZmVscnZwdXBpdG5jc3d5bGNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNDU0ODQsImV4cCI6MjA5NDcyMTQ4NH0.QtqCLvf8X0qqF0eTUKeSquVxcRwUgv4rMgYxLiSfLm8";
+
+async function getAuthenticatedSupabase() {
+  const request = getRequest();
+  const authHeader = request?.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new Error("Sessão expirada. Entre novamente e tente de novo.");
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    throw new Error("Sessão expirada. Entre novamente e tente de novo.");
+  }
+
+  return supabase;
+}
 
 async function getKey() {
-  const { data, error } = await supabaseAdmin
+  const supabase = await getAuthenticatedSupabase();
+  const { data, error } = await supabase
     .from("integration_settings")
     .select("sighor_api_key")
     .limit(1)
