@@ -233,6 +233,10 @@ function Page() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Mercado Pago</CardTitle>
+        </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Access Token (privado)"
