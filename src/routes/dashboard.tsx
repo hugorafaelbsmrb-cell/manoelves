@@ -356,6 +356,56 @@ function DashboardPage() {
           </ul>
         )}
       </section>
+
+      <div className="mt-8 grid gap-4 lg:grid-cols-2">
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="font-display text-xl tracking-wide">Serviços mais realizados</h2>
+          {!data?.servicesRanking || data.servicesRanking.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Sem serviços registrados no período.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-border text-sm">
+              {data.servicesRanking.slice(0, 10).map((r, i) => (
+                <li key={r.name + i} className="flex items-center justify-between py-2">
+                  <span className="flex items-center gap-2">
+                    <span className="font-display text-lg w-6 text-center">{i + 1}</span>
+                    {r.name}
+                  </span>
+                  <span className="text-right">
+                    <span className="block font-medium">{r.qty}x</span>
+                    <span className="block text-xs text-muted-foreground">{brl(r.cents)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="font-display text-xl tracking-wide">Produtos mais vendidos</h2>
+          {!data?.productsRanking || data.productsRanking.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Sem produtos vendidos no período.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-border text-sm">
+              {data.productsRanking.slice(0, 10).map((r, i) => (
+                <li key={r.name + i} className="flex items-center justify-between py-2">
+                  <span className="flex items-center gap-2">
+                    <span className="font-display text-lg w-6 text-center">{i + 1}</span>
+                    {r.name}
+                  </span>
+                  <span className="text-right">
+                    <span className="block font-medium">{r.qty}x</span>
+                    <span className="block text-xs text-muted-foreground">{brl(r.cents)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </>
   );
 }
