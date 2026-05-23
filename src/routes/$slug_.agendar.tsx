@@ -39,6 +39,9 @@ interface Selection {
 function BookingPage() {
   const { slug } = Route.useParams();
   const { comboId, serviceId, serviceIds } = Route.useSearch();
+  const navigate = useNavigate();
+  const askOtp = useServerFn(requestClientOtp);
+  const checkOtp = useServerFn(verifyClientOtp);
 
   const [step, setStep] = useState<"date" | "form" | "pix" | "done">("date");
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
@@ -47,6 +50,10 @@ function BookingPage() {
   const [clientWhatsapp, setClientWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpReused, setOtpReused] = useState(false);
 
   const { data: barber } = useQuery({
     queryKey: ["barber", slug],
