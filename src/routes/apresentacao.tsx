@@ -1118,7 +1118,8 @@ function S_Settings() {
           <div className="space-y-2 text-[11px]">
             {[
               {n:"Mercado Pago", s:"Conectado", ok:true, d:"Cobranças, assinaturas, webhooks"},
-              {n:"WhatsApp Business", s:"Conectado", ok:true, d:"Confirmações, lembretes, reengajamento"},
+              {n:"WhatsApp (uazapi)", s:"Conectado", ok:true, d:"Códigos de acesso, lembretes, reengajamento"},
+              {n:"Catálogo de cortes", s:"8 itens", ok:true, d:"Carrossel da home e da área do cliente"},
               {n:"Signage Sighor", s:"Conectado", ok:true, d:"Displays, playlists, agendamentos de mídia"},
               {n:"Domínio próprio", s:"Configurar", ok:false, d:"manoelves.com.br"},
             ].map((it) => (
