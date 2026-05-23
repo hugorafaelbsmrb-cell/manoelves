@@ -129,7 +129,7 @@ function FinanceiroPage() {
         .gte("paid_at", fromISO)
         .lte("paid_at", toISO)
         .order("paid_at", { ascending: false });
-      if (methodFilter !== "all") q = q.eq("method", methodFilter);
+      if (methodFilter !== "all") q = q.eq("method", methodFilter as "card" | "cash" | "pix");
       if (barberFilter !== "all") q = q.eq("barber_id", barberFilter);
       const { data, error } = await q;
       if (error) throw error;

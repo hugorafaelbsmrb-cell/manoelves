@@ -15,6 +15,7 @@ import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -60,6 +61,11 @@ const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilaEsperaRoute = FilaEsperaRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
+  '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
+  '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/fila-espera': typeof FilaEsperaRoute
+  '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
+    | '/financeiro'
     | '/login'
     | '/meu-financeiro'
     | '/produtos'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
+    | '/financeiro'
     | '/login'
     | '/meu-financeiro'
     | '/produtos'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/fila-espera'
+    | '/financeiro'
     | '/login'
     | '/meu-financeiro'
     | '/produtos'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   FilaEsperaRoute: typeof FilaEsperaRoute
+  FinanceiroRoute: typeof FinanceiroRoute
   LoginRoute: typeof LoginRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fila-espera': {
@@ -489,6 +509,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   FilaEsperaRoute: FilaEsperaRoute,
+  FinanceiroRoute: FinanceiroRoute,
   LoginRoute: LoginRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ProdutosRoute: ProdutosRoute,
