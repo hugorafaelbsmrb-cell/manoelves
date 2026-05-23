@@ -734,11 +734,16 @@ function extractYouTubeId(input: string): { kind: "playlist" | "video"; id: stri
 
 function TvTab() {
   const [raw, setRaw] = useState("");
+  const [sighorId, setSighorId] = useState("");
+  const listP = useServerFn(listPlaylists);
+  const sighorPlaylists = useList(() => listP({}));
   const parsed = extractYouTubeId(raw);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const tvUrl = parsed
-    ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
-    : `${origin}/signage/tv`;
+  const tvUrl = sighorId
+    ? `${origin}/signage/tv?sighor=${encodeURIComponent(sighorId)}`
+    : parsed
+      ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
+      : `${origin}/signage/tv`;
 
   async function copy() {
     try {
