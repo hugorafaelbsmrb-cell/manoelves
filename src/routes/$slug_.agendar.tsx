@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Copy, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
