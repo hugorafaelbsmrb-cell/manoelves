@@ -1321,6 +1321,7 @@ const SLIDES: { title: string; component: () => React.ReactElement }[] = [
   { title: "Alerta de novo agendamento", component: S_OwnerNotification },
   { title: "Dashboard do dono", component: S_Dashboard },
   { title: "Comanda + Mercado Pago", component: S_Comanda },
+  { title: "Mensagens no WhatsApp", component: S_WhatsAppFlows },
   { title: "Assinaturas recorrentes", component: S_Subscriptions },
   { title: "Signage TV", component: S_Signage },
   { title: "Fila de espera", component: S_Waitlist },
