@@ -195,12 +195,17 @@ export function ManualBookingWizard() {
     try {
       const start = slot;
       const end = addMinutes(start, totalMinutes);
+      const clientId = await upsertClient({
+        name: client.name,
+        whatsapp: client.phone,
+      });
       const { data: appt, error } = await supabase
         .from("appointments")
         .insert({
           barber_id: barberId,
           client_name: client.name,
           client_whatsapp: client.phone,
+          client_id: clientId,
           start_at: start.toISOString(),
           end_at: end.toISOString(),
           status: "confirmed",
