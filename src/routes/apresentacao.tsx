@@ -164,7 +164,7 @@ function Slide({
 
       {/* mockup */}
       <div className="relative flex items-center justify-center bg-gradient-to-br from-neutral-900 to-neutral-950 p-6 lg:p-10">
-        <div className="w-full max-w-[640px]">{children}</div>
+        <div className="w-full max-w-[640px] animate-scale-in">{children}</div>
       </div>
     </div>
   );
