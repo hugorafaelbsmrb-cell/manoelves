@@ -30,6 +30,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignageTvRouteImport } from './routes/signage_.tv'
 import { Route as SlugAgendarRouteImport } from './routes/$slug_.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
+import { Route as ApiPublicHooksBirthdayNotifyRouteImport } from './routes/api/public/hooks/birthday-notify'
 
 const SignageRoute = SignageRouteImport.update({
   id: '/signage',
@@ -136,6 +137,12 @@ const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
   path: '/api/public/mercadopago',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksBirthdayNotifyRoute =
+  ApiPublicHooksBirthdayNotifyRouteImport.update({
+    id: '/api/public/hooks/birthday-notify',
+    path: '/api/public/hooks/birthday-notify',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/$slug/agendar': typeof SlugAgendarRoute
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
+  '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/$slug/agendar': typeof SlugAgendarRoute
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
+  '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/$slug_/agendar': typeof SlugAgendarRoute
   '/signage_/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
+  '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/$slug/agendar'
     | '/signage/tv'
     | '/api/public/mercadopago'
+    | '/api/public/hooks/birthday-notify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/$slug/agendar'
     | '/signage/tv'
     | '/api/public/mercadopago'
+    | '/api/public/hooks/birthday-notify'
   id:
     | '__root__'
     | '/'
@@ -277,6 +289,7 @@ export interface FileRouteTypes {
     | '/$slug_/agendar'
     | '/signage_/tv'
     | '/api/public/mercadopago'
+    | '/api/public/hooks/birthday-notify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +314,7 @@ export interface RootRouteChildren {
   SlugAgendarRoute: typeof SlugAgendarRoute
   SignageTvRoute: typeof SignageTvRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
+  ApiPublicHooksBirthdayNotifyRoute: typeof ApiPublicHooksBirthdayNotifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMercadopagoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/birthday-notify': {
+      id: '/api/public/hooks/birthday-notify'
+      path: '/api/public/hooks/birthday-notify'
+      fullPath: '/api/public/hooks/birthday-notify'
+      preLoaderRoute: typeof ApiPublicHooksBirthdayNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -477,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   SlugAgendarRoute: SlugAgendarRoute,
   SignageTvRoute: SignageTvRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
+  ApiPublicHooksBirthdayNotifyRoute: ApiPublicHooksBirthdayNotifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

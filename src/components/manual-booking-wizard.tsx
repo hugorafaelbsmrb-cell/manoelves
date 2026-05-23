@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
+import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 
 type Step = "barber" | "service" | "datetime" | "client";
@@ -152,6 +153,7 @@ export function ManualBookingWizard() {
     if (windows.length === 0) return [];
     const stepMin = 15;
     const totalMin = totalMinutes + (buffer ?? 10);
+    const now = new Date();
     const out: Date[] = [];
     for (const w of windows) {
       const [sh, sm] = w.start_time.split(":").map(Number);
@@ -161,6 +163,8 @@ export function ManualBookingWizard() {
       const end = new Date(date);
       end.setHours(eh, em, 0, 0);
       for (let t = start; addMinutes(t, totalMin) <= end; t = addMinutes(t, stepMin)) {
+        // oculta horários que já passaram
+        if (t <= now) continue;
         const slotEnd = addMinutes(t, totalMin);
         const conflict = (dayAppts ?? []).some((a) => {
           const aS = new Date(a.start_at);
@@ -191,12 +195,17 @@ export function ManualBookingWizard() {
     try {
       const start = slot;
       const end = addMinutes(start, totalMinutes);
+      const clientId = await upsertClient({
+        name: client.name,
+        whatsapp: client.phone,
+      });
       const { data: appt, error } = await supabase
         .from("appointments")
         .insert({
           barber_id: barberId,
           client_name: client.name,
           client_whatsapp: client.phone,
+          client_id: clientId,
           start_at: start.toISOString(),
           end_at: end.toISOString(),
           status: "confirmed",

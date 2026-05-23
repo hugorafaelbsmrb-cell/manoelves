@@ -10,6 +10,8 @@ import { brl } from "@/lib/format";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
+import { upsertClient } from "@/lib/clients";
 import { createOrderCheckout, createOrderPix } from "@/lib/payments.functions";
 import { sendOrderPixWhatsApp } from "@/lib/uazapi.functions";
 
@@ -34,8 +36,9 @@ type Item = {
 function ComandaPage() {
   const { user, isOwner } = useAuth();
   const qc = useQueryClient();
-  const [clientName, setClientName] = useState("");
-  const [clientWhats, setClientWhats] = useState("");
+  const [clientPick, setClientPick] = useState<ClientPick>({ name: "", phone: "" });
+  const clientName = clientPick.name;
+  const clientWhats = clientPick.phone;
   const [items, setItems] = useState<Item[]>([]);
   const [method, setMethod] = useState<"pix" | "cash" | "credit" | "debit">("pix");
   const [closed, setClosed] = useState<{
@@ -145,6 +148,11 @@ function ComandaPage() {
     }, 0);
     const ownerAmount = subtotal - barberAmount;
 
+    // upsert do cliente se houver whatsapp (registra na tabela clients)
+    if (clientWhats.trim()) {
+      await upsertClient({ name: clientName, whatsapp: clientWhats });
+    }
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -207,8 +215,7 @@ function ComandaPage() {
     setClosed(baseClosed);
     setItems([]);
     const savedWhats = clientWhats.trim();
-    setClientName("");
-    setClientWhats("");
+    setClientPick({ name: "", phone: "" });
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
 
@@ -365,8 +372,10 @@ function ComandaPage() {
                 <button
                   key={a.id}
                   onClick={() => {
-                    setClientName(a.client_name);
-                    setClientWhats(a.client_whatsapp ?? "");
+                    setClientPick({
+                      name: a.client_name,
+                      phone: a.client_whatsapp ?? "",
+                    });
                     toast.success(`Cliente ${a.client_name} carregado`);
                   }}
                   className="flex w-20 shrink-0 flex-col items-center gap-1 text-center"
@@ -389,26 +398,11 @@ function ComandaPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-            <div>
-              <label className="text-xs text-muted-foreground">Cliente</label>
-              <Input
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="Nome do cliente"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">
-                WhatsApp (para envio automático do PIX)
-              </label>
-              <Input
-                value={clientWhats}
-                onChange={(e) => setClientWhats(e.target.value)}
-                placeholder="(11) 99999-9999"
-                inputMode="tel"
-              />
-            </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <ClientCombobox value={clientPick} onChange={setClientPick} />
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              Selecione um cliente já cadastrado ou cadastre um novo. O WhatsApp é usado para envio automático do PIX.
+            </p>
           </div>
 
           <Section title="Serviços">
