@@ -883,6 +883,133 @@ function S_Comanda() {
   );
 }
 
+/* ===== WhatsApp mockup helpers ===== */
+function WAPhone({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto w-[300px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
+      <div className="relative overflow-hidden rounded-[26px]">
+        <div className="absolute left-1/2 top-1.5 z-20 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
+        {/* WhatsApp header */}
+        <div className="flex items-center gap-2 bg-[#075E54] px-3 pb-2 pt-6 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-400 text-[10px] font-bold text-emerald-900">ME</div>
+          <div className="flex-1 leading-tight">
+            <p className="text-[12px] font-semibold">Mano Elves</p>
+            <p className="text-[9px] text-emerald-100">online</p>
+          </div>
+          <MessageCircle className="h-4 w-4 opacity-80" />
+        </div>
+        {/* chat bg */}
+        <div
+          className="h-[510px] overflow-hidden px-3 py-3 text-neutral-900"
+          style={{ background: "#ECE5DD" }}
+        >
+          <div className="flex flex-col gap-2">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WABubble({
+  text,
+  time,
+  delay = 0,
+}: {
+  text: React.ReactNode;
+  time: string;
+  delay?: number;
+}) {
+  return (
+    <div
+      className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-[#DCF8C6] px-2.5 py-1.5 text-[11px] leading-snug shadow-sm animate-fade-in"
+      style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
+    >
+      <div>{text}</div>
+      <div className="mt-0.5 text-right text-[9px] text-neutral-500">{time} ✓✓</div>
+    </div>
+  );
+}
+
+function S_WhatsAppFlows() {
+  return (
+    <Slide
+      kicker="Mensageria · WhatsApp via UazAPI"
+      title="Cliente sempre avisado, no canal que ele já usa"
+      description="Toda interação importante vira mensagem no WhatsApp: código de acesso, confirmação de agendamento, lembrete, link de pagamento PIX ao fechar a comanda, aniversário e reengajamento."
+    >
+      <WAPhone>
+        <WABubble
+          delay={0}
+          time="09:12"
+          text={
+            <>
+              <span className="font-semibold">Mano Elves:</span> seu código de acesso é <span className="font-mono font-bold">482910</span>. Válido por 48h.
+            </>
+          }
+        />
+        <WABubble
+          delay={150}
+          time="09:14"
+          text={
+            <>
+              ✅ <span className="font-semibold">Agendamento confirmado</span><br />
+              Lucas · Corte + Barba<br />
+              Sex, 24/05 às <span className="font-semibold">15:30</span>
+            </>
+          }
+        />
+        <WABubble
+          delay={300}
+          time="14:30"
+          text={
+            <>
+              ⏰ Faltam <span className="font-semibold">1h</span> para o seu horário com o Lucas. Te esperamos!
+            </>
+          }
+        />
+        <WABubble
+          delay={450}
+          time="16:02"
+          text={
+            <>
+              💳 <span className="font-semibold">Sua comanda: R$ 130,00</span><br />
+              Pague no PIX:<br />
+              <span className="font-mono text-[10px]">00020126…5204000053039865802BR…6304A1B2</span><br />
+              <span className="text-emerald-700">Toque para copiar</span>
+            </>
+          }
+        />
+        <WABubble
+          delay={600}
+          time="16:03"
+          text={
+            <>
+              🎉 Pagamento recebido. Obrigado, João! Já liberamos sua próxima reserva.
+            </>
+          }
+        />
+        <WABubble
+          delay={750}
+          time="ontem"
+          text={
+            <>
+              🎂 <span className="font-semibold">Feliz aniversário, João!</span> Presente da casa: <span className="font-semibold">20% off</span> no próximo corte.
+            </>
+          }
+        />
+      </WAPhone>
+      <Value
+        items={[
+          { icon: KeyRound, label: "Login sem senha", text: "OTP de 6 dígitos enviado no WhatsApp, válido por 48h para economizar envios." },
+          { icon: CheckCircle2, label: "Confirmação + lembrete", text: "Cliente recebe o resumo do horário na hora da reserva e um aviso 1h antes." },
+          { icon: CreditCard, label: "PIX no fechamento", text: "Ao finalizar a comanda, o copia-e-cola PIX do Mercado Pago vai direto pro chat." },
+          { icon: Cake, label: "Aniversário e retorno", text: "Mensagens automáticas em datas e quando o cliente some há mais de X dias." },
+        ]}
+      />
+    </Slide>
+  );
+}
+
 function S_Subscriptions() {
   return (
     <Slide
@@ -1194,6 +1321,7 @@ const SLIDES: { title: string; component: () => React.ReactElement }[] = [
   { title: "Alerta de novo agendamento", component: S_OwnerNotification },
   { title: "Dashboard do dono", component: S_Dashboard },
   { title: "Comanda + Mercado Pago", component: S_Comanda },
+  { title: "Mensagens no WhatsApp", component: S_WhatsAppFlows },
   { title: "Assinaturas recorrentes", component: S_Subscriptions },
   { title: "Signage TV", component: S_Signage },
   { title: "Fila de espera", component: S_Waitlist },
