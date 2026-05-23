@@ -110,8 +110,9 @@ function HomePage() {
 
 
 
-      <section className="mx-auto max-w-5xl px-5 pb-20">
+      <section id="barbeiros" className="mx-auto max-w-5xl px-5 pb-20 scroll-mt-20">
         <h2 className="font-display text-2xl tracking-wider">Nossos barbeiros</h2>
+
 
         {!barbers || barbers.length === 0 ? (
           <div className="mt-6 rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
