@@ -27,7 +27,7 @@ function BarberPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, slug, bio, avatar_url, phone")
+        .select("id, full_name, slug, bio, avatar_url, phone, banner_url")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
