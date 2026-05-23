@@ -215,8 +215,7 @@ function ComandaPage() {
     setClosed(baseClosed);
     setItems([]);
     const savedWhats = clientWhats.trim();
-    setClientName("");
-    setClientWhats("");
+    setClientPick({ name: "", phone: "" });
     qc.invalidateQueries({ queryKey: ["pdv-products"] });
     toast.success("Comanda fechada • NFS-e emitida (simulado)");
 
