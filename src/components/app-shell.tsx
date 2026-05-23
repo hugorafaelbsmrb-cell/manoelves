@@ -184,6 +184,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
           {isOwner && (
             <Link
               to={settingsLink.to}
