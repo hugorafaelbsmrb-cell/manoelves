@@ -148,6 +148,11 @@ function ComandaPage() {
     }, 0);
     const ownerAmount = subtotal - barberAmount;
 
+    // upsert do cliente se houver whatsapp (registra na tabela clients)
+    if (clientWhats.trim()) {
+      await upsertClient({ name: clientName, whatsapp: clientWhats });
+    }
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
