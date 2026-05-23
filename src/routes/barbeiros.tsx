@@ -180,6 +180,15 @@ function BarbeirosPage() {
                         />
                       </div>
                       <div className="sm:col-span-2">
+                        <BannerUpload
+                          folder={`barbers/${b.id}`}
+                          url={(b as { banner_url?: string | null }).banner_url ?? ""}
+                          onSaved={(u) => updateProfile(b.id, { banner_url: u || null })}
+                          label="Banner do perfil"
+                          hint="Aparece no topo da página pública do barbeiro. Recomendado 1920×480."
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
                         <Field
                           label="Bio"
                           defaultValue={b.bio ?? ""}
