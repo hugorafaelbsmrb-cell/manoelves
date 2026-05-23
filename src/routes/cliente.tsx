@@ -69,12 +69,39 @@ function ClientePage() {
 
   const fetchData = useServerFn(getClientPortalData);
   const cancelFn = useServerFn(cancelClientAppointment);
+  const updateBirthdayFn = useServerFn(updateClientBirthday);
 
   const query = useQuery({
     queryKey: ["client-portal", token],
     enabled: !!token,
     queryFn: () => fetchData({ data: { token: token! } }),
     retry: false,
+  });
+
+  const [birthdayOpen, setBirthdayOpen] = useState(false);
+  const [birthdayValue, setBirthdayValue] = useState("");
+
+  useEffect(() => {
+    if (query.data && !query.data.birthday) {
+      const dismissed = localStorage.getItem("birthday_prompt_dismissed_at");
+      const within7d =
+        dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000;
+      if (!within7d) setBirthdayOpen(true);
+    }
+  }, [query.data]);
+
+  const birthdayMut = useMutation({
+    mutationFn: (birthday: string) =>
+      updateBirthdayFn({
+        data: { token: token!, birthday, name: query.data?.clientName ?? undefined },
+      }),
+    onSuccess: () => {
+      toast.success("Aniversário salvo! Vamos lembrar você. 🎂");
+      setBirthdayOpen(false);
+      localStorage.removeItem("birthday_prompt_dismissed_at");
+      query.refetch();
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   useEffect(() => {
