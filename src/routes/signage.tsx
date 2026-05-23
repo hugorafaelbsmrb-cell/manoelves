@@ -22,6 +22,10 @@ import {
   deleteMedia,
   listPlaylists,
   createPlaylist,
+  deletePlaylist,
+  listPlaylistItems,
+  addPlaylistItem,
+  removePlaylistItem,
   listDisplays,
   createDisplay,
   updateDisplay,
@@ -32,6 +36,8 @@ import {
   unassignPlaylistFromDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/signage")({
   ssr: false,
