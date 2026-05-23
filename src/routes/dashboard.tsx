@@ -124,7 +124,7 @@ function DashboardPage() {
             .lte("paid_at", toISO),
           supabase
             .from("appointments")
-            .select("start_at, status, total_cents")
+            .select("id, start_at, status, total_cents")
             .gte("start_at", fromISO)
             .lte("start_at", toISO),
           supabase.from("profiles").select("id, full_name"),
@@ -182,7 +182,65 @@ function DashboardPage() {
         }))
         .sort((a, b) => b.cents - a.cents);
 
-      return { revenue, ownerCut, barberCut, ticket, orders, series, ranking, weekly };
+      // Ranking de serviços (a partir dos appointment_items dos agendamentos do período)
+      const validAppts = (appts ?? []).filter(
+        (a) => a.status !== "cancelled" && a.status !== "no_show",
+      );
+      const apptIds = validAppts.map((a) => a.id);
+      let servicesRanking: Array<{ name: string; qty: number; cents: number }> = [];
+      if (apptIds.length) {
+        const { data: items } = await supabase
+          .from("appointment_items")
+          .select("service_id, price_cents, services(name)")
+          .in("appointment_id", apptIds);
+        const svcMap: Record<string, { name: string; qty: number; cents: number }> = {};
+        (items ?? []).forEach((it) => {
+          const name = (it.services as { name?: string } | null)?.name ?? "—";
+          const key = it.service_id;
+          if (!svcMap[key]) svcMap[key] = { name, qty: 0, cents: 0 };
+          svcMap[key].qty += 1;
+          svcMap[key].cents += it.price_cents ?? 0;
+        });
+        servicesRanking = Object.values(svcMap).sort((a, b) => b.qty - a.qty);
+      }
+
+      // Ranking de produtos (order_items, kind=product, vinculados a orders fechadas no período)
+      const { data: closedOrders } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("status", "closed")
+        .gte("closed_at", fromISO)
+        .lte("closed_at", toISO);
+      const orderIds = (closedOrders ?? []).map((o) => o.id);
+      let productsRanking: Array<{ name: string; qty: number; cents: number }> = [];
+      if (orderIds.length) {
+        const { data: oItems } = await supabase
+          .from("order_items")
+          .select("description, qty, total_cents, kind")
+          .in("order_id", orderIds)
+          .eq("kind", "product");
+        const pMap: Record<string, { name: string; qty: number; cents: number }> = {};
+        (oItems ?? []).forEach((it) => {
+          const key = it.description;
+          if (!pMap[key]) pMap[key] = { name: it.description, qty: 0, cents: 0 };
+          pMap[key].qty += it.qty ?? 1;
+          pMap[key].cents += it.total_cents ?? 0;
+        });
+        productsRanking = Object.values(pMap).sort((a, b) => b.qty - a.qty);
+      }
+
+      return {
+        revenue,
+        ownerCut,
+        barberCut,
+        ticket,
+        orders,
+        series,
+        ranking,
+        servicesRanking,
+        productsRanking,
+        weekly,
+      };
     },
   });
 
