@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NewAppointmentNotifier } from "@/components/new-appointment-notifier";
 
 interface NavLink {
   to: string;
