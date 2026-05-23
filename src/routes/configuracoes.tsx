@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BannerUpload } from "@/components/banner-upload";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/configuracoes")({
   ssr: false,
@@ -45,23 +48,42 @@ const empty: Settings = {
   uazapi_token: "",
 };
 
+type Shop = { id?: string; banner_url: string };
+type Birthday = {
+  enabled: boolean;
+  daysBefore: number;
+  discountPct: number;
+  template: string;
+};
+
 function Page() {
   const { isOwner, loading } = useAuth();
   const [s, setS] = useState<Settings>(empty);
+  const [shop, setShop] = useState<Shop>({ banner_url: "" });
+  const [bday, setBday] = useState<Birthday>({
+    enabled: true,
+    daysBefore: 7,
+    discountPct: 15,
+    template:
+      "Olá {nome}! 🎉 Seu aniversário está chegando e queremos comemorar com você! Use o cupom *ANIVER{desconto}* e ganhe {desconto}% de desconto em qualquer serviço durante o mês do seu aniversário. Agende seu horário e venha celebrar! ✂️🎂",
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("integration_settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+      const [{ data }, { data: shopRow }] = await Promise.all([
+        supabase.from("integration_settings").select("*").limit(1).maybeSingle(),
+        supabase.from("barbershop").select("id, banner_url").limit(1).maybeSingle(),
+      ]);
       if (data) {
         const d = data as typeof data & {
           sighor_api_key?: string | null;
           uazapi_url?: string | null;
           uazapi_token?: string | null;
+          birthday_notifications_enabled?: boolean;
+          birthday_days_before?: number;
+          birthday_discount_pct?: number;
+          birthday_message_template?: string;
         };
         setS({
           id: data.id,
@@ -74,13 +96,32 @@ function Page() {
           uazapi_url: d.uazapi_url ?? "",
           uazapi_token: d.uazapi_token ?? "",
         });
+        setBday({
+          enabled: d.birthday_notifications_enabled ?? true,
+          daysBefore: d.birthday_days_before ?? 7,
+          discountPct: Number(d.birthday_discount_pct ?? 15),
+          template:
+            d.birthday_message_template ??
+            "Olá {nome}! 🎉 Use o cupom *ANIVER{desconto}* para {desconto}% off no mês do seu aniversário.",
+        });
       }
+      if (shopRow) setShop({ id: shopRow.id, banner_url: (shopRow as { banner_url?: string }).banner_url ?? "" });
     })();
   }, []);
 
   if (loading) return null;
   if (!isOwner) {
     return <p className="text-sm text-muted-foreground">Acesso restrito ao dono.</p>;
+  }
+
+  async function saveShopBanner(url: string) {
+    setShop((prev) => ({ ...prev, banner_url: url }));
+    if (shop.id) {
+      await supabase.from("barbershop").update({ banner_url: url || null }).eq("id", shop.id);
+    } else {
+      const { data } = await supabase.from("barbershop").insert({ banner_url: url || null, name: "Mano Elves" }).select("id").maybeSingle();
+      if (data) setShop({ id: data.id, banner_url: url });
+    }
   }
 
   async function save() {
@@ -94,6 +135,10 @@ function Page() {
       sighor_api_key: s.sighor_api_key || null,
       uazapi_url: s.uazapi_url || null,
       uazapi_token: s.uazapi_token || null,
+      birthday_notifications_enabled: bday.enabled,
+      birthday_days_before: bday.daysBefore,
+      birthday_discount_pct: bday.discountPct,
+      birthday_message_template: bday.template,
       updated_at: new Date().toISOString(),
     } as never;
     let res;
@@ -122,6 +167,71 @@ function Page() {
           Credenciais das integrações. Visíveis apenas para o dono.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Banner da barbearia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BannerUpload
+            folder="barbershop"
+            url={shop.banner_url}
+            onSaved={(u) => void saveShopBanner(u)}
+            label="Banner exibido no topo do site"
+            hint="Recomendado 1920×480 (proporção 4:1). Aparece na página inicial."
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Aniversários — mensagem automática</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Notificações de aniversário</p>
+              <p className="text-xs text-muted-foreground">
+                Envia mensagem via WhatsApp (uazapi) X dias antes do aniversário do cliente.
+              </p>
+            </div>
+            <Switch
+              checked={bday.enabled}
+              onCheckedChange={(v) => setBday({ ...bday, enabled: v })}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Antecedência (dias)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                value={bday.daysBefore}
+                onChange={(e) => setBday({ ...bday, daysBefore: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Desconto (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={bday.discountPct}
+                onChange={(e) => setBday({ ...bday, discountPct: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Mensagem (placeholders: {"{nome}"}, {"{desconto}"})</Label>
+            <Textarea
+              rows={5}
+              value={bday.template}
+              onChange={(e) => setBday({ ...bday, template: e.target.value })}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

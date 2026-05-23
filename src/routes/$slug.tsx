@@ -27,7 +27,7 @@ function BarberPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, slug, bio, avatar_url, phone")
+        .select("id, full_name, slug, bio, avatar_url, phone, banner_url")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
@@ -82,6 +82,16 @@ function BarberPage() {
           </div>
         </div>
       </header>
+
+      {barber?.banner_url && (
+        <div className="mx-auto max-w-xl px-5 pt-4">
+          <img
+            src={barber.banner_url}
+            alt={`Banner de ${barber.full_name}`}
+            className="aspect-[4/1] w-full rounded-lg border border-border object-cover"
+          />
+        </div>
+      )}
 
       <section className="mx-auto max-w-xl px-5 py-10 text-center">
         <div className="mx-auto h-28 w-28 overflow-hidden rounded-full bg-secondary">

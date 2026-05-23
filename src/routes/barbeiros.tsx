@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BannerUpload } from "@/components/banner-upload";
 import { slugify } from "@/lib/format";
 import {
   createBarber,
@@ -97,7 +98,7 @@ function BarbeirosPage() {
     );
   }
 
-  async function updateProfile(id: string, patch: Partial<{ full_name: string; slug: string | null; phone: string | null; avatar_url: string | null; bio: string | null; is_active: boolean }>) {
+  async function updateProfile(id: string, patch: Partial<{ full_name: string; slug: string | null; phone: string | null; avatar_url: string | null; banner_url: string | null; bio: string | null; is_active: boolean }>) {
     await supabase.from("profiles").update(patch).eq("id", id);
     qc.invalidateQueries({ queryKey: ["barbers-list"] });
   }
@@ -176,6 +177,15 @@ function BarbeirosPage() {
                           barberId={b.id}
                           url={b.avatar_url ?? ""}
                           onSaved={(u: string) => updateProfile(b.id, { avatar_url: u })}
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <BannerUpload
+                          folder={`barbers/${b.id}`}
+                          url={(b as { banner_url?: string | null }).banner_url ?? ""}
+                          onSaved={(u) => updateProfile(b.id, { banner_url: u || null })}
+                          label="Banner do perfil"
+                          hint="Aparece no topo da página pública do barbeiro. Recomendado 1920×480."
                         />
                       </div>
                       <div className="sm:col-span-2">

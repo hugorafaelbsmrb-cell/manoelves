@@ -64,6 +64,16 @@ function HomePage() {
         </div>
       </header>
 
+      {shop?.banner_url && (
+        <div className="mx-auto max-w-5xl px-5 pt-6">
+          <img
+            src={shop.banner_url}
+            alt="Banner Mano Elves"
+            className="aspect-[4/1] w-full rounded-xl border border-border object-cover"
+          />
+        </div>
+      )}
+
       <section className="mx-auto max-w-5xl px-5 py-16 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
           Barbearia
