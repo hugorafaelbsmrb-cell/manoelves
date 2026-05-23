@@ -35,6 +35,8 @@ import {
   assignPlaylistToDisplay,
   unassignPlaylistFromDisplay,
   listSchedules,
+  getDefaultSighorPlaylist,
+  saveDefaultSighorPlaylist,
 } from "@/lib/signage.functions";
 import { supabase } from "@/integrations/supabase/client";
 
