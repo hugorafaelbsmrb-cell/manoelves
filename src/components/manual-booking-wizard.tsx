@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
+import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 
 type Step = "barber" | "service" | "datetime" | "client";
