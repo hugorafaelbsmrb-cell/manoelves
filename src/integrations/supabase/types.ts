@@ -404,6 +404,7 @@ export type Database = {
           mp_public_key: string | null
           mp_webhook_secret: string | null
           sighor_api_key: string | null
+          sighor_default_playlist_id: string | null
           uazapi_token: string | null
           uazapi_url: string | null
           updated_at: string
@@ -420,6 +421,7 @@ export type Database = {
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
           sighor_api_key?: string | null
+          sighor_default_playlist_id?: string | null
           uazapi_token?: string | null
           uazapi_url?: string | null
           updated_at?: string
@@ -436,6 +438,7 @@ export type Database = {
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
           sighor_api_key?: string | null
+          sighor_default_playlist_id?: string | null
           uazapi_token?: string | null
           uazapi_url?: string | null
           updated_at?: string

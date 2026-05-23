@@ -1,0 +1,1 @@
+ALTER TABLE public.integration_settings ADD COLUMN IF NOT EXISTS sighor_default_playlist_id text;

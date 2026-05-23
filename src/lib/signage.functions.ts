@@ -122,6 +122,48 @@ export const deletePlaylist = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => sighor(`/playlists/${data.id}`, { method: "DELETE" }));
 
+/* --------------------- Default playlist (persisted) --------------------- */
+
+export const getDefaultSighorPlaylist = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const supabase = await getAuthenticatedSupabase();
+    const { data, error } = await supabase
+      .from("integration_settings")
+      .select("sighor_default_playlist_id")
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: (data as { sighor_default_playlist_id?: string | null } | null)?.sighor_default_playlist_id ?? "" };
+  });
+
+export const saveDefaultSighorPlaylist = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().max(200) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const supabase = await getAuthenticatedSupabase();
+    const { data: existing, error: selErr } = await supabase
+      .from("integration_settings")
+      .select("id")
+      .limit(1)
+      .maybeSingle();
+    if (selErr) throw new Error(selErr.message);
+    const value = data.id || null;
+    if (existing?.id) {
+      const { error } = await supabase
+        .from("integration_settings")
+        .update({ sighor_default_playlist_id: value })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("integration_settings")
+        .insert({ sighor_default_playlist_id: value });
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
 /* --------------------- Playlist items --------------------- */
 
 export const listPlaylistItems = createServerFn({ method: "POST" })
