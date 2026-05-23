@@ -40,11 +40,7 @@ const PRESET_LABELS: Record<Preset, string> = {
 const METHOD_LABELS: Record<string, string> = {
   cash: "Dinheiro",
   pix: "Pix",
-  debit: "Débito",
-  credit: "Crédito",
   card: "Cartão",
-  transfer: "Transferência",
-  other: "Outro",
 };
 
 function rangeFor(preset: Preset, from?: string, to?: string) {
