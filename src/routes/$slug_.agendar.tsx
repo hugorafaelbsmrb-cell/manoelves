@@ -1,14 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Check, Copy, QrCode } from "lucide-react";
+import { ArrowLeft, Check, Copy, QrCode, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
+import { requestClientOtp, verifyClientOtp } from "@/lib/client-auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +39,9 @@ interface Selection {
 function BookingPage() {
   const { slug } = Route.useParams();
   const { comboId, serviceId, serviceIds } = Route.useSearch();
+  const navigate = useNavigate();
+  const askOtp = useServerFn(requestClientOtp);
+  const checkOtp = useServerFn(verifyClientOtp);
 
   const [step, setStep] = useState<"date" | "form" | "pix" | "done">("date");
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
@@ -45,6 +50,10 @@ function BookingPage() {
   const [clientWhatsapp, setClientWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpReused, setOtpReused] = useState(false);
 
   const { data: barber } = useQuery({
     queryKey: ["barber", slug],
@@ -198,6 +207,35 @@ function BookingPage() {
     if (next) setSelectedDate(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingHours, selection, slots.length]);
+
+  // Quando o agendamento for concluído, envia o código de acesso por WhatsApp.
+  useEffect(() => {
+    if (step !== "done" || otpSent || !clientWhatsapp) return;
+    setOtpSent(true);
+    askOtp({ data: { phone: clientWhatsapp } })
+      .then((r) => setOtpReused(r.reused))
+      .catch((e) => {
+        console.warn("Falha ao enviar OTP:", e);
+        setOtpSent(false);
+      });
+  }, [step, otpSent, clientWhatsapp, askOtp]);
+
+  async function confirmOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (otpCode.length !== 6) return;
+    setOtpLoading(true);
+    try {
+      const res = await checkOtp({ data: { phone: clientWhatsapp, code: otpCode } });
+      localStorage.setItem("client_token", res.token);
+      toast.success("Acesso liberado!");
+      navigate({ to: "/cliente" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Código inválido");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
 
   async function submitBooking() {
     if (!barber || !selection || !selectedSlot) return;
@@ -464,23 +502,66 @@ function BookingPage() {
         )}
 
         {step === "done" && selectedSlot && (
-          <div className="mt-6 rounded-xl border border-border bg-card p-6 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success text-success-foreground">
-              <Check className="h-6 w-6" />
+          <div className="mt-6 space-y-4">
+            <div className="rounded-xl border border-border bg-card p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success text-success-foreground">
+                <Check className="h-6 w-6" />
+              </div>
+              <h3 className="mt-3 font-display text-2xl tracking-wider">
+                Agendamento confirmado!
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {format(selectedSlot, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+              </p>
             </div>
-            <h3 className="mt-3 font-display text-2xl tracking-wider">
-              Agendamento confirmado!
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {format(selectedSlot, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Enviamos a confirmação no seu WhatsApp (simulado).
-            </p>
+
+            <div className="rounded-xl border border-primary/40 bg-primary/5 p-6">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-primary" />
+                <h4 className="font-display text-lg tracking-wide">
+                  Acesse sua área de cliente
+                </h4>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {otpReused
+                  ? "Você já possui um código válido enviado recentemente. Digite-o abaixo."
+                  : `Enviamos um código de 6 dígitos no WhatsApp ${clientWhatsapp}. Válido por 48 horas.`}
+              </p>
+              <form onSubmit={confirmOtp} className="mt-4 space-y-3">
+                <Input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-lg tracking-[0.5em]"
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={otpLoading || otpCode.length !== 6}
+                >
+                  {otpLoading ? "Verificando..." : "Entrar na minha área"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtpCode("");
+                }}
+                className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Não recebi — reenviar código
+              </button>
+            </div>
+
             <Link
               to="/$slug"
               params={{ slug }}
-              className="mt-4 inline-block text-xs text-muted-foreground underline"
+              className="block text-center text-xs text-muted-foreground underline"
             >
               Voltar para a página do barbeiro
             </Link>
