@@ -1023,7 +1023,11 @@ function extractYouTubeId(input: string): { kind: "playlist" | "video"; id: stri
 function TvTab() {
   const [raw, setRaw] = useState("");
   const [sighorId, setSighorId] = useState("");
+  const [savedSighorId, setSavedSighorId] = useState("");
+  const [saving, setSaving] = useState(false);
   const listP = useServerFn(listPlaylists);
+  const getDefault = useServerFn(getDefaultSighorPlaylist);
+  const saveDefault = useServerFn(saveDefaultSighorPlaylist);
   const sighorPlaylists = useList(() => listP({}));
   const parsed = extractYouTubeId(raw);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -1033,6 +1037,35 @@ function TvTab() {
       ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
       : `${origin}/signage/tv`;
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = (await getDefault({})) as { id?: string };
+        const id = r?.id ?? "";
+        if (id) {
+          setSighorId(id);
+          setSavedSighorId(id);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveDefault({ data: { id: sighorId } });
+      setSavedSighorId(sighorId);
+      toast.success("Playlist do Sighor salva como padrão da TV");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function copy() {
     try {
       await navigator.clipboard.writeText(tvUrl);
@@ -1041,6 +1074,7 @@ function TvTab() {
       toast.error("Não consegui copiar");
     }
   }
+  const dirty = sighorId !== savedSighorId;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
