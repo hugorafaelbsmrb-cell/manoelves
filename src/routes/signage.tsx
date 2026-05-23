@@ -1121,6 +1121,14 @@ function TvTab() {
             <p className="text-[11px] text-muted-foreground">
               Toca as mídias da playlist criada no painel Sighor, em rotação.
             </p>
+            <Button
+              size="sm"
+              onClick={save}
+              disabled={saving || !dirty}
+              className="w-full"
+            >
+              {saving ? "Salvando..." : dirty ? "Salvar como padrão" : "Padrão salvo"}
+            </Button>
           </div>
 
           <div className="space-y-1.5">
