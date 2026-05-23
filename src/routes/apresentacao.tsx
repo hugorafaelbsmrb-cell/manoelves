@@ -67,7 +67,9 @@ function PresentationPage() {
       <div className="flex min-h-screen items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-[1280px]">
           <div className="aspect-[16/9] w-full overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 shadow-2xl">
-            <Current />
+            <div key={i} className="h-full w-full animate-fade-in">
+              <Current />
+            </div>
           </div>
 
           {/* footer controls */}
