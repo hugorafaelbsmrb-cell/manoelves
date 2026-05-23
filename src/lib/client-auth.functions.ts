@@ -258,13 +258,67 @@ export const getClientPortalData = createServerFn({ method: "POST" })
     const clientName =
       (apptsRes.data ?? []).find((a) => a.client_name)?.client_name ?? null;
 
+    const { data: clientRow } = await supabaseAdmin
+      .from("clients")
+      .select("id, name, birthday")
+      .eq("whatsapp", phone)
+      .maybeSingle();
+
     return {
       phone,
-      clientName,
+      clientName: clientRow?.name ?? clientName,
+      birthday: clientRow?.birthday ?? null,
+      hasClientRecord: !!clientRow,
       appointments,
       subscriptions: subsRes.data ?? [],
       products: productsRes.data ?? [],
     };
+  });
+
+// ---------- updateClientBirthday ----------
+export const updateClientBirthday = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        token: z.string().min(10),
+        birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
+        name: z.string().trim().min(1).max(120).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    const { phone } = verifyToken(data.token);
+
+    const { data: existing } = await supabaseAdmin
+      .from("clients")
+      .select("id, name")
+      .eq("whatsapp", phone)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabaseAdmin
+        .from("clients")
+        .update({ birthday: data.birthday })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      let fallbackName = data.name?.trim();
+      if (!fallbackName) {
+        const { data: appt } = await supabaseAdmin
+          .from("appointments")
+          .select("client_name")
+          .eq("client_whatsapp", phone)
+          .order("start_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        fallbackName = appt?.client_name?.trim() || "Cliente";
+      }
+      const { error } = await supabaseAdmin
+        .from("clients")
+        .insert({ name: fallbackName, whatsapp: phone, birthday: data.birthday });
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
   });
 
 // ---------- cancelClientAppointment ----------
