@@ -57,6 +57,7 @@ export type Database = {
         Row: {
           barber_id: string
           client_email: string | null
+          client_id: string | null
           client_name: string
           client_whatsapp: string
           combo_id: string | null
@@ -72,6 +73,7 @@ export type Database = {
         Insert: {
           barber_id: string
           client_email?: string | null
+          client_id?: string | null
           client_name: string
           client_whatsapp: string
           combo_id?: string | null
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           barber_id?: string
           client_email?: string | null
+          client_id?: string | null
           client_name?: string
           client_whatsapp?: string
           combo_id?: string | null
@@ -108,6 +111,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "appointments_combo_id_fkey"
             columns: ["combo_id"]
             isOneToOne: false
@@ -119,6 +129,7 @@ export type Database = {
       barbershop: {
         Row: {
           address: string | null
+          banner_url: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -131,6 +142,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          banner_url?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -143,6 +155,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          banner_url?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -154,6 +167,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      birthday_notifications_log: {
+        Row: {
+          client_id: string
+          id: string
+          sent_at: string
+          sent_for_year: number
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          sent_at?: string
+          sent_for_year: number
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          sent_at?: string
+          sent_for_year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "birthday_notifications_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       buffer_settings: {
         Row: {
@@ -199,6 +241,39 @@ export type Database = {
           created_at?: string
           expires_at?: string
           phone?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          birthday: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          birthday?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          birthday?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          whatsapp?: string
         }
         Relationships: []
       }
@@ -287,6 +362,10 @@ export type Database = {
       }
       integration_settings: {
         Row: {
+          birthday_days_before: number
+          birthday_discount_pct: number
+          birthday_message_template: string
+          birthday_notifications_enabled: boolean
           id: string
           mp_access_token: string | null
           mp_public_key: string | null
@@ -299,6 +378,10 @@ export type Database = {
           whatsapp_token: string | null
         }
         Insert: {
+          birthday_days_before?: number
+          birthday_discount_pct?: number
+          birthday_message_template?: string
+          birthday_notifications_enabled?: boolean
           id?: string
           mp_access_token?: string | null
           mp_public_key?: string | null
@@ -311,6 +394,10 @@ export type Database = {
           whatsapp_token?: string | null
         }
         Update: {
+          birthday_days_before?: number
+          birthday_discount_pct?: number
+          birthday_message_template?: string
+          birthday_notifications_enabled?: boolean
           id?: string
           mp_access_token?: string | null
           mp_public_key?: string | null
@@ -577,6 +664,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           created_at: string
           full_name: string
@@ -588,6 +676,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string
@@ -599,6 +688,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string
