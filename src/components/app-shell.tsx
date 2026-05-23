@@ -219,6 +219,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </Link>
                 </DropdownMenuItem>
               ))}
+              {isOwner && (
+                <DropdownMenuItem asChild>
+                  <Link to={settingsLink.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                    {settingsLink.icon} {settingsLink.label}
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/cliente" className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
                   <Users className="h-4 w-4" /> Área do cliente
