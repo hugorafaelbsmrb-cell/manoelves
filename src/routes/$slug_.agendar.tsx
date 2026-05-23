@@ -1,14 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { addDays, addMinutes, format, isSameDay, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Check, Copy, QrCode } from "lucide-react";
+import { ArrowLeft, Check, Copy, QrCode, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
+import { requestClientOtp, verifyClientOtp } from "@/lib/client-auth.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
