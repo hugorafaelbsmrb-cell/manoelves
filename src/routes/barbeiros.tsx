@@ -97,7 +97,7 @@ function BarbeirosPage() {
     );
   }
 
-  async function updateProfile(id: string, patch: Partial<{ full_name: string; slug: string | null; phone: string | null; avatar_url: string | null; bio: string | null; is_active: boolean }>) {
+  async function updateProfile(id: string, patch: Partial<{ full_name: string; slug: string | null; phone: string | null; avatar_url: string | null; banner_url: string | null; bio: string | null; is_active: boolean }>) {
     await supabase.from("profiles").update(patch).eq("id", id);
     qc.invalidateQueries({ queryKey: ["barbers-list"] });
   }
