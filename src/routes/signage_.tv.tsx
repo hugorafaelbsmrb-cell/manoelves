@@ -300,3 +300,71 @@ function TVPage() {
     </div>
   );
 }
+
+function ytEmbedFromUrl(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    const list = u.searchParams.get("list");
+    if (list) {
+      return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(list)}&autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0`;
+    }
+    let v = u.searchParams.get("v");
+    if (!v && u.hostname.includes("youtu.be")) v = u.pathname.replace(/^\//, "");
+    if (v) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(v)}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0&playlist=${encodeURIComponent(v)}`;
+    }
+  } catch {
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) {
+      return `https://www.youtube.com/embed/${raw}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0&playlist=${raw}`;
+    }
+  }
+  return null;
+}
+
+function SighorMediaRenderer({ media }: { media: SighorMedia }) {
+  if (media.type === "image") {
+    return (
+      <img
+        key={media.id}
+        src={media.url}
+        alt={media.name}
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+    );
+  }
+  if (media.type === "video") {
+    return (
+      <video
+        key={media.id}
+        src={media.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+    );
+  }
+  if (media.type === "youtube") {
+    const src = ytEmbedFromUrl(media.url) ?? media.url;
+    return (
+      <iframe
+        key={media.id}
+        src={src}
+        title={media.name}
+        className="absolute inset-0 h-full w-full"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  // url / html / google_drive / rss → iframe
+  return (
+    <iframe
+      key={media.id}
+      src={media.url}
+      title={media.name}
+      className="absolute inset-0 h-full w-full bg-white"
+    />
+  );
+}
