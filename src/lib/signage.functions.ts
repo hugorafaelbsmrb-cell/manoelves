@@ -118,6 +118,42 @@ export const createPlaylist = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => sighor("/playlists", { method: "POST", body: data }));
 
+export const deletePlaylist = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => sighor(`/playlists/${data.id}`, { method: "DELETE" }));
+
+/* --------------------- Playlist items --------------------- */
+
+export const listPlaylistItems = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => sighor(`/playlists/${data.id}/items`));
+
+export const addPlaylistItem = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().min(1),
+        media_id: z.string().min(1),
+        duration: z.number().int().min(1).max(3600).optional(),
+        position: z.number().int().min(0).max(9999).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { id, ...body } = data;
+    return sighor(`/playlists/${id}/items`, { method: "POST", body });
+  });
+
+export const removePlaylistItem = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().min(1), item_id: z.string().min(1) }).parse(d),
+  )
+  .handler(async ({ data }) =>
+    sighor(`/playlists/${data.id}/items/${data.item_id}`, { method: "DELETE" }),
+  );
+
+
+
 /* --------------------- Displays --------------------- */
 
 export const listDisplays = createServerFn({ method: "GET" })

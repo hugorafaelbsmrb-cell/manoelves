@@ -22,6 +22,10 @@ import {
   deleteMedia,
   listPlaylists,
   createPlaylist,
+  deletePlaylist,
+  listPlaylistItems,
+  addPlaylistItem,
+  removePlaylistItem,
   listDisplays,
   createDisplay,
   updateDisplay,
@@ -32,6 +36,8 @@ import {
   unassignPlaylistFromDisplay,
   listSchedules,
 } from "@/lib/signage.functions";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/signage")({
   ssr: false,
@@ -177,46 +183,130 @@ function MediaTab() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Nova mídia</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Nome</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Banner promo" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Tipo</Label>
-            <Select value={type} onValueChange={(v) => setType(v as MediaType)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MEDIA_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">URL</Label>
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Descrição</Label>
-            <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-          <Button onClick={submit} disabled={saving} className="w-full">
-            <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Adicionar"}
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <UploadMediaCard onCreated={reload} />
+        <Card>
+          <CardHeader><CardTitle className="text-base">Nova mídia por URL</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Nome</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Banner promo" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tipo</Label>
+              <Select value={type} onValueChange={(v) => setType(v as MediaType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MEDIA_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">URL</Label>
+              <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Descrição</Label>
+              <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <Button onClick={submit} disabled={saving} className="w-full">
+              <Plus className="mr-1 h-4 w-4" /> {saving ? "Salvando..." : "Adicionar"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
 
+function UploadMediaCard({ onCreated }: { onCreated: () => void }) {
+  const create = useServerFn(createMedia);
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState("");
+
+  async function upload() {
+    if (!file) return toast.error("Selecione um arquivo");
+    const finalName = (name || file.name).trim();
+    if (!finalName) return toast.error("Informe um nome");
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    if (!isImage && !isVideo) {
+      return toast.error("Apenas imagens ou vídeos são suportados");
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      return toast.error("Arquivo muito grande (máx 50MB)");
+    }
+    setUploading(true);
+    setProgress("Enviando arquivo...");
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("signage")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("signage").getPublicUrl(path);
+      setProgress("Registrando mídia...");
+      await create({
+        data: {
+          name: finalName,
+          type: isImage ? "image" : "video",
+          url: pub.publicUrl,
+        },
+      });
+      toast.success("Mídia enviada");
+      setFile(null);
+      setName("");
+      onCreated();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+      setProgress("");
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Enviar do computador</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Arquivo (imagem ou vídeo, máx 50MB)</Label>
+          <Input
+            type="file"
+            accept="image/*,video/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setFile(f);
+              if (f && !name) setName(f.name.replace(/\.[^.]+$/, ""));
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Nome</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da mídia" />
+        </div>
+        <Button onClick={upload} disabled={uploading || !file} className="w-full">
+          <Plus className="mr-1 h-4 w-4" /> {uploading ? progress || "Enviando..." : "Enviar e adicionar"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+
 function PlaylistsTab() {
   const list = useServerFn(listPlaylists);
   const create = useServerFn(createPlaylist);
+  const del = useServerFn(deletePlaylist);
   const { items, loading, err, reload } = useList(() => list({}));
+  const mediaList = useList(() => listMedia({}));
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>("");
 
   async function submit() {
     if (!name) return toast.error("Informe um nome");
@@ -231,31 +321,76 @@ function PlaylistsTab() {
     } finally { setSaving(false); }
   }
 
+  async function remove(id: string) {
+    if (!confirm("Excluir esta playlist?")) return;
+    try {
+      await del({ data: { id } });
+      toast.success("Playlist excluída");
+      if (selectedId === id) setSelectedId("");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  const selected = items.find((p) => String(p.id) === selectedId);
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Playlists</CardTitle>
-          <Button size="sm" variant="ghost" onClick={reload}><RefreshCw className="h-4 w-4" /></Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? <p className="text-sm text-muted-foreground">Carregando...</p>
-            : err ? <p className="text-sm text-destructive">{err}</p>
-            : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma playlist.</p>
-            : (
-              <ul className="space-y-2">
-                {items.map((p) => (
-                  <li key={String(p.id)} className="rounded-md border border-border p-3">
-                    <p className="text-sm font-medium">{String(p.name ?? "—")}</p>
-                    {p.description ? (
-                      <p className="text-xs text-muted-foreground">{String(p.description)}</p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Playlists</CardTitle>
+            <Button size="sm" variant="ghost" onClick={reload}><RefreshCw className="h-4 w-4" /></Button>
+          </CardHeader>
+          <CardContent>
+            {loading ? <p className="text-sm text-muted-foreground">Carregando...</p>
+              : err ? <p className="text-sm text-destructive">{err}</p>
+              : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma playlist.</p>
+              : (
+                <ul className="space-y-2">
+                  {items.map((p) => {
+                    const id = String(p.id);
+                    const active = id === selectedId;
+                    return (
+                      <li
+                        key={id}
+                        className={`flex items-center justify-between gap-2 rounded-md border p-3 transition ${active ? "border-foreground bg-accent/40" : "border-border"}`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setSelectedId(active ? "" : id)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <p className="text-sm font-medium">{String(p.name ?? "—")}</p>
+                          {p.description ? (
+                            <p className="text-xs text-muted-foreground">{String(p.description)}</p>
+                          ) : null}
+                        </button>
+                        <Button size="icon" variant="ghost" onClick={() => remove(id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+          </CardContent>
+        </Card>
+
+        {selected ? (
+          <PlaylistItemsCard
+            playlistId={String(selected.id)}
+            playlistName={String(selected.name ?? "")}
+            media={mediaList.items}
+            onReloadMedia={mediaList.reload}
+          />
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Selecione uma playlist acima para gerenciar suas mídias.
+          </p>
+        )}
+      </div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Nova playlist</CardTitle></CardHeader>
@@ -276,6 +411,157 @@ function PlaylistsTab() {
     </div>
   );
 }
+
+function PlaylistItemsCard({
+  playlistId,
+  playlistName,
+  media,
+  onReloadMedia,
+}: {
+  playlistId: string;
+  playlistName: string;
+  media: AnyItem[];
+  onReloadMedia: () => void;
+}) {
+  const listItems = useServerFn(listPlaylistItems);
+  const addItem = useServerFn(addPlaylistItem);
+  const removeItem = useServerFn(removePlaylistItem);
+  const [items, setItems] = useState<AnyItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const [mediaId, setMediaId] = useState("");
+  const [duration, setDuration] = useState<number>(10);
+  const [adding, setAdding] = useState(false);
+
+  async function reload() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = (await listItems({ data: { id: playlistId } })) as unknown;
+      const arr = Array.isArray(res)
+        ? res
+        : res && typeof res === "object" && Array.isArray((res as { data?: unknown }).data)
+          ? ((res as { data: unknown[] }).data)
+          : [];
+      setItems(arr as AnyItem[]);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    reload();
+    onReloadMedia();
+    // eslint-disable-next-line
+  }, [playlistId]);
+
+  async function add() {
+    if (!mediaId) return toast.error("Selecione uma mídia");
+    setAdding(true);
+    try {
+      await addItem({
+        data: {
+          id: playlistId,
+          media_id: mediaId,
+          duration: Number.isFinite(duration) && duration > 0 ? duration : undefined,
+          position: items.length,
+        },
+      });
+      toast.success("Mídia adicionada");
+      setMediaId("");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function remove(itemId: string) {
+    if (!confirm("Remover esta mídia da playlist?")) return;
+    try {
+      await removeItem({ data: { id: playlistId, item_id: itemId } });
+      toast.success("Removida");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">Mídias de "{playlistName}"</CardTitle>
+        <Button size="sm" variant="ghost" onClick={reload}><RefreshCw className="h-4 w-4" /></Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-2 sm:grid-cols-[1fr_120px_auto]">
+          <Select value={mediaId} onValueChange={setMediaId}>
+            <SelectTrigger><SelectValue placeholder="Escolha uma mídia..." /></SelectTrigger>
+            <SelectContent>
+              {media.length === 0 ? (
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Nenhuma mídia. Cadastre na aba Mídias.
+                </div>
+              ) : media.map((m) => (
+                <SelectItem key={String(m.id)} value={String(m.id)}>
+                  {String(m.name ?? "—")} ({String(m.type ?? "")})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            min={1}
+            max={3600}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+            placeholder="seg"
+          />
+          <Button onClick={add} disabled={adding || !mediaId}>
+            <Plus className="mr-1 h-4 w-4" /> {adding ? "..." : "Adicionar"}
+          </Button>
+        </div>
+
+        {loading ? <p className="text-sm text-muted-foreground">Carregando...</p>
+          : err ? <p className="text-sm text-destructive">{err}</p>
+          : items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma mídia nesta playlist ainda.</p>
+          : (
+            <ol className="space-y-2">
+              {items.map((it, i) => {
+                const m = (it.media ?? {}) as AnyItem;
+                const name = String(it.name ?? m.name ?? it.title ?? "—");
+                const type = String(it.type ?? m.type ?? "");
+                const dur = it.duration ?? m.duration;
+                return (
+                  <li
+                    key={String(it.id ?? i)}
+                    className="flex items-center justify-between gap-2 rounded-md border border-border p-2"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="w-6 text-xs text-muted-foreground">{i + 1}</span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm">{name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {type}{dur ? ` · ${dur}s` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => remove(String(it.id))}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+      </CardContent>
+    </Card>
+  );
+}
+
 
 const RESOLUTIONS = ["1920x1080", "1080x1920", "1280x720", "720x1280", "3840x2160"];
 const WEEKDAYS = [
