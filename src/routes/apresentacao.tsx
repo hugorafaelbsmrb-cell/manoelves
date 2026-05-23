@@ -1186,17 +1186,20 @@ function S_Closing() {
 const SLIDES: { title: string; component: () => React.ReactElement }[] = [
   { title: "Capa", component: S_Cover },
   { title: "Home pública", component: S_Home },
+  { title: "Catálogo de cortes", component: S_Catalog },
   { title: "Landing do barbeiro", component: S_BarberLanding },
-  { title: "Agendamento público", component: S_PublicBooking },
+  { title: "Agendamento + login SMS", component: S_PublicBooking },
+  { title: "Área do cliente (PWA + aniversário)", component: S_ClientArea },
   { title: "Agenda interna", component: S_Agenda },
+  { title: "Alerta de novo agendamento", component: S_OwnerNotification },
   { title: "Dashboard do dono", component: S_Dashboard },
   { title: "Comanda + Mercado Pago", component: S_Comanda },
-
   { title: "Assinaturas recorrentes", component: S_Subscriptions },
   { title: "Signage TV", component: S_Signage },
   { title: "Fila de espera", component: S_Waitlist },
   { title: "Reengajamento WhatsApp", component: S_Reengagement },
   { title: "Financeiro do barbeiro", component: S_Financial },
   { title: "Configurações & integrações", component: S_Settings },
+  { title: "Cadastro restrito ao dono", component: S_AdminAccess },
   { title: "Fechamento", component: S_Closing },
 ];
