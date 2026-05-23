@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Scissors, Instagram, MapPin, LogIn } from "lucide-react";
+import { Scissors, Instagram, MapPin, LogIn, CalendarCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HaircutCatalog } from "@/components/haircut-catalog";
 
