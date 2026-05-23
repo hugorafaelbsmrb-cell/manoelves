@@ -33,6 +33,7 @@ import { Route as SignageTvRouteImport } from './routes/signage_.tv'
 import { Route as SlugAgendarRouteImport } from './routes/$slug_.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 import { Route as ApiPublicHooksBirthdayNotifyRouteImport } from './routes/api/public/hooks/birthday-notify'
+import { Route as ApiPublicSignagePlaylistIdRouteImport } from './routes/api/public/signage.playlist.$id'
 
 const SignageRoute = SignageRouteImport.update({
   id: '/signage',
@@ -155,6 +156,12 @@ const ApiPublicHooksBirthdayNotifyRoute =
     path: '/api/public/hooks/birthday-notify',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSignagePlaylistIdRoute =
+  ApiPublicSignagePlaylistIdRouteImport.update({
+    id: '/api/public/signage/playlist/$id',
+    path: '/api/public/signage/playlist/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -234,6 +243,7 @@ export interface FileRoutesById {
   '/signage_/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/signage/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
+    | '/api/public/signage/playlist/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/signage/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
+    | '/api/public/signage/playlist/$id'
   id:
     | '__root__'
     | '/'
@@ -314,6 +326,7 @@ export interface FileRouteTypes {
     | '/signage_/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
+    | '/api/public/signage/playlist/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -341,6 +354,7 @@ export interface RootRouteChildren {
   SignageTvRoute: typeof SignageTvRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
   ApiPublicHooksBirthdayNotifyRoute: typeof ApiPublicHooksBirthdayNotifyRoute
+  ApiPublicSignagePlaylistIdRoute: typeof ApiPublicSignagePlaylistIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -513,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBirthdayNotifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/signage/playlist/$id': {
+      id: '/api/public/signage/playlist/$id'
+      path: '/api/public/signage/playlist/$id'
+      fullPath: '/api/public/signage/playlist/$id'
+      preLoaderRoute: typeof ApiPublicSignagePlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -541,6 +562,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignageTvRoute: SignageTvRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
   ApiPublicHooksBirthdayNotifyRoute: ApiPublicHooksBirthdayNotifyRoute,
+  ApiPublicSignagePlaylistIdRoute: ApiPublicSignagePlaylistIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

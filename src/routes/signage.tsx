@@ -734,11 +734,16 @@ function extractYouTubeId(input: string): { kind: "playlist" | "video"; id: stri
 
 function TvTab() {
   const [raw, setRaw] = useState("");
+  const [sighorId, setSighorId] = useState("");
+  const listP = useServerFn(listPlaylists);
+  const sighorPlaylists = useList(() => listP({}));
   const parsed = extractYouTubeId(raw);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const tvUrl = parsed
-    ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
-    : `${origin}/signage/tv`;
+  const tvUrl = sighorId
+    ? `${origin}/signage/tv?sighor=${encodeURIComponent(sighorId)}`
+    : parsed
+      ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
+      : `${origin}/signage/tv`;
 
   async function copy() {
     try {
@@ -772,21 +777,38 @@ function TvTab() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs">URL ou ID do YouTube</Label>
+            <Label className="text-xs">Playlist do Sighor</Label>
+            <select
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+              value={sighorId}
+              onChange={(e) => setSighorId(e.target.value)}
+            >
+              <option value="">— Nenhuma (usar YouTube) —</option>
+              {sighorPlaylists.items.map((p) => (
+                <option key={String(p.id)} value={String(p.id)}>
+                  {String((p as { name?: string }).name ?? p.id)}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              Toca as mídias da playlist criada no painel Sighor, em rotação.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">URL ou ID do YouTube (alternativa)</Label>
             <Input
               placeholder="https://youtube.com/playlist?list=... ou ID"
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
+              disabled={!!sighorId}
             />
-            <p className="text-[11px] text-muted-foreground">
-              Aceita link da playlist, link do vídeo, link curto youtu.be ou só o ID.
-            </p>
           </div>
-          {parsed ? (
+          {!sighorId && parsed ? (
             <Badge variant="secondary" className="text-[10px]">
               {parsed.kind === "playlist" ? "Playlist" : "Vídeo"}: {parsed.id}
             </Badge>
-          ) : raw ? (
+          ) : !sighorId && raw ? (
             <p className="text-xs text-destructive">Não consegui reconhecer este link.</p>
           ) : null}
 
@@ -802,9 +824,9 @@ function TvTab() {
 
           <div className="flex gap-2">
             <Button asChild className="flex-1">
-              <Link to="/signage/tv" search={parsed ? { [parsed.kind]: parsed.id } as never : ({} as never)} target="_blank">
+              <a href={tvUrl} target="_blank" rel="noreferrer">
                 <ExternalLink className="mr-1 h-4 w-4" /> Abrir em nova aba
-              </Link>
+              </a>
             </Button>
           </div>
 

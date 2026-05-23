@@ -10,8 +10,22 @@ export const Route = createFileRoute("/signage_/tv")({
     playlist: typeof s.playlist === "string" ? s.playlist : "",
     video: typeof s.video === "string" ? s.video : "",
     barber: typeof s.barber === "string" ? s.barber : "",
+    sighor: typeof s.sighor === "string" ? s.sighor : "",
   }),
 });
+
+type SighorMedia = {
+  id: string;
+  name: string;
+  type: "image" | "video" | "url" | "html" | "youtube" | "google_drive" | "rss";
+  url: string;
+};
+type SighorItem = {
+  id: string;
+  position: number;
+  duration: number | null;
+  media?: SighorMedia | null;
+};
 
 type Appt = {
   id: string;
@@ -29,7 +43,7 @@ function fmtTime(iso: string) {
 }
 
 function TVPage() {
-  const { playlist, video, barber } = Route.useSearch();
+  const { playlist, video, barber, sighor } = Route.useSearch();
   const [appts, setAppts] = useState<Appt[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [now, setNow] = useState(() => new Date());
@@ -90,6 +104,56 @@ function TVPage() {
       .slice(0, 3);
     return { current, upcoming };
   }, [appts, now]);
+
+  // Load Sighor playlist items (with periodic refresh)
+  const [sighorItems, setSighorItems] = useState<SighorItem[]>([]);
+  useEffect(() => {
+    if (!sighor) {
+      setSighorItems([]);
+      return;
+    }
+    let cancel = false;
+    async function load() {
+      try {
+        const r = await fetch(`/api/public/signage/playlist/${sighor}`);
+        if (!r.ok) return;
+        const json = (await r.json()) as { items?: SighorItem[] };
+        if (!cancel) {
+          setSighorItems(
+            (json.items ?? [])
+              .filter((i) => i.media)
+              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+          );
+        }
+      } catch {
+        /* noop */
+      }
+    }
+    load();
+    const t = setInterval(load, 60_000);
+    return () => {
+      cancel = true;
+      clearInterval(t);
+    };
+  }, [sighor]);
+
+  // Rotate through Sighor items based on each item's duration
+  const [sighorIdx, setSighorIdx] = useState(0);
+  useEffect(() => {
+    if (sighorItems.length === 0) return;
+    const item = sighorItems[sighorIdx % sighorItems.length];
+    const seconds = Math.max(3, item?.duration ?? 10);
+    const t = setTimeout(
+      () => setSighorIdx((i) => (i + 1) % sighorItems.length),
+      seconds * 1000,
+    );
+    return () => clearTimeout(t);
+  }, [sighorItems, sighorIdx]);
+
+  const currentMedia: SighorMedia | null =
+    sighorItems.length > 0
+      ? (sighorItems[sighorIdx % sighorItems.length]?.media ?? null)
+      : null;
 
   const ytSrc = playlist
     ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(
@@ -155,10 +219,12 @@ function TVPage() {
           )}
         </section>
 
-        {/* Video */}
+        {/* Video / Playlist */}
         <section className="col-span-6 flex flex-col overflow-hidden">
           <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border bg-black">
-            {ytSrc ? (
+            {currentMedia ? (
+              <SighorMediaRenderer media={currentMedia} />
+            ) : ytSrc ? (
               <iframe
                 key={ytSrc}
                 src={ytSrc}
@@ -171,16 +237,22 @@ function TVPage() {
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-sm text-muted-foreground">
                 <p className="mb-2 text-lg font-semibold text-foreground">Configure a playlist</p>
                 <p className="max-w-md">
-                  Adicione <code className="rounded bg-muted px-1">?playlist=PLAYLIST_ID</code> ou
-                  <code className="ml-1 rounded bg-muted px-1">?video=VIDEO_ID</code> na URL para
-                  exibir conteúdo do YouTube.
-                </p>
-                <p className="mt-3 text-xs">
-                  Ex.:{" "}
-                  <code className="rounded bg-muted px-1">/signage/tv?playlist=PLrAXtmRdnEQy...</code>
+                  Adicione <code className="rounded bg-muted px-1">?sighor=PLAYLIST_ID</code> para
+                  tocar uma playlist do painel Sighor, ou{" "}
+                  <code className="rounded bg-muted px-1">?playlist=YT_ID</code> /{" "}
+                  <code className="rounded bg-muted px-1">?video=YT_ID</code> para conteúdo do
+                  YouTube.
                 </p>
               </div>
             )}
+            {currentMedia && sighorItems.length > 1 ? (
+              <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[11px] text-white backdrop-blur">
+                <span className="font-medium">{currentMedia.name}</span>
+                <span className="opacity-60">
+                  {(sighorIdx % sighorItems.length) + 1}/{sighorItems.length}
+                </span>
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -226,5 +298,73 @@ function TVPage() {
         </Link>
       </footer>
     </div>
+  );
+}
+
+function ytEmbedFromUrl(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    const list = u.searchParams.get("list");
+    if (list) {
+      return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(list)}&autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0`;
+    }
+    let v = u.searchParams.get("v");
+    if (!v && u.hostname.includes("youtu.be")) v = u.pathname.replace(/^\//, "");
+    if (v) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(v)}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0&playlist=${encodeURIComponent(v)}`;
+    }
+  } catch {
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) {
+      return `https://www.youtube.com/embed/${raw}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0&playlist=${raw}`;
+    }
+  }
+  return null;
+}
+
+function SighorMediaRenderer({ media }: { media: SighorMedia }) {
+  if (media.type === "image") {
+    return (
+      <img
+        key={media.id}
+        src={media.url}
+        alt={media.name}
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+    );
+  }
+  if (media.type === "video") {
+    return (
+      <video
+        key={media.id}
+        src={media.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+    );
+  }
+  if (media.type === "youtube") {
+    const src = ytEmbedFromUrl(media.url) ?? media.url;
+    return (
+      <iframe
+        key={media.id}
+        src={src}
+        title={media.name}
+        className="absolute inset-0 h-full w-full"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  // url / html / google_drive / rss → iframe
+  return (
+    <iframe
+      key={media.id}
+      src={media.url}
+      title={media.name}
+      className="absolute inset-0 h-full w-full bg-white"
+    />
   );
 }
