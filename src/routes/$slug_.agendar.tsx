@@ -207,12 +207,17 @@ function BookingPage() {
       const end = addMinutes(start, selection.totalMinutes);
       const requiresPix = shop?.no_show_protection ?? true;
 
+      const clientId = await upsertClient({
+        name: clientName,
+        whatsapp: clientWhatsapp,
+      });
       const { data: appt, error } = await supabase
         .from("appointments")
         .insert({
           barber_id: barber.id,
           client_name: clientName,
           client_whatsapp: clientWhatsapp,
+          client_id: clientId,
           start_at: start.toISOString(),
           end_at: end.toISOString(),
           status: requiresPix ? "pending_payment" : "confirmed",
