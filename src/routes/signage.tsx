@@ -756,20 +756,26 @@ function TvTab() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Pré-visualização</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
-            <iframe key={tvUrl} src={tvUrl} title="TV" className="h-full w-full" />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Mostra: <strong>vídeo/playlist do YouTube</strong> no centro, atendimento atual à
-            esquerda e os próximos 3 agendamentos à direita. Atualiza automaticamente.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pré-visualização</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
+              <iframe key={tvUrl} src={tvUrl} title="TV" className="h-full w-full" />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {sighorId
+                ? "Mostra os itens da playlist Sighor em rotação, com atendimento e próximos agendamentos."
+                : "Mostra: vídeo/playlist do YouTube no centro, atendimento à esquerda e próximos agendamentos à direita."}
+            </p>
+          </CardContent>
+        </Card>
+
+        {sighorId ? <SighorPlaylistPreview id={sighorId} /> : null}
+      </div>
+
 
       <Card>
         <CardHeader>
