@@ -1023,12 +1023,15 @@ function extractYouTubeId(input: string): { kind: "playlist" | "video"; id: stri
 function TvTab() {
   const [raw, setRaw] = useState("");
   const [sighorId, setSighorId] = useState("");
-  const [savedSighorId, setSavedSighorId] = useState("");
+  const [savedSighorId, setSavedSighorId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const listP = useServerFn(listPlaylists);
+  const listD = useServerFn(listDisplays);
+  const link = useServerFn(linkDisplay);
   const getDefault = useServerFn(getDefaultSighorPlaylist);
   const saveDefault = useServerFn(saveDefaultSighorPlaylist);
   const sighorPlaylists = useList(() => listP({}));
+  const displays = useList(() => listD({}));
   const parsed = extractYouTubeId(raw);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const tvUrl = sighorId
@@ -1037,34 +1040,65 @@ function TvTab() {
       ? `${origin}/signage/tv?${parsed.kind}=${encodeURIComponent(parsed.id)}`
       : `${origin}/signage/tv`;
 
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [displayId, setDisplayId] = useState("");
+  const [pairing, setPairing] = useState("");
+  const [linking, setLinking] = useState(false);
+
+  async function doLink() {
+    if (!displayId) return toast.error("Escolha um display");
+    if (!/^[0-9]{6}$/.test(pairing)) return toast.error("Código de 6 dígitos");
+    setLinking(true);
+    try {
+      await link({ data: { id: displayId, pairing_code: pairing } });
+      toast.success("TV vinculada");
+      setPairing("");
+      setLinkOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setLinking(false);
+    }
+  }
+
   useEffect(() => {
     (async () => {
       try {
         const r = (await getDefault({})) as { id?: string };
         const id = r?.id ?? "";
-        if (id) {
-          setSighorId(id);
-          setSavedSighorId(id);
-        }
+        setSighorId(id);
+        setSavedSighorId(id);
       } catch {
-        // ignore
+        setSavedSighorId("");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function save() {
+  // Auto-salva quando o usuário troca a playlist do Sighor
+  useEffect(() => {
+    if (savedSighorId === null) return;
+    if (sighorId === savedSighorId) return;
+    let cancelled = false;
     setSaving(true);
-    try {
-      await saveDefault({ data: { id: sighorId } });
-      setSavedSighorId(sighorId);
-      toast.success("Playlist do Sighor salva como padrão da TV");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
-    } finally {
-      setSaving(false);
-    }
-  }
+    const t = setTimeout(async () => {
+      try {
+        await saveDefault({ data: { id: sighorId } });
+        if (cancelled) return;
+        setSavedSighorId(sighorId);
+        toast.success("Playlist do Sighor salva");
+      } catch (e) {
+        if (!cancelled) toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+      } finally {
+        if (!cancelled) setSaving(false);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sighorId, savedSighorId]);
 
   async function copy() {
     try {
@@ -1074,7 +1108,6 @@ function TvTab() {
       toast.error("Não consegui copiar");
     }
   }
-  const dirty = sighorId !== savedSighorId;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
@@ -1119,16 +1152,10 @@ function TvTab() {
               ))}
             </select>
             <p className="text-[11px] text-muted-foreground">
-              Toca as mídias da playlist criada no painel Sighor, em rotação.
+              {saving
+                ? "Salvando..."
+                : "Salvo automaticamente como padrão da TV."}
             </p>
-            <Button
-              size="sm"
-              onClick={save}
-              disabled={saving || !dirty}
-              className="w-full"
-            >
-              {saving ? "Salvando..." : dirty ? "Salvar como padrão" : "Padrão salvo"}
-            </Button>
           </div>
 
           <div className="space-y-1.5">
@@ -1164,6 +1191,57 @@ function TvTab() {
                 <ExternalLink className="mr-1 h-4 w-4" /> Abrir em nova aba
               </a>
             </Button>
+            <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <LinkIcon className="mr-1 h-4 w-4" /> Vincular TV
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Vincular TV ao display</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Abra <span className="font-mono">sighor.lovable.app/player</span> na TV
+                    e informe abaixo o código de 6 dígitos exibido.
+                  </p>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Display</Label>
+                    <select
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                      value={displayId}
+                      onChange={(e) => setDisplayId(e.target.value)}
+                    >
+                      <option value="">— Selecione —</option>
+                      {displays.items.map((d) => (
+                        <option key={String(d.id)} value={String(d.id)}>
+                          {String((d as { name?: string }).name ?? d.id)}
+                        </option>
+                      ))}
+                    </select>
+                    {displays.items.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        Nenhum display cadastrado. Crie um na aba Displays.
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Código de pareamento</Label>
+                    <Input
+                      value={pairing}
+                      onChange={(e) => setPairing(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="123456"
+                      className="text-center font-mono text-xl tracking-widest"
+                      inputMode="numeric"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={doLink} disabled={linking || pairing.length !== 6 || !displayId}>
+                    {linking ? "Vinculando..." : "Vincular"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <p className="text-[11px] text-muted-foreground">
