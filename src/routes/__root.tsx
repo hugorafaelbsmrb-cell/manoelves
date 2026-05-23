@@ -36,9 +36,32 @@ function NotFoundComponent() {
   );
 }
 
+function isStaleChunkError(error: Error) {
+  const msg = `${error?.name ?? ""} ${error?.message ?? ""}`;
+  return (
+    /Failed to fetch dynamically imported module/i.test(msg) ||
+    /Importing a module script failed/i.test(msg) ||
+    /ChunkLoadError/i.test(msg) ||
+    /Loading chunk \d+ failed/i.test(msg) ||
+    /error loading dynamically imported module/i.test(msg)
+  );
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
+  // After a new deploy, the previously loaded HTML references chunks that no
+  // longer exist. Force a hard reload once so the browser picks up the new build.
+  if (typeof window !== "undefined" && isStaleChunkError(error)) {
+    const KEY = "__stale_chunk_reloaded__";
+    if (!sessionStorage.getItem(KEY)) {
+      sessionStorage.setItem(KEY, "1");
+      window.location.reload();
+      return null;
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -46,6 +69,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <button
           onClick={() => {
+            try { sessionStorage.removeItem("__stale_chunk_reloaded__"); } catch {}
             router.invalidate();
             reset();
           }}
