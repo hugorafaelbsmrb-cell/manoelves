@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Scissors, Instagram, MapPin, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { HaircutCatalog } from "@/components/haircut-catalog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,6 +92,12 @@ function HomePage() {
           </p>
         )}
       </section>
+
+      <section className="mx-auto max-w-5xl px-5 pb-10">
+        <HaircutCatalog />
+      </section>
+
+
 
       <section className="mx-auto max-w-5xl px-5 pb-20">
         <h2 className="font-display text-2xl tracking-wider">Nossos barbeiros</h2>

@@ -20,6 +20,7 @@ import {
   cancelClientAppointment,
   getClientPortalData,
 } from "@/lib/client-auth.functions";
+import { HaircutCatalog } from "@/components/haircut-catalog";
 
 export const Route = createFileRoute("/cliente")({
   head: () => ({ meta: [{ title: "Área do cliente — Mano Elves" }] }),
@@ -135,6 +136,13 @@ function ClientePage() {
           <h1 className="font-display text-3xl tracking-wide">Olá, {firstName} 👋</h1>
           <p className="text-sm text-muted-foreground">Sua área pessoal.</p>
         </div>
+
+        <HaircutCatalog
+          title="Inspirações de corte"
+          subtitle="Escolha um estilo para o próximo agendamento."
+        />
+
+
 
         {/* Assinatura */}
         <Card className="p-5">
