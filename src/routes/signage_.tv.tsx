@@ -105,6 +105,56 @@ function TVPage() {
     return { current, upcoming };
   }, [appts, now]);
 
+  // Load Sighor playlist items (with periodic refresh)
+  const [sighorItems, setSighorItems] = useState<SighorItem[]>([]);
+  useEffect(() => {
+    if (!sighor) {
+      setSighorItems([]);
+      return;
+    }
+    let cancel = false;
+    async function load() {
+      try {
+        const r = await fetch(`/api/public/signage/playlist/${sighor}`);
+        if (!r.ok) return;
+        const json = (await r.json()) as { items?: SighorItem[] };
+        if (!cancel) {
+          setSighorItems(
+            (json.items ?? [])
+              .filter((i) => i.media)
+              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+          );
+        }
+      } catch {
+        /* noop */
+      }
+    }
+    load();
+    const t = setInterval(load, 60_000);
+    return () => {
+      cancel = true;
+      clearInterval(t);
+    };
+  }, [sighor]);
+
+  // Rotate through Sighor items based on each item's duration
+  const [sighorIdx, setSighorIdx] = useState(0);
+  useEffect(() => {
+    if (sighorItems.length === 0) return;
+    const item = sighorItems[sighorIdx % sighorItems.length];
+    const seconds = Math.max(3, item?.duration ?? 10);
+    const t = setTimeout(
+      () => setSighorIdx((i) => (i + 1) % sighorItems.length),
+      seconds * 1000,
+    );
+    return () => clearTimeout(t);
+  }, [sighorItems, sighorIdx]);
+
+  const currentMedia: SighorMedia | null =
+    sighorItems.length > 0
+      ? (sighorItems[sighorIdx % sighorItems.length]?.media ?? null)
+      : null;
+
   const ytSrc = playlist
     ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(
         playlist,
