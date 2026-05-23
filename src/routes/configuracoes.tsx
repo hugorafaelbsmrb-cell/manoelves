@@ -276,26 +276,6 @@ function Page() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">WhatsApp Cloud API</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Access Token"
-            placeholder="EAAG..."
-            value={s.whatsapp_token}
-            onChange={(v) => setS({ ...s, whatsapp_token: v })}
-            type="password"
-          />
-          <Field
-            label="Phone Number ID"
-            placeholder="1234567890"
-            value={s.whatsapp_phone_id}
-            onChange={(v) => setS({ ...s, whatsapp_phone_id: v })}
-          />
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
