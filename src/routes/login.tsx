@@ -22,8 +22,8 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <Scissors className="h-5 w-5" />
+        <Link to="/" className="mb-8 flex flex-col items-center justify-center gap-3">
+          <img src={logoUrl} alt="Mano Elves" className="h-20 w-auto" />
           <span className="font-display text-xl tracking-wider">MANO ELVES</span>
         </Link>
 
