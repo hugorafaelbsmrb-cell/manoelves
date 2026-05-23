@@ -756,20 +756,26 @@ function TvTab() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Pré-visualização</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
-            <iframe key={tvUrl} src={tvUrl} title="TV" className="h-full w-full" />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Mostra: <strong>vídeo/playlist do YouTube</strong> no centro, atendimento atual à
-            esquerda e os próximos 3 agendamentos à direita. Atualiza automaticamente.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pré-visualização</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
+              <iframe key={tvUrl} src={tvUrl} title="TV" className="h-full w-full" />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {sighorId
+                ? "Mostra os itens da playlist Sighor em rotação, com atendimento e próximos agendamentos."
+                : "Mostra: vídeo/playlist do YouTube no centro, atendimento à esquerda e próximos agendamentos à direita."}
+            </p>
+          </CardContent>
+        </Card>
+
+        {sighorId ? <SighorPlaylistPreview id={sighorId} /> : null}
+      </div>
+
 
       <Card>
         <CardHeader>
@@ -838,3 +844,111 @@ function TvTab() {
     </div>
   );
 }
+
+type SighorItem = {
+  id?: string | number;
+  name?: string;
+  title?: string;
+  type?: string;
+  url?: string;
+  thumbnail_url?: string;
+  thumbnail?: string;
+  duration?: number;
+  position?: number;
+  order?: number;
+};
+
+function SighorPlaylistPreview({ id }: { id: string }) {
+  const [items, setItems] = useState<SighorItem[]>([]);
+  const [playlistName, setPlaylistName] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/public/signage/playlist/${id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as {
+        playlist?: { name?: string; data?: { name?: string } };
+        items?: SighorItem[] | { data?: SighorItem[] };
+      };
+      const raw = json.items;
+      const arr = Array.isArray(raw)
+        ? raw
+        : raw && Array.isArray((raw as { data?: SighorItem[] }).data)
+          ? (raw as { data: SighorItem[] }).data
+          : [];
+      arr.sort((a, b) => (a.position ?? a.order ?? 0) - (b.position ?? b.order ?? 0));
+      setItems(arr);
+      const pl = json.playlist as { name?: string; data?: { name?: string } } | null;
+      setPlaylistName(pl?.name ?? pl?.data?.name ?? "");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">
+          Itens da playlist{playlistName ? `: ${playlistName}` : ""}
+        </CardTitle>
+        <Button size="sm" variant="ghost" onClick={load}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : err ? (
+          <p className="text-sm text-destructive">Erro: {err}</p>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum item nesta playlist.</p>
+        ) : (
+          <ol className="grid gap-2 sm:grid-cols-2">
+            {items.map((it, idx) => {
+              const thumb = it.thumbnail_url ?? it.thumbnail;
+              const label = it.name ?? it.title ?? `Item ${idx + 1}`;
+              const dur = it.duration ? `${it.duration}s` : "10s";
+              return (
+                <li
+                  key={String(it.id ?? idx)}
+                  className="flex items-center gap-3 rounded-md border border-border p-2"
+                >
+                  <div className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded bg-neutral-900 text-[10px] text-muted-foreground">
+                    {thumb ? (
+                      <img src={thumb} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="uppercase">{String(it.type ?? "?")}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {idx + 1}. {label}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {String(it.type ?? "media")}
+                      </Badge>
+                      <span className="text-[11px] text-muted-foreground">{dur}</span>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
