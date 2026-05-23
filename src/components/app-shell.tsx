@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NewAppointmentNotifier } from "@/components/new-appointment-notifier";
 
 interface NavLink {
   to: string;
@@ -118,6 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {isOwner && <NewAppointmentNotifier />}
       <header className="border-b border-border bg-sidebar">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
