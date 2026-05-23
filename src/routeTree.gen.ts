@@ -25,6 +25,7 @@ import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as BarbeirosRouteImport } from './routes/barbeiros'
 import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as ApresentacaoRouteImport } from './routes/apresentacao'
+import { Route as AgendarRouteImport } from './routes/agendar'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
@@ -113,6 +114,11 @@ const ApresentacaoRoute = ApresentacaoRouteImport.update({
   path: '/apresentacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendarRoute = AgendarRouteImport.update({
+  id: '/agendar',
+  path: '/agendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgendaRoute = AgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
+  '/agendar': typeof AgendarRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
+  '/agendar': typeof AgendarRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/agenda': typeof AgendaRoute
+  '/agendar': typeof AgendarRoute
   '/apresentacao': typeof ApresentacaoRoute
   '/assinaturas': typeof AssinaturasRoute
   '/barbeiros': typeof BarbeirosRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/agenda'
+    | '/agendar'
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/agenda'
+    | '/agendar'
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/agenda'
+    | '/agendar'
     | '/apresentacao'
     | '/assinaturas'
     | '/barbeiros'
@@ -308,6 +320,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   AgendaRoute: typeof AgendaRoute
+  AgendarRoute: typeof AgendarRoute
   ApresentacaoRoute: typeof ApresentacaoRoute
   AssinaturasRoute: typeof AssinaturasRoute
   BarbeirosRoute: typeof BarbeirosRoute
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApresentacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agendar': {
+      id: '/agendar'
+      path: '/agendar'
+      fullPath: '/agendar'
+      preLoaderRoute: typeof AgendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agenda': {
       id: '/agenda'
       path: '/agenda'
@@ -500,6 +520,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   AgendaRoute: AgendaRoute,
+  AgendarRoute: AgendarRoute,
   ApresentacaoRoute: ApresentacaoRoute,
   AssinaturasRoute: AssinaturasRoute,
   BarbeirosRoute: BarbeirosRoute,
