@@ -19,9 +19,20 @@ import { Badge } from "@/components/ui/badge";
 import {
   cancelClientAppointment,
   getClientPortalData,
+  updateClientBirthday,
 } from "@/lib/client-auth.functions";
 import { HaircutCatalog } from "@/components/haircut-catalog";
 import { PwaInstallBanner } from "@/components/pwa-install-banner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/cliente")({
   head: () => ({ meta: [{ title: "Área do cliente — Mano Elves" }] }),
@@ -58,12 +69,39 @@ function ClientePage() {
 
   const fetchData = useServerFn(getClientPortalData);
   const cancelFn = useServerFn(cancelClientAppointment);
+  const updateBirthdayFn = useServerFn(updateClientBirthday);
 
   const query = useQuery({
     queryKey: ["client-portal", token],
     enabled: !!token,
     queryFn: () => fetchData({ data: { token: token! } }),
     retry: false,
+  });
+
+  const [birthdayOpen, setBirthdayOpen] = useState(false);
+  const [birthdayValue, setBirthdayValue] = useState("");
+
+  useEffect(() => {
+    if (query.data && !query.data.birthday) {
+      const dismissed = localStorage.getItem("birthday_prompt_dismissed_at");
+      const within7d =
+        dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000;
+      if (!within7d) setBirthdayOpen(true);
+    }
+  }, [query.data]);
+
+  const birthdayMut = useMutation({
+    mutationFn: (birthday: string) =>
+      updateBirthdayFn({
+        data: { token: token!, birthday, name: query.data?.clientName ?? undefined },
+      }),
+    onSuccess: () => {
+      toast.success("Aniversário salvo! Vamos lembrar você. 🎂");
+      setBirthdayOpen(false);
+      localStorage.removeItem("birthday_prompt_dismissed_at");
+      query.refetch();
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   useEffect(() => {
@@ -332,6 +370,55 @@ function ClientePage() {
           )}
         </Card>
       </main>
+
+      <Dialog
+        open={birthdayOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            localStorage.setItem("birthday_prompt_dismissed_at", String(Date.now()));
+          }
+          setBirthdayOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>🎂 Quando é seu aniversário?</DialogTitle>
+            <DialogDescription>
+              Queremos te mandar um mimo no seu dia. Prometemos não esquecer ✨
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="birthday-input">Data de nascimento</Label>
+            <Input
+              id="birthday-input"
+              type="date"
+              value={birthdayValue}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setBirthdayValue(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                localStorage.setItem(
+                  "birthday_prompt_dismissed_at",
+                  String(Date.now()),
+                );
+                setBirthdayOpen(false);
+              }}
+            >
+              Agora não
+            </Button>
+            <Button
+              disabled={!birthdayValue || birthdayMut.isPending}
+              onClick={() => birthdayMut.mutate(birthdayValue)}
+            >
+              {birthdayMut.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
