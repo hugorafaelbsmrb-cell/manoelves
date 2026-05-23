@@ -152,6 +152,7 @@ export function ManualBookingWizard() {
     if (windows.length === 0) return [];
     const stepMin = 15;
     const totalMin = totalMinutes + (buffer ?? 10);
+    const now = new Date();
     const out: Date[] = [];
     for (const w of windows) {
       const [sh, sm] = w.start_time.split(":").map(Number);
@@ -161,6 +162,8 @@ export function ManualBookingWizard() {
       const end = new Date(date);
       end.setHours(eh, em, 0, 0);
       for (let t = start; addMinutes(t, totalMin) <= end; t = addMinutes(t, stepMin)) {
+        // oculta horários que já passaram
+        if (t <= now) continue;
         const slotEnd = addMinutes(t, totalMin);
         const conflict = (dayAppts ?? []).some((a) => {
           const aS = new Date(a.start_at);
