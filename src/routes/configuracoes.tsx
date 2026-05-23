@@ -170,8 +170,69 @@ function Page() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Mercado Pago</CardTitle>
+          <CardTitle className="text-base">Banner da barbearia</CardTitle>
         </CardHeader>
+        <CardContent>
+          <BannerUpload
+            folder="barbershop"
+            url={shop.banner_url}
+            onSaved={(u) => void saveShopBanner(u)}
+            label="Banner exibido no topo do site"
+            hint="Recomendado 1920×480 (proporção 4:1). Aparece na página inicial."
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Aniversários — mensagem automática</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Notificações de aniversário</p>
+              <p className="text-xs text-muted-foreground">
+                Envia mensagem via WhatsApp (uazapi) X dias antes do aniversário do cliente.
+              </p>
+            </div>
+            <Switch
+              checked={bday.enabled}
+              onCheckedChange={(v) => setBday({ ...bday, enabled: v })}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Antecedência (dias)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                value={bday.daysBefore}
+                onChange={(e) => setBday({ ...bday, daysBefore: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Desconto (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={bday.discountPct}
+                onChange={(e) => setBday({ ...bday, discountPct: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Mensagem (placeholders: {"{nome}"}, {"{desconto}"})</Label>
+            <Textarea
+              rows={5}
+              value={bday.template}
+              onChange={(e) => setBday({ ...bday, template: e.target.value })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Access Token (privado)"
