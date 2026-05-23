@@ -36,25 +36,34 @@ interface NavLink {
   barberOnly?: boolean;
 }
 
+// Operação do dia a dia
 const links: NavLink[] = [
   { to: "/dashboard", label: "Dashboard", icon: <BarChart3 className="h-4 w-4" />, ownerOnly: true },
-  { to: "/comanda", label: "Comanda", icon: <Receipt className="h-4 w-4" /> },
   { to: "/agenda", label: "Agenda", icon: <Calendar className="h-4 w-4" /> },
+  { to: "/comanda", label: "Comanda", icon: <Receipt className="h-4 w-4" /> },
   { to: "/clientes", label: "Clientes", icon: <Users className="h-4 w-4" /> },
+  { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
   { to: "/financeiro", label: "Financeiro", icon: <Wallet className="h-4 w-4" />, ownerOnly: true },
   { to: "/meu-financeiro", label: "Meu financeiro", icon: <Wallet className="h-4 w-4" />, barberOnly: true },
   { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
-  { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
   { to: "/reengajamento", label: "Reengajar", icon: <Heart className="h-4 w-4" />, ownerOnly: true },
   { to: "/signage", label: "Signage TV", icon: <Tv className="h-4 w-4" />, ownerOnly: true },
-  { to: "/configuracoes", label: "Configurações", icon: <SettingsIcon className="h-4 w-4" />, ownerOnly: true },
 ];
 
+// Cadastros (dropdown)
 const cadastroLinks: NavLink[] = [
   { to: "/servicos", label: "Serviços", icon: <Package className="h-4 w-4" />, ownerOnly: true },
   { to: "/produtos", label: "Produtos", icon: <Package className="h-4 w-4" />, ownerOnly: true },
   { to: "/barbeiros", label: "Barbeiros", icon: <Users className="h-4 w-4" />, ownerOnly: true },
 ];
+
+// Configurações (sempre por último, depois de Cadastros)
+const settingsLink: NavLink = {
+  to: "/configuracoes",
+  label: "Configurações",
+  icon: <SettingsIcon className="h-4 w-4" />,
+  ownerOnly: true,
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, isOwner, isBarber } = useAuth();
@@ -176,6 +185,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          {isOwner && (
+            <Link
+              to={settingsLink.to}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
+                pathname === settingsLink.to
+                  ? "bg-secondary text-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {settingsLink.icon} {settingsLink.label}
+            </Link>
+          )}
         </nav>
         {/* Mobile: full menu access via dropdown */}
         <div className="flex md:hidden items-center gap-2 px-4 pb-2">
@@ -198,6 +219,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </Link>
                 </DropdownMenuItem>
               ))}
+              {isOwner && (
+                <DropdownMenuItem asChild>
+                  <Link to={settingsLink.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                    {settingsLink.icon} {settingsLink.label}
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/cliente" className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
                   <Users className="h-4 w-4" /> Área do cliente
