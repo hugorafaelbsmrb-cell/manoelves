@@ -1466,7 +1466,7 @@ function S_Closing() {
         Vamos ativar sua barbearia ainda esta semana?
       </h2>
       <a
-        href="https://wa.me/5500000000000?text=Quero%20ativar%20a%20Mano%20Elves"
+        href="https://wa.me/5594999345048?text=Quero%20ativar%20a%20Mano%20Elves"
         className="mt-10 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-neutral-900 transition hover:scale-105"
       >
         <MessageCircle className="h-4 w-4" /> Falar agora no WhatsApp
