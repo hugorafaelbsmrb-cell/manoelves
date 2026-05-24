@@ -629,77 +629,8 @@ function S_ClientArea() {
       title="Cada cliente com seu app de bolso"
       description="Histórico, próximos cortes, catálogo e ofertas — tudo na palma da mão. Instalável como app (PWA) e popup pedindo a data de nascimento na primeira entrada."
     >
-      <div className="relative grid grid-cols-2 gap-4">
-        <DarkPhone>
-          <div className="px-4 pt-8 animate-fade-in">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Olá, Lucas</p>
-            <p className="text-[9px] text-neutral-500">cliente desde mar/2024</p>
+      <DarkPhone src="/cliente" />
 
-            <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-2.5">
-              <div className="flex items-start gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/20 text-primary">
-                  <Download className="h-3.5 w-3.5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[10px] font-semibold text-neutral-100">Instale o app</p>
-                  <p className="text-[8px] text-neutral-400">Acesso rápido ao seu agendamento</p>
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Próximo corte</p>
-            <div className="mt-1 rounded-lg border border-neutral-800 bg-neutral-900 p-2">
-              <p className="text-[11px] font-semibold">Qua, 21/05 · 11:00</p>
-              <p className="text-[9px] text-neutral-500">Corte + Barba · com João</p>
-            </div>
-
-            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Inspirações</p>
-            <div className="mt-1 flex gap-1.5 overflow-hidden">
-              {["Fade","Taper","Buzz","Pomp"].map((n, i) => (
-                <div
-                  key={n}
-                  className="aspect-[3/4] w-12 shrink-0 overflow-hidden rounded-md border border-neutral-800 bg-gradient-to-br from-neutral-700 to-neutral-900 p-1"
-                  style={{ animation: `slide-in-right 0.35s ease-out ${i * 80}ms both` }}
-                >
-                  <p className="mt-auto text-[7px] font-semibold text-neutral-200">{n}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DarkPhone>
-        <DarkPhone>
-          <div className="relative px-4 pt-8">
-            <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 opacity-50">
-              <p className="text-[10px] text-neutral-500">Olá, Lucas…</p>
-              <div className="mt-2 h-12 rounded bg-neutral-800" />
-              <div className="mt-2 h-10 rounded bg-neutral-800" />
-            </div>
-            {/* popup aniversário */}
-            <div
-              className="absolute inset-x-3 top-12 rounded-xl border border-pink-500/40 bg-neutral-950 p-3 shadow-2xl"
-              style={{ animation: "scale-in 0.4s ease-out 0.2s both" }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-300">
-                  <Cake className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-neutral-100">Quando você nasceu?</p>
-                  <p className="text-[8px] text-neutral-400">Para ganhar mimo de aniversário 🎁</p>
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-1.5">
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">15</div>
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">Jun</div>
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">1992</div>
-              </div>
-              <div className="mt-2 rounded-md bg-pink-500 py-1.5 text-center text-[10px] font-semibold text-white">
-                Salvar
-              </div>
-            </div>
-          </div>
-        </DarkPhone>
-      </div>
       <Value
         items={[
           { icon: Smartphone, label: "PWA instalável", text: "Banner discreto convida a instalar — o cliente vira recorrente." },
