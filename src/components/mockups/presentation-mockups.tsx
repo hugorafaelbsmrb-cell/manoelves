@@ -183,13 +183,12 @@ function AdminShell({ title, children }: { title: string; children: React.ReactN
         <div className="mb-6 flex items-center gap-2 font-bold tracking-wide">
           <Scissors className="h-4 w-4" /> MANO ELVES
         </div>
-        {[
+        {([
           [LayoutGrid,"Dashboard"],[Calendar,"Agenda"],[Users,"Clientes"],
           [Scissors,"Barbeiros"],[Package,"Produtos"],[CreditCard,"Comanda"],
           [Repeat,"Assinaturas"],[BarChart3,"Financeiro"],[Settings,"Configurações"],
-        ].map(([Icon,label])=>(
-          <div key={label as string} className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs ${label===title?"bg-white text-neutral-900 font-semibold":"text-neutral-400"}`}>
-            {/* @ts-expect-error icon */}
+        ] as const).map(([Icon,label])=>(
+          <div key={label} className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-xs ${label===title?"bg-white text-neutral-900 font-semibold":"text-neutral-400"}`}>
             <Icon className="h-3.5 w-3.5" /> {label}
           </div>
         ))}
