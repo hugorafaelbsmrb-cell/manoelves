@@ -197,8 +197,47 @@ function Value({ items }: { items: { icon: React.ElementType; label: string; tex
   );
 }
 
-/* mockup chrome (browser + phone) */
-function Browser({ url, children }: { url: string; children: React.ReactNode }) {
+/* mockup chrome (browser + phone)
+   When `src` is provided, embeds the actual app route in an iframe scaled
+   to fit the chrome — so the slide always shows the real system UI. */
+function ScaledIframe({
+  src, baseWidth, baseHeight, dark = false,
+}: { src: string; baseWidth: number; baseHeight: number; dark?: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / baseWidth);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [baseWidth]);
+  return (
+    <div
+      ref={wrapRef}
+      className={`relative w-full overflow-hidden ${dark ? "bg-neutral-950" : "bg-white"}`}
+      style={{ height: baseHeight * scale }}
+    >
+      <iframe
+        src={src}
+        title={src}
+        loading="lazy"
+        className="absolute left-0 top-0 border-0"
+        style={{
+          width: baseWidth,
+          height: baseHeight,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      />
+    </div>
+  );
+}
+
+function Browser({ url, src, children }: { url: string; src?: string; children?: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-xl">
       <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
@@ -209,17 +248,27 @@ function Browser({ url, children }: { url: string; children: React.ReactNode }) 
           {url}
         </div>
       </div>
-      <div className="bg-white text-neutral-900">{children}</div>
+      {src ? (
+        <ScaledIframe src={src} baseWidth={1280} baseHeight={800} />
+      ) : (
+        <div className="bg-white text-neutral-900">{children}</div>
+      )}
     </div>
   );
 }
 
-function Phone({ children }: { children: React.ReactNode }) {
+function Phone({ src, children }: { src?: string; children?: React.ReactNode }) {
   return (
     <div className="mx-auto w-[290px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
       <div className="relative overflow-hidden rounded-[26px] bg-white">
         <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
-        <div className="h-[500px] overflow-hidden text-neutral-900">{children}</div>
+        {src ? (
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledIframe src={src} baseWidth={390} baseHeight={672} />
+          </div>
+        ) : (
+          <div className="h-[500px] overflow-hidden text-neutral-900">{children}</div>
+        )}
       </div>
     </div>
   );
