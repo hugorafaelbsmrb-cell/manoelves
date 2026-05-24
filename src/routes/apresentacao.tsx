@@ -914,29 +914,8 @@ function S_Subscriptions() {
       title="Receita recorrente com Mercado Pago"
       description="Planos mensais (ex.: corte ilimitado, combo quinzenal) cobrados automaticamente. Previsibilidade de caixa e cliente fiel."
     >
-      <Browser url="app.manoelves.com.br/assinaturas">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { p: "Essencial", v: "R$ 79", d: "1 corte / mês" },
-              { p: "Clássico", v: "R$ 139", d: "Cortes ilimitados" },
-              { p: "Premium", v: "R$ 199", d: "Cortes + barba" },
-            ].map((pl, i) => (
-              <div key={pl.p} className={`rounded-lg border p-3 ${i===1 ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-200"}`}>
-                <p className="text-[10px] uppercase tracking-widest opacity-70">{pl.p}</p>
-                <p className="mt-1 text-lg font-bold">{pl.v}<span className="text-[10px] opacity-70">/mês</span></p>
-                <p className="mt-1 text-[10px] opacity-80">{pl.d}</p>
-                <p className="mt-2 text-[9px] opacity-60">Renovação automática</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 rounded-md border border-neutral-200 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">MRR atual</p>
-            <p className="text-2xl font-bold">R$ 8.420<span className="text-[11px] text-emerald-600"> +12%</span></p>
-            <p className="text-[10px] text-neutral-500">62 assinantes ativos</p>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/assinaturas" src="/assinaturas" />
+
       <Value
         items={[
           { icon: Repeat, label: "Caixa previsível", text: "Receita recorrente que entra todo mês sem depender do movimento da rua." },
