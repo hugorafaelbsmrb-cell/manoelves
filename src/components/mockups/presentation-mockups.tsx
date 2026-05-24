@@ -1,10 +1,10 @@
 /* Static mockups for the sales presentation.
    Lightweight, fictitious data — no iframes, instant load. */
 import {
-  Calendar, Clock, Scissors, User, CheckCircle2, DollarSign,
-  TrendingUp, Users, MessageCircle, Phone, Search, Bell,
-  Settings, Package, CreditCard, BarChart3, LayoutGrid, ChevronRight,
-  Star, MapPin, Instagram, ShoppingBag, Wallet, Repeat,
+  Calendar, Scissors, CheckCircle2, DollarSign,
+  TrendingUp, Users, Bell,
+  Settings, Package, CreditCard, BarChart3, LayoutGrid,
+  Star, MapPin, ShoppingBag, Repeat,
 } from "lucide-react";
 
 /* ============ PUBLIC (light) ============ */
