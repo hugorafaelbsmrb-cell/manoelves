@@ -1,5 +1,6 @@
 /* Static mockups for the sales presentation.
    Lightweight, fictitious data — no iframes, instant load. */
+import { Fragment } from "react";
 import {
   Calendar, Scissors, CheckCircle2, DollarSign,
   TrendingUp, Users, Bell,
