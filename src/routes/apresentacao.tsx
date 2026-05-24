@@ -539,29 +539,25 @@ function S_BarberLanding() {
       description="Um link único para cada profissional (ex.: /b/joao). Ele compartilha no Instagram, no status do WhatsApp, no cartão — e o cliente cai direto na agenda dele."
     >
       <DarkPhone src="/hugo-rafael-sousa" />
+      <Value
+        items={[
+          { icon: Smartphone, label: "Marketing pessoal", text: "Cada barbeiro vira embaixador: link próprio, próprio portfólio, próprios clientes." },
+          { icon: TrendingUp, label: "Mais reservas", text: "Sem ligações, sem mensagens — o cliente escolhe serviço e horário sozinho." },
+          { icon: Star, label: "Mesmo visual do sistema", text: "Página pública usa exatamente os mesmos componentes do painel — consistência total." },
+        ]}
+      />
+    </Slide>
+  );
+}
 
-        <DarkPhone>
-          <div className="px-4 pt-8 animate-fade-in">
-            <div className="flex items-center gap-2 text-emerald-400">
-              <KeyRound className="h-3.5 w-3.5" />
-              <p className="text-[10px] uppercase tracking-widest">Confirme seu número</p>
-            </div>
-            <p className="mt-2 text-[11px] text-neutral-300">Enviamos um código para</p>
-            <p className="text-[12px] font-semibold">+55 11 9•••• 4321</p>
-            <div className="mt-3 grid grid-cols-6 gap-1">
-              {["4","8","2","9","1","7"].map((d, i) => (
-                <div key={i} className="flex h-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 text-[14px] font-bold">
-                  {d}
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-[9px] text-neutral-500">Código válido por 48h · economiza envios</p>
-            <div className="mt-3 rounded-md bg-emerald-500/15 p-2 text-[10px] text-emerald-300">
-              ✓ Agendamento confirmado<br />Redirecionando para sua área…
-            </div>
-          </div>
-        </DarkPhone>
-      </div>
+function S_PublicBooking() {
+  return (
+    <Slide
+      kicker="Página 3 · Agendamento + login por SMS"
+      title="Agenda, recebe código, já entra no app"
+      description="O cliente escolhe serviço e horário, recebe um código de 6 dígitos no WhatsApp (válido por 48h para economizar mensagens) e é direcionado para a área dele — pronto para virar cliente recorrente."
+    >
+      <DarkPhone src="/hugo-rafael-sousa/agendar" />
       <Value
         items={[
           { icon: KeyRound, label: "Autenticação sem fricção", text: "Sem senha, sem cadastro chato — código no WhatsApp e pronto." },
@@ -571,6 +567,7 @@ function S_BarberLanding() {
     </Slide>
   );
 }
+
 
 function S_Catalog() {
   return (
