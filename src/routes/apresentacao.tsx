@@ -355,47 +355,67 @@ function S_Proof() {
 }
 
 function S_Offer() {
+  const inclusos = [
+    { icon: Settings, t: "Implantação completa", d: "Setup do sistema + treinamento da equipe." },
+    { icon: Sparkles, t: "Domínio + Hospedagem", d: "1 ano inclusos, sem custo adicional." },
+    { icon: MessageCircle, t: "WhatsApp automático", d: "1 ano de envios (confirmação, lembrete, reengajamento)." },
+    { icon: CheckCircle2, t: "5 ajustes inclusos", d: "Customizações sob medida após a entrega." },
+  ];
   return (
     <div className="flex h-full w-full flex-col justify-center bg-neutral-950 p-10 text-neutral-100 lg:p-14">
       <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">A oferta</p>
       <h2 className="mt-3 max-w-3xl text-3xl leading-[0.95] lg:text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>
-        Tudo incluído. Sem taxa por agendamento. Sem letra miúda.
+        Investimento único. Tudo incluso. Sem mensalidade.
       </h2>
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-          <p className="text-xs uppercase tracking-widest text-neutral-400">Start</p>
-          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 149<span className="text-base text-neutral-500">/mês</span></p>
-          <ul className="mt-4 space-y-1.5 text-xs text-neutral-300">
-            <li>· Agenda + landing por barbeiro</li>
-            <li>· WhatsApp de confirmação</li>
-            <li>· Até 2 barbeiros</li>
-          </ul>
-        </div>
-        <div className="rounded-xl border-2 border-neutral-100 bg-neutral-900 p-5 shadow-[0_0_30px_-10px_rgba(255,255,255,0.4)]">
+
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr]">
+        {/* Preço */}
+        <div className="rounded-2xl border-2 border-neutral-100 bg-neutral-900 p-6 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)]">
           <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-widest text-neutral-100">Pro · Recomendado</p>
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-semibold text-neutral-900">MAIS VENDIDO</span>
+            <p className="text-xs uppercase tracking-widest text-neutral-100">Pacote completo</p>
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-semibold text-neutral-900">MELHOR OFERTA</span>
           </div>
-          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 299<span className="text-base text-neutral-500">/mês</span></p>
-          <ul className="mt-4 space-y-1.5 text-xs text-neutral-200">
-            <li>· Tudo do Start</li>
-            <li>· Assinaturas + Mercado Pago</li>
-            <li>· Comanda, fila de espera, reengajamento</li>
-            <li>· Barbeiros ilimitados</li>
-          </ul>
+
+          <div className="mt-5 flex items-baseline gap-2">
+            <p className="text-5xl lg:text-6xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 1.350</p>
+            <span className="text-sm text-neutral-400">à vista</span>
+          </div>
+          <p className="mt-1 text-xs text-neutral-500">PIX ou cartão · pagamento único</p>
+
+          <div className="my-4 h-px bg-neutral-800" />
+
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl lg:text-3xl text-neutral-300" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>5× R$ 340</p>
+            <span className="text-sm text-neutral-500">no cartão</span>
+          </div>
+          <p className="mt-1 text-xs text-neutral-500">total parcelado: R$ 1.700</p>
+
+          <p className="mt-6 text-[11px] uppercase tracking-widest text-emerald-400">
+            Economize R$ 350 pagando à vista
+          </p>
         </div>
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-          <p className="text-xs uppercase tracking-widest text-neutral-400">Premium</p>
-          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 499<span className="text-base text-neutral-500">/mês</span></p>
-          <ul className="mt-4 space-y-1.5 text-xs text-neutral-300">
-            <li>· Tudo do Pro</li>
-            <li>· Signage TV (Sighor) incluso</li>
-            <li>· Domínio próprio + suporte prioritário</li>
+
+        {/* Inclusos */}
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6">
+          <p className="text-xs uppercase tracking-widest text-neutral-400">O que está incluso</p>
+          <ul className="mt-4 space-y-3">
+            {inclusos.map((it) => (
+              <li key={it.t} className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-900">
+                  <it.icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-neutral-100">{it.t}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-neutral-400">{it.d}</p>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
+
       <p className="mt-6 text-xs text-neutral-500">
-        Garantia: 14 dias para testar. Se não gostar, devolvemos 100% — sem perguntas.
+        Após 1 ano, renovação opcional de domínio + WhatsApp por valor simbólico.
       </p>
     </div>
   );
