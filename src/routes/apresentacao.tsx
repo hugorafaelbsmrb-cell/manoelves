@@ -533,7 +533,7 @@ function AppBrowser({ url, src, children }: { url: string; src?: string; childre
       {src ? (
         <ScaledIframe src={src} baseWidth={1280} baseHeight={800} dark />
       ) : (
-        <div className="bg-neutral-950 text-neutral-100">{children}</div>
+        <ScaledBox baseWidth={1280} baseHeight={800} dark>{children}</ScaledBox>
       )}
     </div>
   );
@@ -549,7 +549,9 @@ function DarkPhone({ src, children }: { src?: string; children?: React.ReactNode
             <ScaledIframe src={src} baseWidth={390} baseHeight={672} dark />
           </div>
         ) : (
-          <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledBox baseWidth={390} baseHeight={672} dark>{children}</ScaledBox>
+          </div>
         )}
       </div>
     </div>
