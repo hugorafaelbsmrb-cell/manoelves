@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Scissors, Instagram, MapPin, LogIn, CalendarCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HaircutCatalog } from "@/components/haircut-catalog";
+import textureBg from "@/assets/texture-bg.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,12 +48,37 @@ function HomePage() {
   });
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40">
+    <div className="dark relative min-h-screen bg-background text-foreground">
+      {/* Textured background */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 opacity-[0.18] mix-blend-screen"
+        style={{
+          backgroundImage: `url(${textureBg})`,
+          backgroundSize: "640px 640px",
+          backgroundRepeat: "repeat",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,transparent_0%,hsl(var(--background))_75%)]"
+      />
+
+      <header className="relative border-b border-border/40">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
           <div className="flex items-center gap-2">
-            <Scissors className="h-5 w-5" />
-            <span className="font-display text-xl tracking-wider">MANO ELVES</span>
+            {shop?.logo_url ? (
+              <img
+                src={shop.logo_url}
+                alt={shop?.name ?? "Logo"}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <Scissors className="h-5 w-5" />
+            )}
+            <span className="font-display text-xl tracking-wider">
+              {shop?.name?.toUpperCase() ?? "MANO ELVES"}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -75,7 +101,14 @@ function HomePage() {
         </div>
       )}
 
-      <section className="mx-auto max-w-5xl px-5 py-16 text-center">
+      <section className="relative mx-auto max-w-5xl px-5 py-16 text-center">
+        {shop?.logo_url && (
+          <img
+            src={shop.logo_url}
+            alt={shop?.name ?? "Logo"}
+            className="mx-auto mb-6 h-24 w-24 rounded-full border border-border/60 object-cover shadow-[0_0_40px_0_rgba(255,255,255,0.08)]"
+          />
+        )}
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
           Barbearia
         </p>
