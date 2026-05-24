@@ -703,35 +703,8 @@ function S_AdminAccess() {
       title="Só o dono cria barbeiros"
       description="Login público de equipe foi removido. Quem entra no painel é cadastrado pelo dono na tela de Barbeiros — zero risco de auto-cadastro indevido."
     >
-      <Browser url="app.manoelves.com.br/barbeiros">
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-lg tracking-wider">Equipe</p>
-            <div className="rounded-md bg-neutral-900 px-3 py-1.5 text-[11px] font-semibold text-white">
-              + Novo barbeiro
-            </div>
-          </div>
-          <div className="mt-3 space-y-1.5">
-            {[
-              {n:"João Silva",e:"joao@manoelves.com.br",r:"barbeiro"},
-              {n:"Pedro Alves",e:"pedro@manoelves.com.br",r:"barbeiro"},
-              {n:"Elves (dono)",e:"elves@manoelves.com.br",r:"dono"},
-            ].map((u) => (
-              <div key={u.e} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5 text-[11px]">
-                <div>
-                  <p className="font-semibold">{u.n}</p>
-                  <p className="text-[9px] text-neutral-500">{u.e}</p>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${u.r==="dono"?"bg-neutral-900 text-white":"bg-neutral-100 text-neutral-700"}`}>{u.r}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-md border border-amber-300 bg-amber-50 p-2 text-[10px] text-amber-800">
-            <Lock className="mr-1 inline h-3 w-3" />
-            Página de login não tem mais "Criar conta" — apenas e-mail e senha.
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/barbeiros" src="/barbeiros" />
+
       <Value
         items={[
           { icon: Lock, label: "Sem auto-cadastro", text: "Ninguém entra no painel sem aprovação do dono." },
