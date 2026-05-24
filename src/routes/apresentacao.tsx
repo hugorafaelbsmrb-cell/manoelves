@@ -519,51 +519,8 @@ function S_Home() {
       title="Vitrine digital da barbearia"
       description="A home pública apresenta a marca, os barbeiros e o caminho direto para o agendamento — tema escuro, tipografia forte, zero fricção."
     >
-      <AppBrowser url="manoelves.com.br">
-        {/* header igual ao /index */}
-        <div className="flex items-center justify-between border-b border-neutral-800/60 px-5 py-3">
-          <div className="flex items-center gap-2">
-            <Scissors className="h-4 w-4" />
-            <span style={{ fontFamily: '"Bebas Neue"' }} className="text-base tracking-wider">MANO ELVES</span>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-neutral-800 px-2 py-1 text-[10px] text-neutral-400">
-            <LogIn className="h-3 w-3" /> Painel
-          </span>
-        </div>
-        {/* hero */}
-        <div className="px-5 py-7 text-center">
-          <img src={logoUrl} alt="" className="mx-auto h-16 w-16 object-contain opacity-90" />
-          <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-neutral-500">Barbearia</p>
-          <h1 style={{ fontFamily: '"Bebas Neue"' }} className="mt-1 text-4xl tracking-wide">Mano Elves</h1>
-          <p className="mx-auto mt-2 max-w-xs text-[10px] text-neutral-400">
-            Corte, barba e atendimento de primeira. Escolha seu barbeiro e reserve em segundos.
-          </p>
-          <p className="mt-2 inline-flex items-center gap-1 text-[9px] text-neutral-500">
-            <MapPin className="h-2.5 w-2.5" /> Rua das Tesouras, 123 — Centro
-          </p>
-        </div>
-        {/* barbeiros */}
-        <div className="px-5 pb-5">
-          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="text-sm tracking-wider">Nossos barbeiros</h2>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {["João","Pedro","Carlos"].map((n) => (
-              <div key={n} className="rounded-lg border border-neutral-800 bg-neutral-900 p-2">
-                <div className="flex items-center gap-2">
-                  <div style={{ fontFamily: '"Bebas Neue"' }} className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-800 text-sm">{n[0]}</div>
-                  <div className="min-w-0">
-                    <p style={{ fontFamily: '"Bebas Neue"' }} className="truncate text-[11px] tracking-wide">{n}</p>
-                    <p className="truncate text-[8px] text-neutral-500">barber.me/{n.toLowerCase()}</p>
-                  </div>
-                </div>
-                <p className="mt-2 text-[8px] text-neutral-100">Agendar →</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="border-t border-neutral-800/60 py-2 text-center text-[8px] text-neutral-500">
-          <Instagram className="mx-auto h-3 w-3" /> @barbearia.mano.elves
-        </div>
-      </AppBrowser>
+      <AppBrowser url="manoelves.com.br" src="/" />
+
       <Value
         items={[
           { icon: Sparkles, label: "Marca forte", text: "Identidade visual coesa que transmite profissionalismo desde o primeiro clique." },
