@@ -1459,34 +1459,20 @@ function S_Settings() {
 function S_Closing() {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center bg-neutral-950 p-12 text-neutral-100">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">Próximo passo</p>
       <h2
-        className="mt-3 max-w-4xl text-center text-4xl leading-[0.95] lg:text-6xl"
+        className="max-w-4xl text-center text-4xl leading-[0.95] lg:text-6xl"
         style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
       >
         Vamos ativar sua barbearia ainda esta semana?
       </h2>
-      <p className="mt-5 max-w-xl text-center text-sm text-neutral-400">
-        Em uma call de 20 minutos a gente configura seu link, importa sua
-        agenda e já liga o WhatsApp automático. Você sai da call vendendo.
-      </p>
-      <div className="mt-8 flex flex-col items-center gap-3">
-        <a
-          href="https://wa.me/5500000000000?text=Quero%20ativar%20a%20Mano%20Elves"
-          className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-neutral-900 transition hover:scale-105"
-        >
-          <MessageCircle className="h-4 w-4" /> Falar agora no WhatsApp
-        </a>
-        <p className="text-xs text-neutral-500">ou contato@manoelves.com.br</p>
-      </div>
-      <div className="mt-10 flex items-center gap-4 text-[10px] uppercase tracking-[0.25em] text-neutral-600">
-        <span>14 dias de garantia</span>
-        <span>·</span>
-        <span>Setup incluso</span>
-        <span>·</span>
-        <span>Cancela quando quiser</span>
-      </div>
+      <a
+        href="https://wa.me/5500000000000?text=Quero%20ativar%20a%20Mano%20Elves"
+        className="mt-10 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-neutral-900 transition hover:scale-105"
+      >
+        <MessageCircle className="h-4 w-4" /> Falar agora no WhatsApp
+      </a>
     </div>
+
   );
 }
 
