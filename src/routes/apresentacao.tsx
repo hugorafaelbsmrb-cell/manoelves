@@ -1000,32 +1000,8 @@ function S_Reengagement() {
       title="Traz de volta quem sumiu"
       description="O sistema identifica clientes que não voltam há 30, 45 ou 60 dias e dispara mensagens personalizadas — direto pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/reengajamento">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[
-              {l:"30+ dias", n:"24"},
-              {l:"45+ dias", n:"11"},
-              {l:"60+ dias", n:"7"},
-            ].map((s) => (
-              <div key={s.l} className="rounded-lg border border-neutral-200 p-3">
-                <p className="text-2xl font-bold">{s.n}</p>
-                <p className="text-[9px] uppercase tracking-widest text-neutral-500">{s.l}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Mensagem sugerida</p>
-            <p className="mt-1 rounded bg-emerald-50 p-2 text-[11px] leading-snug text-neutral-700">
-              Oi, Lucas! Faz 32 dias que você não passa aqui. Que tal agendar
-              seu corte? Reservei um horário pra você 👇
-            </p>
-            <button className="mt-2 w-full rounded-md bg-emerald-500 py-1.5 text-[11px] font-semibold text-white">
-              Enviar para 24 clientes
-            </button>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/reengajamento" src="/reengajamento" />
+
       <Value
         items={[
           { icon: MessageCircle, label: "Recuperação ativa", text: "Cliente inativo é receita parada — uma campanha bem feita reativa 20-30%." },
