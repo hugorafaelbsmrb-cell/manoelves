@@ -385,10 +385,9 @@ function S_Offer() {
           <div className="my-4 h-px bg-neutral-800" />
 
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl lg:text-3xl text-neutral-300" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>5× R$ 340</p>
-            <span className="text-sm text-neutral-500">no cartão</span>
+            <p className="text-2xl lg:text-3xl text-neutral-300" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 500 + 4× R$ 300</p>
           </div>
-          <p className="mt-1 text-xs text-neutral-500">total parcelado: R$ 1.700</p>
+          <p className="mt-1 text-xs text-neutral-500">entrada de R$ 500 e 4 parcelas de R$ 300 · total parcelado: R$ 1.700</p>
 
           <p className="mt-6 text-[11px] uppercase tracking-widest text-emerald-400">
             Economize R$ 350 pagando à vista
