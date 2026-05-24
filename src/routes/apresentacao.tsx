@@ -197,8 +197,47 @@ function Value({ items }: { items: { icon: React.ElementType; label: string; tex
   );
 }
 
-/* mockup chrome (browser + phone) */
-function Browser({ url, children }: { url: string; children: React.ReactNode }) {
+/* mockup chrome (browser + phone)
+   When `src` is provided, embeds the actual app route in an iframe scaled
+   to fit the chrome — so the slide always shows the real system UI. */
+function ScaledIframe({
+  src, baseWidth, baseHeight, dark = false,
+}: { src: string; baseWidth: number; baseHeight: number; dark?: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / baseWidth);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [baseWidth]);
+  return (
+    <div
+      ref={wrapRef}
+      className={`relative w-full overflow-hidden ${dark ? "bg-neutral-950" : "bg-white"}`}
+      style={{ height: baseHeight * scale }}
+    >
+      <iframe
+        src={src}
+        title={src}
+        loading="lazy"
+        className="absolute left-0 top-0 border-0"
+        style={{
+          width: baseWidth,
+          height: baseHeight,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      />
+    </div>
+  );
+}
+
+function Browser({ url, src, children }: { url: string; src?: string; children?: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-xl">
       <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
@@ -209,17 +248,27 @@ function Browser({ url, children }: { url: string; children: React.ReactNode }) 
           {url}
         </div>
       </div>
-      <div className="bg-white text-neutral-900">{children}</div>
+      {src ? (
+        <ScaledIframe src={src} baseWidth={1280} baseHeight={800} />
+      ) : (
+        <div className="bg-white text-neutral-900">{children}</div>
+      )}
     </div>
   );
 }
 
-function Phone({ children }: { children: React.ReactNode }) {
+function Phone({ src, children }: { src?: string; children?: React.ReactNode }) {
   return (
     <div className="mx-auto w-[290px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
       <div className="relative overflow-hidden rounded-[26px] bg-white">
         <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
-        <div className="h-[500px] overflow-hidden text-neutral-900">{children}</div>
+        {src ? (
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledIframe src={src} baseWidth={390} baseHeight={672} />
+          </div>
+        ) : (
+          <div className="h-[500px] overflow-hidden text-neutral-900">{children}</div>
+        )}
       </div>
     </div>
   );
@@ -426,7 +475,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 /* ---------- Reusable "real system" UI fragments (dark theme like the app) ---------- */
 
-function AppBrowser({ url, children }: { url: string; children: React.ReactNode }) {
+function AppBrowser({ url, src, children }: { url: string; src?: string; children?: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-950 shadow-2xl">
       <div className="flex items-center gap-2 border-b border-neutral-800 bg-neutral-900 px-3 py-2">
@@ -437,17 +486,27 @@ function AppBrowser({ url, children }: { url: string; children: React.ReactNode 
           {url}
         </div>
       </div>
-      <div className="bg-neutral-950 text-neutral-100">{children}</div>
+      {src ? (
+        <ScaledIframe src={src} baseWidth={1280} baseHeight={800} dark />
+      ) : (
+        <div className="bg-neutral-950 text-neutral-100">{children}</div>
+      )}
     </div>
   );
 }
 
-function DarkPhone({ children }: { children: React.ReactNode }) {
+function DarkPhone({ src, children }: { src?: string; children?: React.ReactNode }) {
   return (
     <div className="mx-auto w-[290px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
       <div className="relative overflow-hidden rounded-[26px] bg-neutral-950">
         <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
-        <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+        {src ? (
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledIframe src={src} baseWidth={390} baseHeight={672} dark />
+          </div>
+        ) : (
+          <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+        )}
       </div>
     </div>
   );
@@ -460,51 +519,8 @@ function S_Home() {
       title="Vitrine digital da barbearia"
       description="A home pública apresenta a marca, os barbeiros e o caminho direto para o agendamento — tema escuro, tipografia forte, zero fricção."
     >
-      <AppBrowser url="manoelves.com.br">
-        {/* header igual ao /index */}
-        <div className="flex items-center justify-between border-b border-neutral-800/60 px-5 py-3">
-          <div className="flex items-center gap-2">
-            <Scissors className="h-4 w-4" />
-            <span style={{ fontFamily: '"Bebas Neue"' }} className="text-base tracking-wider">MANO ELVES</span>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-neutral-800 px-2 py-1 text-[10px] text-neutral-400">
-            <LogIn className="h-3 w-3" /> Painel
-          </span>
-        </div>
-        {/* hero */}
-        <div className="px-5 py-7 text-center">
-          <img src={logoUrl} alt="" className="mx-auto h-16 w-16 object-contain opacity-90" />
-          <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-neutral-500">Barbearia</p>
-          <h1 style={{ fontFamily: '"Bebas Neue"' }} className="mt-1 text-4xl tracking-wide">Mano Elves</h1>
-          <p className="mx-auto mt-2 max-w-xs text-[10px] text-neutral-400">
-            Corte, barba e atendimento de primeira. Escolha seu barbeiro e reserve em segundos.
-          </p>
-          <p className="mt-2 inline-flex items-center gap-1 text-[9px] text-neutral-500">
-            <MapPin className="h-2.5 w-2.5" /> Rua das Tesouras, 123 — Centro
-          </p>
-        </div>
-        {/* barbeiros */}
-        <div className="px-5 pb-5">
-          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="text-sm tracking-wider">Nossos barbeiros</h2>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {["João","Pedro","Carlos"].map((n) => (
-              <div key={n} className="rounded-lg border border-neutral-800 bg-neutral-900 p-2">
-                <div className="flex items-center gap-2">
-                  <div style={{ fontFamily: '"Bebas Neue"' }} className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-800 text-sm">{n[0]}</div>
-                  <div className="min-w-0">
-                    <p style={{ fontFamily: '"Bebas Neue"' }} className="truncate text-[11px] tracking-wide">{n}</p>
-                    <p className="truncate text-[8px] text-neutral-500">barber.me/{n.toLowerCase()}</p>
-                  </div>
-                </div>
-                <p className="mt-2 text-[8px] text-neutral-100">Agendar →</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="border-t border-neutral-800/60 py-2 text-center text-[8px] text-neutral-500">
-          <Instagram className="mx-auto h-3 w-3" /> @barbearia.mano.elves
-        </div>
-      </AppBrowser>
+      <AppBrowser url="manoelves.com.br" src="/" />
+
       <Value
         items={[
           { icon: Sparkles, label: "Marca forte", text: "Identidade visual coesa que transmite profissionalismo desde o primeiro clique." },
@@ -522,59 +538,7 @@ function S_BarberLanding() {
       title="Cada barbeiro com sua própria página"
       description="Um link único para cada profissional (ex.: /b/joao). Ele compartilha no Instagram, no status do WhatsApp, no cartão — e o cliente cai direto na agenda dele."
     >
-      <DarkPhone>
-        {/* header igual ao /b/$slug */}
-        <div className="flex items-center justify-between border-b border-neutral-800/60 px-4 py-3 pt-7">
-          <span className="inline-flex items-center gap-1 text-[9px] text-neutral-400">
-            <ArrowLeft className="h-2.5 w-2.5" /> Mano Elves
-          </span>
-          <span className="inline-flex items-center gap-1 text-[9px] text-neutral-400">
-            <Scissors className="h-2.5 w-2.5" /> barber.me/joao
-          </span>
-        </div>
-        {/* avatar + nome + bio */}
-        <div className="px-5 py-5 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-neutral-800">
-            <span style={{ fontFamily: '"Bebas Neue"' }} className="text-3xl">J</span>
-          </div>
-          <h1 style={{ fontFamily: '"Bebas Neue"' }} className="mt-3 text-2xl tracking-wide">João Silva</h1>
-          <p className="mx-auto mt-1 max-w-[200px] text-[10px] leading-snug text-neutral-400">
-            Barbeiro há 8 anos. Especialista em fade e barba na navalha.
-          </p>
-        </div>
-        {/* combos */}
-        <div className="px-4">
-          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="text-[13px] tracking-wider">Combos</h2>
-          <div className="mt-1.5 space-y-1.5">
-            <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
-              <div>
-                <p className="text-[11px] font-medium">Corte + Barba</p>
-                <p className="text-[9px] text-neutral-500">50 min</p>
-              </div>
-              <div className="text-right">
-                <p style={{ fontFamily: '"Bebas Neue"' }} className="text-base">R$ 75</p>
-                <p className="text-[8px] text-neutral-500">Agendar →</p>
-              </div>
-            </div>
-          </div>
-          {/* serviços */}
-          <h2 style={{ fontFamily: '"Bebas Neue"' }} className="mt-3 text-[13px] tracking-wider">Serviços</h2>
-          <div className="mt-1.5 space-y-1.5">
-            {[
-              {n:"Corte tradicional", d:"30 min", p:"R$ 50"},
-              {n:"Barba na navalha", d:"20 min", p:"R$ 35"},
-            ].map((s) => (
-              <div key={s.n} className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
-                <div>
-                  <p className="text-[11px] font-medium">{s.n}</p>
-                  <p className="text-[9px] text-neutral-500">{s.d}</p>
-                </div>
-                <p style={{ fontFamily: '"Bebas Neue"' }} className="text-base">{s.p}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </DarkPhone>
+      <DarkPhone src="/hugo-rafael-sousa" />
       <Value
         items={[
           { icon: Smartphone, label: "Marketing pessoal", text: "Cada barbeiro vira embaixador: link próprio, próprio portfólio, próprios clientes." },
@@ -586,7 +550,6 @@ function S_BarberLanding() {
   );
 }
 
-
 function S_PublicBooking() {
   return (
     <Slide
@@ -594,53 +557,7 @@ function S_PublicBooking() {
       title="Agenda, recebe código, já entra no app"
       description="O cliente escolhe serviço e horário, recebe um código de 6 dígitos no WhatsApp (válido por 48h para economizar mensagens) e é direcionado para a área dele — pronto para virar cliente recorrente."
     >
-      <div className="grid grid-cols-2 gap-4">
-        <DarkPhone>
-          <div className="px-4 pt-8 animate-fade-in">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Escolha o horário</p>
-            <p className="mt-1 text-[12px] font-semibold">Quarta, 21 de maio</p>
-            <div className="mt-3 grid grid-cols-3 gap-1.5">
-              {["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00"].map((h, idx) => (
-                <div
-                  key={h}
-                  className={`rounded-md border py-1.5 text-center text-[10px] ${
-                    idx === 4 ? "border-neutral-100 bg-neutral-100 text-neutral-900" : "border-neutral-800 text-neutral-300"
-                  }`}
-                >{h}</div>
-              ))}
-            </div>
-            <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900 p-2.5">
-              <p className="text-[9px] uppercase tracking-widest text-neutral-500">Resumo</p>
-              <p className="mt-1 text-[11px] font-semibold">Corte + Barba · 50 min</p>
-              <p className="text-[10px] text-neutral-500">Qua 21/05 · 11:00 · R$ 75</p>
-            </div>
-            <div className="mt-2 rounded-md bg-neutral-100 py-2 text-center text-[11px] font-semibold text-neutral-900">
-              Receber código no WhatsApp
-            </div>
-          </div>
-        </DarkPhone>
-        <DarkPhone>
-          <div className="px-4 pt-8 animate-fade-in">
-            <div className="flex items-center gap-2 text-emerald-400">
-              <KeyRound className="h-3.5 w-3.5" />
-              <p className="text-[10px] uppercase tracking-widest">Confirme seu número</p>
-            </div>
-            <p className="mt-2 text-[11px] text-neutral-300">Enviamos um código para</p>
-            <p className="text-[12px] font-semibold">+55 11 9•••• 4321</p>
-            <div className="mt-3 grid grid-cols-6 gap-1">
-              {["4","8","2","9","1","7"].map((d, i) => (
-                <div key={i} className="flex h-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 text-[14px] font-bold">
-                  {d}
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-[9px] text-neutral-500">Código válido por 48h · economiza envios</p>
-            <div className="mt-3 rounded-md bg-emerald-500/15 p-2 text-[10px] text-emerald-300">
-              ✓ Agendamento confirmado<br />Redirecionando para sua área…
-            </div>
-          </div>
-        </DarkPhone>
-      </div>
+      <DarkPhone src="/hugo-rafael-sousa/agendar" />
       <Value
         items={[
           { icon: KeyRound, label: "Autenticação sem fricção", text: "Sem senha, sem cadastro chato — código no WhatsApp e pronto." },
@@ -650,6 +567,7 @@ function S_PublicBooking() {
     </Slide>
   );
 }
+
 
 function S_Catalog() {
   return (
@@ -711,77 +629,8 @@ function S_ClientArea() {
       title="Cada cliente com seu app de bolso"
       description="Histórico, próximos cortes, catálogo e ofertas — tudo na palma da mão. Instalável como app (PWA) e popup pedindo a data de nascimento na primeira entrada."
     >
-      <div className="relative grid grid-cols-2 gap-4">
-        <DarkPhone>
-          <div className="px-4 pt-8 animate-fade-in">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Olá, Lucas</p>
-            <p className="text-[9px] text-neutral-500">cliente desde mar/2024</p>
+      <DarkPhone src="/cliente" />
 
-            <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-2.5">
-              <div className="flex items-start gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/20 text-primary">
-                  <Download className="h-3.5 w-3.5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[10px] font-semibold text-neutral-100">Instale o app</p>
-                  <p className="text-[8px] text-neutral-400">Acesso rápido ao seu agendamento</p>
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Próximo corte</p>
-            <div className="mt-1 rounded-lg border border-neutral-800 bg-neutral-900 p-2">
-              <p className="text-[11px] font-semibold">Qua, 21/05 · 11:00</p>
-              <p className="text-[9px] text-neutral-500">Corte + Barba · com João</p>
-            </div>
-
-            <p className="mt-3 text-[9px] uppercase tracking-widest text-neutral-500">Inspirações</p>
-            <div className="mt-1 flex gap-1.5 overflow-hidden">
-              {["Fade","Taper","Buzz","Pomp"].map((n, i) => (
-                <div
-                  key={n}
-                  className="aspect-[3/4] w-12 shrink-0 overflow-hidden rounded-md border border-neutral-800 bg-gradient-to-br from-neutral-700 to-neutral-900 p-1"
-                  style={{ animation: `slide-in-right 0.35s ease-out ${i * 80}ms both` }}
-                >
-                  <p className="mt-auto text-[7px] font-semibold text-neutral-200">{n}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DarkPhone>
-        <DarkPhone>
-          <div className="relative px-4 pt-8">
-            <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 opacity-50">
-              <p className="text-[10px] text-neutral-500">Olá, Lucas…</p>
-              <div className="mt-2 h-12 rounded bg-neutral-800" />
-              <div className="mt-2 h-10 rounded bg-neutral-800" />
-            </div>
-            {/* popup aniversário */}
-            <div
-              className="absolute inset-x-3 top-12 rounded-xl border border-pink-500/40 bg-neutral-950 p-3 shadow-2xl"
-              style={{ animation: "scale-in 0.4s ease-out 0.2s both" }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-300">
-                  <Cake className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-neutral-100">Quando você nasceu?</p>
-                  <p className="text-[8px] text-neutral-400">Para ganhar mimo de aniversário 🎁</p>
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-1.5">
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">15</div>
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">Jun</div>
-                <div className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-center text-[10px]">1992</div>
-              </div>
-              <div className="mt-2 rounded-md bg-pink-500 py-1.5 text-center text-[10px] font-semibold text-white">
-                Salvar
-              </div>
-            </div>
-          </div>
-        </DarkPhone>
-      </div>
       <Value
         items={[
           { icon: Smartphone, label: "PWA instalável", text: "Banner discreto convida a instalar — o cliente vira recorrente." },
@@ -854,35 +703,8 @@ function S_AdminAccess() {
       title="Só o dono cria barbeiros"
       description="Login público de equipe foi removido. Quem entra no painel é cadastrado pelo dono na tela de Barbeiros — zero risco de auto-cadastro indevido."
     >
-      <Browser url="app.manoelves.com.br/barbeiros">
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-lg tracking-wider">Equipe</p>
-            <div className="rounded-md bg-neutral-900 px-3 py-1.5 text-[11px] font-semibold text-white">
-              + Novo barbeiro
-            </div>
-          </div>
-          <div className="mt-3 space-y-1.5">
-            {[
-              {n:"João Silva",e:"joao@manoelves.com.br",r:"barbeiro"},
-              {n:"Pedro Alves",e:"pedro@manoelves.com.br",r:"barbeiro"},
-              {n:"Elves (dono)",e:"elves@manoelves.com.br",r:"dono"},
-            ].map((u) => (
-              <div key={u.e} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5 text-[11px]">
-                <div>
-                  <p className="font-semibold">{u.n}</p>
-                  <p className="text-[9px] text-neutral-500">{u.e}</p>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${u.r==="dono"?"bg-neutral-900 text-white":"bg-neutral-100 text-neutral-700"}`}>{u.r}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-md border border-amber-300 bg-amber-50 p-2 text-[10px] text-amber-800">
-            <Lock className="mr-1 inline h-3 w-3" />
-            Página de login não tem mais "Criar conta" — apenas e-mail e senha.
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/barbeiros" src="/barbeiros" />
+
       <Value
         items={[
           { icon: Lock, label: "Sem auto-cadastro", text: "Ninguém entra no painel sem aprovação do dono." },
@@ -901,40 +723,8 @@ function S_Agenda() {
       title="O dia inteiro em uma tela"
       description="Visão por barbeiro ou consolidada da loja. Arrastar para remarcar, clicar para abrir comanda, status colorido por situação."
     >
-      <Browser url="app.manoelves.com.br/agenda">
-        <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold">Quarta, 21 maio</p>
-            <div className="flex gap-1 text-[10px]">
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">Confirmados 12</span>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">Em atendimento 2</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 text-[10px]">
-            <div />
-            <div className="text-center font-semibold">João</div>
-            <div className="text-center font-semibold">Pedro</div>
-            <div className="text-center font-semibold">Carlos</div>
-            {["09","10","11","12","14","15","16"].map((h, row) => (
-              <div key={h} className="contents">
-                <div className="py-2 text-right text-neutral-400">{h}h</div>
-                {[0,1,2].map((c) => {
-                  const filled = (row + c) % 2 === 0;
-                  return (
-                    <div key={c} className={`h-10 rounded ${
-                      filled
-                        ? c === 1 ? "bg-amber-200" : "bg-emerald-200"
-                        : "bg-neutral-100"
-                    } flex items-center px-1.5`}>
-                      {filled ? <span className="truncate text-[9px] font-semibold text-neutral-800">Cliente {row+c+1}</span> : null}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/agenda" src="/agenda" />
+
       <Value
         items={[
           { icon: Calendar, label: "Operação fluida", text: "Toda a equipe enxerga o mesmo painel em tempo real, sem agenda de papel." },
@@ -954,54 +744,8 @@ function S_Dashboard() {
       title="O dono vê o negócio em um piscar"
       description="Faturamento do mês, comandas fechadas, ticket médio e margem do dono — tudo em tempo real. Gráfico dos últimos 14 dias e ranking dos barbeiros."
     >
-      <Browser url="app.manoelves.com.br/dashboard">
-        <div className="p-4">
-          <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Dashboard</p>
-          <p className="text-[10px] text-neutral-500">Visão maio/2026 · dados em tempo real</p>
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {[
-              { l: "Faturamento", v: "R$ 28.450" },
-              { l: "Comandas", v: "186" },
-              { l: "Ticket médio", v: "R$ 153" },
-              { l: "Margem dono", v: "R$ 14.225" },
-            ].map((k) => (
-              <div key={k.l} className="rounded-lg border border-neutral-200 p-2">
-                <p className="text-[8px] uppercase tracking-widest text-neutral-500">{k.l}</p>
-                <p style={{ fontFamily: '"Bebas Neue"' }} className="mt-0.5 text-lg tracking-wide">{k.v}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Últimos 14 dias</p>
-            <div className="mt-2 flex h-24 items-end gap-1">
-              {bars.map((b, i) => (
-                <div key={i} className="flex-1 rounded-t bg-neutral-900" style={{ height: `${(b/maxBar)*100}%` }} />
-              ))}
-            </div>
-            <div className="mt-1 flex justify-between text-[7px] text-neutral-400">
-              <span>08/05</span><span>14/05</span><span>21/05</span>
-            </div>
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Ranking de barbeiros · mês</p>
-            <ul className="mt-1 divide-y divide-neutral-200 text-[10px]">
-              {[
-                { n: "João Silva", v: "R$ 11.820" },
-                { n: "Pedro Alves", v: "R$ 9.140" },
-                { n: "Carlos Mendes", v: "R$ 7.490" },
-              ].map((r, i) => (
-                <li key={r.n} className="flex items-center justify-between py-1">
-                  <span className="flex items-center gap-2">
-                    <span style={{ fontFamily: '"Bebas Neue"' }} className="w-4 text-center text-sm">{i+1}</span>
-                    {r.n}
-                  </span>
-                  <span className="font-medium">{r.v}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/dashboard" src="/dashboard" />
+
       <Value
         items={[
           { icon: BarChart3, label: "Decisão por dado", text: "Sai do achismo: dono vê o que dá dinheiro e onde investir." },
@@ -1021,38 +765,8 @@ function S_Comanda() {
       title="Do atendimento ao recebimento"
       description="Abre comanda direto do agendamento, adiciona produtos, fecha com PIX ou cartão via Mercado Pago. O recebimento é confirmado por webhook."
     >
-      <Browser url="app.manoelves.com.br/comanda">
-        <div className="grid grid-cols-[1fr_180px] gap-3 p-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Comanda #1042</p>
-            <p className="text-sm font-semibold">Lucas — João Silva</p>
-            <ul className="mt-3 space-y-1.5 text-[11px]">
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Corte tradicional</span><span>R$ 50,00</span>
-              </li>
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Barba na navalha</span><span>R$ 35,00</span>
-              </li>
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Pomada modeladora ×1</span><span>R$ 45,00</span>
-              </li>
-              <li className="flex justify-between pt-1 text-[13px] font-semibold">
-                <span>Total</span><span>R$ 130,00</span>
-              </li>
-            </ul>
-          </div>
-          <div className="space-y-1.5">
-            <button className="w-full rounded-md bg-neutral-900 py-2 text-[11px] font-semibold text-white">
-              Cobrar Mercado Pago
-            </button>
-            <button className="w-full rounded-md border border-neutral-300 py-2 text-[11px]">PIX direto</button>
-            <button className="w-full rounded-md border border-neutral-300 py-2 text-[11px]">Dinheiro</button>
-            <div className="mt-3 rounded-md bg-emerald-50 p-2 text-[10px] text-emerald-700">
-              ✓ Pagamento confirmado<br/>às 11:54
-            </div>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/comanda" src="/comanda" />
+
       <Value
         items={[
           { icon: CreditCard, label: "Caixa digital", text: "Sem maquininha perdida, sem erro de troco. Recebimento rastreado por venda." },
@@ -1200,29 +914,8 @@ function S_Subscriptions() {
       title="Receita recorrente com Mercado Pago"
       description="Planos mensais (ex.: corte ilimitado, combo quinzenal) cobrados automaticamente. Previsibilidade de caixa e cliente fiel."
     >
-      <Browser url="app.manoelves.com.br/assinaturas">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { p: "Essencial", v: "R$ 79", d: "1 corte / mês" },
-              { p: "Clássico", v: "R$ 139", d: "Cortes ilimitados" },
-              { p: "Premium", v: "R$ 199", d: "Cortes + barba" },
-            ].map((pl, i) => (
-              <div key={pl.p} className={`rounded-lg border p-3 ${i===1 ? "border-neutral-900 bg-neutral-950 text-white" : "border-neutral-200"}`}>
-                <p className="text-[10px] uppercase tracking-widest opacity-70">{pl.p}</p>
-                <p className="mt-1 text-lg font-bold">{pl.v}<span className="text-[10px] opacity-70">/mês</span></p>
-                <p className="mt-1 text-[10px] opacity-80">{pl.d}</p>
-                <p className="mt-2 text-[9px] opacity-60">Renovação automática</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 rounded-md border border-neutral-200 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">MRR atual</p>
-            <p className="text-2xl font-bold">R$ 8.420<span className="text-[11px] text-emerald-600"> +12%</span></p>
-            <p className="text-[10px] text-neutral-500">62 assinantes ativos</p>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/assinaturas" src="/assinaturas" />
+
       <Value
         items={[
           { icon: Repeat, label: "Caixa previsível", text: "Receita recorrente que entra todo mês sem depender do movimento da rua." },
@@ -1288,32 +981,8 @@ function S_Waitlist() {
       title="Nenhum cliente perdido por falta de horário"
       description="Quando a agenda lota, o cliente entra na fila. Ao abrir um espaço, o sistema notifica automaticamente pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/fila-espera">
-        <div className="p-4">
-          <p className="text-[11px] uppercase tracking-widest text-neutral-500">Fila ativa</p>
-          <div className="mt-2 space-y-1.5">
-            {[
-              {n:"Rafael",p:"Manhã", w:"2h"},
-              {n:"Vitor",p:"Tarde", w:"5h"},
-              {n:"André",p:"Qualquer", w:"1h"},
-              {n:"Tiago",p:"Noite", w:"30min"},
-            ].map((c, i) => (
-              <div key={c.n} className="flex items-center justify-between rounded border border-neutral-200 p-2 text-[11px]">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 text-[10px] text-white">{i+1}</span>
-                  <div>
-                    <p className="font-semibold">{c.n}</p>
-                    <p className="text-[9px] text-neutral-500">Prefere: {c.p} · espera {c.w}</p>
-                  </div>
-                </div>
-                <button className="rounded bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                  Avisar
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/fila-espera" src="/fila-espera" />
+
       <Value
         items={[
           { icon: Bell, label: "Cancelamento = oportunidade", text: "Espaço aberto é preenchido em minutos com aviso automático." },
@@ -1331,32 +1000,8 @@ function S_Reengagement() {
       title="Traz de volta quem sumiu"
       description="O sistema identifica clientes que não voltam há 30, 45 ou 60 dias e dispara mensagens personalizadas — direto pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/reengajamento">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[
-              {l:"30+ dias", n:"24"},
-              {l:"45+ dias", n:"11"},
-              {l:"60+ dias", n:"7"},
-            ].map((s) => (
-              <div key={s.l} className="rounded-lg border border-neutral-200 p-3">
-                <p className="text-2xl font-bold">{s.n}</p>
-                <p className="text-[9px] uppercase tracking-widest text-neutral-500">{s.l}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Mensagem sugerida</p>
-            <p className="mt-1 rounded bg-emerald-50 p-2 text-[11px] leading-snug text-neutral-700">
-              Oi, Lucas! Faz 32 dias que você não passa aqui. Que tal agendar
-              seu corte? Reservei um horário pra você 👇
-            </p>
-            <button className="mt-2 w-full rounded-md bg-emerald-500 py-1.5 text-[11px] font-semibold text-white">
-              Enviar para 24 clientes
-            </button>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/reengajamento" src="/reengajamento" />
+
       <Value
         items={[
           { icon: MessageCircle, label: "Recuperação ativa", text: "Cliente inativo é receita parada — uma campanha bem feita reativa 20-30%." },
@@ -1374,29 +1019,8 @@ function S_Financial() {
       title="Cada barbeiro vê o que ganhou"
       description="Comissão por serviço e por produto, fechamento por dia/semana/mês. Transparência total e zero conflito sobre números."
     >
-      <Browser url="app.manoelves.com.br/meu-financeiro">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Stat label="Faturei (mês)" v="R$ 4.820" />
-            <Stat label="Comissão" v="R$ 2.410" hl />
-            <Stat label="Atendimentos" v="63" />
-          </div>
-          <p className="mt-3 text-[10px] uppercase tracking-widest text-neutral-500">Últimos pagamentos</p>
-          <ul className="mt-1 space-y-1 text-[11px]">
-            {[
-              {d:"21/05",c:"Lucas",v:"R$ 75,00", co:"R$ 37,50"},
-              {d:"21/05",c:"Bruno",v:"R$ 50,00", co:"R$ 25,00"},
-              {d:"20/05",c:"Felipe",v:"R$ 130,00", co:"R$ 65,00"},
-              {d:"20/05",c:"Diego",v:"R$ 75,00", co:"R$ 37,50"},
-            ].map((p, i) => (
-              <li key={i} className="flex justify-between border-b border-dashed border-neutral-200 py-1">
-                <span className="text-neutral-500">{p.d} · {p.c}</span>
-                <span><span className="text-neutral-500">{p.v}</span> → <span className="font-semibold">{p.co}</span></span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/meu-financeiro" src="/meu-financeiro" />
+
       <Value
         items={[
           { icon: Wallet, label: "Transparência", text: "Barbeiro vê em tempo real o que entrou e quanto é dele — confiança total." },
@@ -1423,29 +1047,8 @@ function S_Settings() {
       title="Tudo conectado em um só lugar"
       description="Mercado Pago, WhatsApp e signage Sighor configurados pelo próprio dono. Sem ligar para suporte, sem desenvolvedor."
     >
-      <Browser url="app.manoelves.com.br/configuracoes">
-        <div className="p-4">
-          <div className="space-y-2 text-[11px]">
-            {[
-              {n:"Mercado Pago", s:"Conectado", ok:true, d:"Cobranças, assinaturas, webhooks"},
-              {n:"WhatsApp (uazapi)", s:"Conectado", ok:true, d:"Códigos de acesso, lembretes, reengajamento"},
-              {n:"Catálogo de cortes", s:"8 itens", ok:true, d:"Carrossel da home e da área do cliente"},
-              {n:"Signage Sighor", s:"Conectado", ok:true, d:"Displays, playlists, agendamentos de mídia"},
-              {n:"Domínio próprio", s:"Configurar", ok:false, d:"manoelves.com.br"},
-            ].map((it) => (
-              <div key={it.n} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5">
-                <div>
-                  <p className="font-semibold">{it.n}</p>
-                  <p className="text-[9px] text-neutral-500">{it.d}</p>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  it.ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                }`}>{it.s}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/configuracoes" src="/configuracoes" />
+
       <Value
         items={[
           { icon: Settings, label: "Autonomia", text: "Dono troca chave do gateway, atualiza WhatsApp e signage sem chamar técnico." },
@@ -1489,45 +1092,8 @@ function S_Store() {
       title="Sua barbearia também vende"
       description="Catálogo de produtos com foto, preço e estoque. Vendido no balcão (vira item de comanda) ou na vitrine do cliente — com alerta automático de estoque baixo."
     >
-      <Browser url="app.manoelves.com.br/produtos">
-        <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              <p className="text-sm font-semibold">Catálogo</p>
-            </div>
-            <button className="inline-flex items-center gap-1 rounded-md bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold text-white">
-              <Plus className="h-3 w-3" /> Novo produto
-            </button>
-          </div>
-          <div className="overflow-hidden rounded-lg border border-neutral-200">
-            <div className="grid grid-cols-[1fr_70px_80px_60px] gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-neutral-500">
-              <span>Produto</span>
-              <span className="text-right">Preço</span>
-              <span className="text-right">Estoque</span>
-              <span className="text-right">Vendas</span>
-            </div>
-            {produtos.map((p, i) => (
-              <div key={i} className="grid grid-cols-[1fr_70px_80px_60px] items-center gap-2 border-b border-neutral-100 px-3 py-2 last:border-0 text-[11px]">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-neutral-100 text-base">{p.img}</div>
-                  <span className="font-medium">{p.n}</span>
-                </div>
-                <span className="text-right font-semibold">{p.p}</span>
-                <span className="text-right">
-                  <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${p.low ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
-                    {p.s} un{p.low ? " · baixo" : ""}
-                  </span>
-                </span>
-                <span className="text-right text-neutral-500">{[23,18,9,5][i]}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-3 py-2 text-[10px] text-amber-800">
-            <BellRing className="h-3 w-3" /> Shampoo Premium com estoque baixo — pedir reposição.
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/produtos" src="/produtos" />
+
       <Value
         items={[
           { icon: ShoppingBag, label: "Ticket maior", text: "Produto agregado vira +R$ 30–R$ 50 em cada comanda. Margem alta, esforço zero." },
