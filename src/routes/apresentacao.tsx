@@ -239,23 +239,163 @@ function S_Cover() {
         }}
       />
       <div className="relative max-w-3xl text-center">
-        <img src={logoUrl} alt="Barbearia Mano Elves" className="mx-auto h-44 w-44 object-contain opacity-95" />
+        <img src={logoUrl} alt="Barbearia Mano Elves" className="mx-auto h-32 w-32 object-contain opacity-95" />
         <div className="mx-auto mt-2 inline-flex items-center gap-2 rounded-full border border-neutral-800 px-4 py-1.5 text-[10px] uppercase tracking-[0.3em] text-neutral-400">
-          <Scissors className="h-3 w-3" /> Sistema de gestão · Demo
+          <Sparkles className="h-3 w-3" /> Pitch de venda · 7 min
         </div>
-        <p className="mx-auto mt-6 max-w-xl text-sm text-neutral-400 lg:text-base">
-          Plataforma completa para a barbearia: agenda, comandas, assinaturas,
-          TVs, financeiro e relacionamento com o cliente — em um único lugar.
+        <h1
+          className="mx-auto mt-6 max-w-2xl text-4xl leading-[0.95] lg:text-6xl"
+          style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
+        >
+          A barbearia que fatura mais sem trabalhar mais.
+        </h1>
+        <p className="mx-auto mt-5 max-w-xl text-sm text-neutral-400 lg:text-base">
+          Mano Elves é o sistema que enche a agenda, cobra automático e
+          fideliza por assinatura — no piloto automático.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[11px] text-neutral-500">
-          <Chip>Agenda online</Chip>
-          <Chip>Mercado Pago</Chip>
-          <Chip>Assinaturas</Chip>
-          <Chip>Signage TV</Chip>
-          <Chip>WhatsApp</Chip>
-          <Chip>Financeiro</Chip>
+          <Chip>+30% ocupação</Chip>
+          <Chip>−70% no-show</Chip>
+          <Chip>MRR recorrente</Chip>
+          <Chip>0 planilha</Chip>
         </div>
       </div>
+    </div>
+  );
+}
+
+function S_Problem() {
+  const dores = [
+    { icon: Clock, t: "Agenda furada", d: "Cliente esquece, não avisa, e a cadeira fica vazia. Cada no-show é R$ 50–R$ 80 jogados fora." },
+    { icon: MessageCircle, t: "WhatsApp virou recepcionista", d: "Você responde horário no sábado de manhã, na hora do almoço, no jantar. Cansa e ainda perde cliente." },
+    { icon: Wallet, t: "Receita imprevisível", d: "Mês bom, mês ruim. Sem assinatura recorrente, todo dia 1 começa do zero." },
+    { icon: BarChart3, t: "Caderno e planilha", d: "Não sabe quanto cada barbeiro faturou, quem é o melhor cliente, nem quem sumiu há 60 dias." },
+  ];
+  return (
+    <div className="flex h-full w-full flex-col justify-center bg-neutral-950 p-10 text-neutral-100 lg:p-14">
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">O problema</p>
+      <h2 className="mt-3 max-w-3xl text-3xl leading-[0.95] lg:text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>
+        Sua barbearia está perdendo dinheiro todo dia — e você nem percebe.
+      </h2>
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {dores.map((d) => (
+          <div key={d.t} className="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-900">
+              <d.icon className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{d.t}</p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-400">{d.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function S_Solution() {
+  const pilares = [
+    { icon: Calendar, t: "Agenda que vende sozinha", d: "Link único por barbeiro. Cliente agenda no Instagram às 23h sem você responder nada." },
+    { icon: CreditCard, t: "Cobrança automática", d: "PIX e cartão no Mercado Pago. Lembrete e confirmação no WhatsApp — fim do no-show." },
+    { icon: Repeat, t: "Assinatura recorrente", d: "Plano mensal de cortes. MRR previsível entrando todo dia 5." },
+    { icon: Bell, t: "Relacionamento no automático", d: "Aniversário, retorno em 30 dias, reengajamento de quem sumiu — tudo disparado pelo sistema." },
+  ];
+  return (
+    <div className="flex h-full w-full flex-col justify-center bg-neutral-950 p-10 text-neutral-100 lg:p-14">
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">A solução</p>
+      <h2 className="mt-3 max-w-3xl text-3xl leading-[0.95] lg:text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>
+        Um sistema. Quatro motores trabalhando por você.
+      </h2>
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {pilares.map((d) => (
+          <div key={d.t} className="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-900">
+              <d.icon className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{d.t}</p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-400">{d.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-8 text-xs text-neutral-500">A seguir: 5 telas do sistema funcionando de verdade.</p>
+    </div>
+  );
+}
+
+function S_Proof() {
+  return (
+    <div className="flex h-full w-full flex-col justify-center bg-neutral-950 p-10 text-neutral-100 lg:p-14">
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">O retorno</p>
+      <h2 className="mt-3 max-w-3xl text-3xl leading-[0.95] lg:text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>
+        Conta de padaria: o sistema se paga na 1ª semana.
+      </h2>
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {[
+          { v: "+30%", l: "ocupação da agenda", d: "Fila de espera + reengajamento ativos." },
+          { v: "−70%", l: "no-show", d: "Lembrete + PIX de garantia." },
+          { v: "+R$ 8k", l: "MRR de assinaturas", d: "50 clientes × R$ 159/mês." },
+        ].map((s) => (
+          <div key={s.l} className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+            <p className="text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>{s.v}</p>
+            <p className="mt-1 text-xs uppercase tracking-widest text-neutral-400">{s.l}</p>
+            <p className="mt-2 text-xs text-neutral-500">{s.d}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/60 p-5 text-sm text-neutral-300">
+        <span className="font-semibold text-neutral-100">Exemplo real:</span> evitar 4 no-shows por semana = R$ 1.200/mês recuperados.
+        Conquistar 10 assinantes = R$ 1.590/mês recorrentes. Em 30 dias, +R$ 2.790 no caixa.
+      </div>
+    </div>
+  );
+}
+
+function S_Offer() {
+  return (
+    <div className="flex h-full w-full flex-col justify-center bg-neutral-950 p-10 text-neutral-100 lg:p-14">
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">A oferta</p>
+      <h2 className="mt-3 max-w-3xl text-3xl leading-[0.95] lg:text-5xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>
+        Tudo incluído. Sem taxa por agendamento. Sem letra miúda.
+      </h2>
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+          <p className="text-xs uppercase tracking-widest text-neutral-400">Start</p>
+          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 149<span className="text-base text-neutral-500">/mês</span></p>
+          <ul className="mt-4 space-y-1.5 text-xs text-neutral-300">
+            <li>· Agenda + landing por barbeiro</li>
+            <li>· WhatsApp de confirmação</li>
+            <li>· Até 2 barbeiros</li>
+          </ul>
+        </div>
+        <div className="rounded-xl border-2 border-neutral-100 bg-neutral-900 p-5 shadow-[0_0_30px_-10px_rgba(255,255,255,0.4)]">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-widest text-neutral-100">Pro · Recomendado</p>
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-semibold text-neutral-900">MAIS VENDIDO</span>
+          </div>
+          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 299<span className="text-base text-neutral-500">/mês</span></p>
+          <ul className="mt-4 space-y-1.5 text-xs text-neutral-200">
+            <li>· Tudo do Start</li>
+            <li>· Assinaturas + Mercado Pago</li>
+            <li>· Comanda, fila de espera, reengajamento</li>
+            <li>· Barbeiros ilimitados</li>
+          </ul>
+        </div>
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+          <p className="text-xs uppercase tracking-widest text-neutral-400">Premium</p>
+          <p className="mt-2 text-4xl" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}>R$ 499<span className="text-base text-neutral-500">/mês</span></p>
+          <ul className="mt-4 space-y-1.5 text-xs text-neutral-300">
+            <li>· Tudo do Pro</li>
+            <li>· Signage TV (Sighor) incluso</li>
+            <li>· Domínio próprio + suporte prioritário</li>
+          </ul>
+        </div>
+      </div>
+      <p className="mt-6 text-xs text-neutral-500">
+        Garantia: 14 dias para testar. Se não gostar, devolvemos 100% — sem perguntas.
+      </p>
     </div>
   );
 }
@@ -1299,32 +1439,33 @@ function S_Settings() {
 function S_Closing() {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center bg-neutral-950 p-12 text-neutral-100">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">Por que Mano Elves</p>
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">Próximo passo</p>
       <h2
         className="mt-3 max-w-4xl text-center text-4xl leading-[0.95] lg:text-6xl"
         style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
       >
-        Uma operação digital. Caixa previsível. Cliente fiel.
+        Vamos ativar sua barbearia ainda esta semana?
       </h2>
-      <div className="mt-10 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {[
-          { v: "+30%", l: "ocupação da agenda", d: "Com fila de espera e reengajamento ativos." },
-          { v: "+R$ 8k", l: "MRR de assinaturas", d: "Receita recorrente via Mercado Pago." },
-          { v: "-70%", l: "no-show", d: "Lembretes e proteção PIX." },
-        ].map((s) => (
-          <div key={s.l} className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-            <p
-              className="text-4xl"
-              style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
-            >{s.v}</p>
-            <p className="mt-1 text-xs uppercase tracking-widest text-neutral-400">{s.l}</p>
-            <p className="mt-2 text-xs text-neutral-500">{s.d}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-10 text-xs text-neutral-500">
-        Pronto para começar? <span className="text-neutral-100">contato@manoelves.com.br</span>
+      <p className="mt-5 max-w-xl text-center text-sm text-neutral-400">
+        Em uma call de 20 minutos a gente configura seu link, importa sua
+        agenda e já liga o WhatsApp automático. Você sai da call vendendo.
       </p>
+      <div className="mt-8 flex flex-col items-center gap-3">
+        <a
+          href="https://wa.me/5500000000000?text=Quero%20ativar%20a%20Mano%20Elves"
+          className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-neutral-900 transition hover:scale-105"
+        >
+          <MessageCircle className="h-4 w-4" /> Falar agora no WhatsApp
+        </a>
+        <p className="text-xs text-neutral-500">ou contato@manoelves.com.br</p>
+      </div>
+      <div className="mt-10 flex items-center gap-4 text-[10px] uppercase tracking-[0.25em] text-neutral-600">
+        <span>14 dias de garantia</span>
+        <span>·</span>
+        <span>Setup incluso</span>
+        <span>·</span>
+        <span>Cancela quando quiser</span>
+      </div>
     </div>
   );
 }
@@ -1334,23 +1475,17 @@ function S_Closing() {
 ===================================================================== */
 
 const SLIDES: { title: string; component: () => React.ReactElement }[] = [
-  { title: "Capa", component: S_Cover },
-  { title: "Home pública", component: S_Home },
-  { title: "Catálogo de cortes", component: S_Catalog },
-  { title: "Landing do barbeiro", component: S_BarberLanding },
-  { title: "Agendamento + login SMS", component: S_PublicBooking },
-  { title: "Área do cliente (PWA + aniversário)", component: S_ClientArea },
-  { title: "Agenda interna", component: S_Agenda },
-  { title: "Alerta de novo agendamento", component: S_OwnerNotification },
-  { title: "Dashboard do dono", component: S_Dashboard },
-  { title: "Comanda + Mercado Pago", component: S_Comanda },
-  { title: "Mensagens no WhatsApp", component: S_WhatsAppFlows },
-  { title: "Assinaturas recorrentes", component: S_Subscriptions },
-  { title: "Signage TV", component: S_Signage },
-  { title: "Fila de espera", component: S_Waitlist },
-  { title: "Reengajamento WhatsApp", component: S_Reengagement },
-  { title: "Financeiro do barbeiro", component: S_Financial },
-  { title: "Configurações & integrações", component: S_Settings },
-  { title: "Cadastro restrito ao dono", component: S_AdminAccess },
-  { title: "Fechamento", component: S_Closing },
+  { title: "Gancho", component: S_Cover },
+  { title: "Problema", component: S_Problem },
+  { title: "Solução", component: S_Solution },
+  { title: "Demo · Agenda que vende", component: S_BarberLanding },
+  { title: "Demo · Agendamento + SMS", component: S_PublicBooking },
+  { title: "Demo · Comanda + Mercado Pago", component: S_Comanda },
+  { title: "Demo · Assinaturas (MRR)", component: S_Subscriptions },
+  { title: "Demo · WhatsApp automático", component: S_WhatsAppFlows },
+  { title: "Demo · Dashboard do dono", component: S_Dashboard },
+  { title: "Prova · ROI", component: S_Proof },
+  { title: "Oferta · Planos", component: S_Offer },
+  { title: "CTA · Próximo passo", component: S_Closing },
 ];
+
