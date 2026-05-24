@@ -101,7 +101,14 @@ function HomePage() {
         </div>
       )}
 
-      <section className="mx-auto max-w-5xl px-5 py-16 text-center">
+      <section className="relative mx-auto max-w-5xl px-5 py-16 text-center">
+        {shop?.logo_url && (
+          <img
+            src={shop.logo_url}
+            alt={shop?.name ?? "Logo"}
+            className="mx-auto mb-6 h-24 w-24 rounded-full border border-border/60 object-cover shadow-[0_0_40px_0_rgba(255,255,255,0.08)]"
+          />
+        )}
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
           Barbearia
         </p>
