@@ -1092,45 +1092,8 @@ function S_Store() {
       title="Sua barbearia também vende"
       description="Catálogo de produtos com foto, preço e estoque. Vendido no balcão (vira item de comanda) ou na vitrine do cliente — com alerta automático de estoque baixo."
     >
-      <Browser url="app.manoelves.com.br/produtos">
-        <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              <p className="text-sm font-semibold">Catálogo</p>
-            </div>
-            <button className="inline-flex items-center gap-1 rounded-md bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold text-white">
-              <Plus className="h-3 w-3" /> Novo produto
-            </button>
-          </div>
-          <div className="overflow-hidden rounded-lg border border-neutral-200">
-            <div className="grid grid-cols-[1fr_70px_80px_60px] gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-neutral-500">
-              <span>Produto</span>
-              <span className="text-right">Preço</span>
-              <span className="text-right">Estoque</span>
-              <span className="text-right">Vendas</span>
-            </div>
-            {produtos.map((p, i) => (
-              <div key={i} className="grid grid-cols-[1fr_70px_80px_60px] items-center gap-2 border-b border-neutral-100 px-3 py-2 last:border-0 text-[11px]">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-neutral-100 text-base">{p.img}</div>
-                  <span className="font-medium">{p.n}</span>
-                </div>
-                <span className="text-right font-semibold">{p.p}</span>
-                <span className="text-right">
-                  <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${p.low ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
-                    {p.s} un{p.low ? " · baixo" : ""}
-                  </span>
-                </span>
-                <span className="text-right text-neutral-500">{[23,18,9,5][i]}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-3 py-2 text-[10px] text-amber-800">
-            <BellRing className="h-3 w-3" /> Shampoo Premium com estoque baixo — pedir reposição.
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/produtos" src="/produtos" />
+
       <Value
         items={[
           { icon: ShoppingBag, label: "Ticket maior", text: "Produto agregado vira +R$ 30–R$ 50 em cada comanda. Margem alta, esforço zero." },
