@@ -242,6 +242,43 @@ function ScaledIframe({
   );
 }
 
+/* Scales static children (rendered at baseWidth x baseHeight) to fit container width */
+function ScaledBox({
+  baseWidth, baseHeight, dark = false, children,
+}: { baseWidth: number; baseHeight: number; dark?: boolean; children: React.ReactNode }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / baseWidth);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [baseWidth]);
+  return (
+    <div
+      ref={wrapRef}
+      className={`relative w-full overflow-hidden ${dark ? "bg-neutral-950" : "bg-white"}`}
+      style={{ height: baseHeight * scale }}
+    >
+      <div
+        className="absolute left-0 top-0"
+        style={{
+          width: baseWidth,
+          height: baseHeight,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function Browser({ url, src, children }: { url: string; src?: string; children?: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-xl">
@@ -256,7 +293,7 @@ function Browser({ url, src, children }: { url: string; src?: string; children?:
       {src ? (
         <ScaledIframe src={src} baseWidth={1280} baseHeight={800} />
       ) : (
-        <div className="bg-white text-neutral-900">{children}</div>
+        <ScaledBox baseWidth={1280} baseHeight={800}>{children}</ScaledBox>
       )}
     </div>
   );
@@ -272,7 +309,9 @@ function Phone({ src, children }: { src?: string; children?: React.ReactNode }) 
             <ScaledIframe src={src} baseWidth={390} baseHeight={672} />
           </div>
         ) : (
-          <div className="h-[500px] overflow-hidden text-neutral-900">{children}</div>
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledBox baseWidth={390} baseHeight={672}>{children}</ScaledBox>
+          </div>
         )}
       </div>
     </div>
