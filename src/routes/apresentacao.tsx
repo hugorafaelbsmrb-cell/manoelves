@@ -524,7 +524,7 @@ function S_Home() {
       title="Vitrine digital da barbearia"
       description="A home pública apresenta a marca, os barbeiros e o caminho direto para o agendamento — tema escuro, tipografia forte, zero fricção."
     >
-      <AppBrowser url="manoelves.com.br" src="/" />
+      <AppBrowser url="manoelves.com.br"><MK_Landing /></AppBrowser>
 
       <Value
         items={[
@@ -543,7 +543,7 @@ function S_BarberLanding() {
       title="Cada barbeiro com sua própria página"
       description="Um link único para cada profissional (ex.: /b/joao). Ele compartilha no Instagram, no status do WhatsApp, no cartão — e o cliente cai direto na agenda dele."
     >
-      <DarkPhone src="/hugo-rafael-sousa" />
+      <DarkPhone><MK_BarberPublic /></DarkPhone>
       <Value
         items={[
           { icon: Smartphone, label: "Marketing pessoal", text: "Cada barbeiro vira embaixador: link próprio, próprio portfólio, próprios clientes." },
@@ -562,7 +562,7 @@ function S_PublicBooking() {
       title="Agenda, recebe código, já entra no app"
       description="O cliente escolhe serviço e horário, recebe um código de 6 dígitos no WhatsApp (válido por 48h para economizar mensagens) e é direcionado para a área dele — pronto para virar cliente recorrente."
     >
-      <DarkPhone src="/hugo-rafael-sousa/agendar" />
+      <DarkPhone><MK_BookFlow /></DarkPhone>
       <Value
         items={[
           { icon: KeyRound, label: "Autenticação sem fricção", text: "Sem senha, sem cadastro chato — código no WhatsApp e pronto." },
@@ -634,7 +634,7 @@ function S_ClientArea() {
       title="Cada cliente com seu app de bolso"
       description="Histórico, próximos cortes, catálogo e ofertas — tudo na palma da mão. Instalável como app (PWA) e popup pedindo a data de nascimento na primeira entrada."
     >
-      <DarkPhone src="/cliente" />
+      <DarkPhone><MK_ClientArea /></DarkPhone>
 
       <Value
         items={[
@@ -708,7 +708,7 @@ function S_AdminAccess() {
       title="Só o dono cria barbeiros"
       description="Login público de equipe foi removido. Quem entra no painel é cadastrado pelo dono na tela de Barbeiros — zero risco de auto-cadastro indevido."
     >
-      <Browser url="app.manoelves.com.br/barbeiros" src="/barbeiros" />
+      <Browser url="app.manoelves.com.br/barbeiros"><MK_Barbers /></Browser>
 
       <Value
         items={[
@@ -728,7 +728,7 @@ function S_Agenda() {
       title="O dia inteiro em uma tela"
       description="Visão por barbeiro ou consolidada da loja. Arrastar para remarcar, clicar para abrir comanda, status colorido por situação."
     >
-      <Browser url="app.manoelves.com.br/agenda" src="/agenda" />
+      <Browser url="app.manoelves.com.br/agenda"><MK_Agenda /></Browser>
 
       <Value
         items={[
@@ -749,7 +749,7 @@ function S_Dashboard() {
       title="O dono vê o negócio em um piscar"
       description="Faturamento do mês, comandas fechadas, ticket médio e margem do dono — tudo em tempo real. Gráfico dos últimos 14 dias e ranking dos barbeiros."
     >
-      <Browser url="app.manoelves.com.br/dashboard" src="/dashboard" />
+      <Browser url="app.manoelves.com.br/dashboard"><MK_Dashboard /></Browser>
 
       <Value
         items={[
@@ -770,7 +770,7 @@ function S_Comanda() {
       title="Do atendimento ao recebimento"
       description="Abre comanda direto do agendamento, adiciona produtos, fecha com PIX ou cartão via Mercado Pago. O recebimento é confirmado por webhook."
     >
-      <Browser url="app.manoelves.com.br/comanda" src="/comanda" />
+      <Browser url="app.manoelves.com.br/comanda"><MK_Comanda /></Browser>
 
       <Value
         items={[
@@ -919,7 +919,7 @@ function S_Subscriptions() {
       title="Receita recorrente com Mercado Pago"
       description="Planos mensais (ex.: corte ilimitado, combo quinzenal) cobrados automaticamente. Previsibilidade de caixa e cliente fiel."
     >
-      <Browser url="app.manoelves.com.br/assinaturas" src="/assinaturas" />
+      <Browser url="app.manoelves.com.br/assinaturas"><MK_Subscriptions /></Browser>
 
       <Value
         items={[
@@ -986,7 +986,7 @@ function S_Waitlist() {
       title="Nenhum cliente perdido por falta de horário"
       description="Quando a agenda lota, o cliente entra na fila. Ao abrir um espaço, o sistema notifica automaticamente pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/fila-espera" src="/fila-espera" />
+      <Browser url="app.manoelves.com.br/fila-espera"><MK_Waitlist /></Browser>
 
       <Value
         items={[
@@ -1005,7 +1005,7 @@ function S_Reengagement() {
       title="Traz de volta quem sumiu"
       description="O sistema identifica clientes que não voltam há 30, 45 ou 60 dias e dispara mensagens personalizadas — direto pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/reengajamento" src="/reengajamento" />
+      <Browser url="app.manoelves.com.br/reengajamento"><MK_Reengage /></Browser>
 
       <Value
         items={[
@@ -1024,7 +1024,7 @@ function S_Financial() {
       title="Cada barbeiro vê o que ganhou"
       description="Comissão por serviço e por produto, fechamento por dia/semana/mês. Transparência total e zero conflito sobre números."
     >
-      <Browser url="app.manoelves.com.br/meu-financeiro" src="/meu-financeiro" />
+      <Browser url="app.manoelves.com.br/meu-financeiro"><MK_Financial /></Browser>
 
       <Value
         items={[
@@ -1052,7 +1052,7 @@ function S_Settings() {
       title="Tudo conectado em um só lugar"
       description="Mercado Pago, WhatsApp e signage Sighor configurados pelo próprio dono. Sem ligar para suporte, sem desenvolvedor."
     >
-      <Browser url="app.manoelves.com.br/configuracoes" src="/configuracoes" />
+      <Browser url="app.manoelves.com.br/configuracoes"><MK_Settings /></Browser>
 
       <Value
         items={[
@@ -1097,7 +1097,7 @@ function S_Store() {
       title="Sua barbearia também vende"
       description="Catálogo de produtos com foto, preço e estoque. Vendido no balcão (vira item de comanda) ou na vitrine do cliente — com alerta automático de estoque baixo."
     >
-      <Browser url="app.manoelves.com.br/produtos" src="/produtos" />
+      <Browser url="app.manoelves.com.br/produtos"><MK_Products /></Browser>
 
       <Value
         items={[
