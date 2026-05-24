@@ -1047,29 +1047,8 @@ function S_Settings() {
       title="Tudo conectado em um só lugar"
       description="Mercado Pago, WhatsApp e signage Sighor configurados pelo próprio dono. Sem ligar para suporte, sem desenvolvedor."
     >
-      <Browser url="app.manoelves.com.br/configuracoes">
-        <div className="p-4">
-          <div className="space-y-2 text-[11px]">
-            {[
-              {n:"Mercado Pago", s:"Conectado", ok:true, d:"Cobranças, assinaturas, webhooks"},
-              {n:"WhatsApp (uazapi)", s:"Conectado", ok:true, d:"Códigos de acesso, lembretes, reengajamento"},
-              {n:"Catálogo de cortes", s:"8 itens", ok:true, d:"Carrossel da home e da área do cliente"},
-              {n:"Signage Sighor", s:"Conectado", ok:true, d:"Displays, playlists, agendamentos de mídia"},
-              {n:"Domínio próprio", s:"Configurar", ok:false, d:"manoelves.com.br"},
-            ].map((it) => (
-              <div key={it.n} className="flex items-center justify-between rounded-lg border border-neutral-200 p-2.5">
-                <div>
-                  <p className="font-semibold">{it.n}</p>
-                  <p className="text-[9px] text-neutral-500">{it.d}</p>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  it.ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                }`}>{it.s}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/configuracoes" src="/configuracoes" />
+
       <Value
         items={[
           { icon: Settings, label: "Autonomia", text: "Dono troca chave do gateway, atualiza WhatsApp e signage sem chamar técnico." },
