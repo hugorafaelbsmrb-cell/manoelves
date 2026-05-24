@@ -744,54 +744,8 @@ function S_Dashboard() {
       title="O dono vê o negócio em um piscar"
       description="Faturamento do mês, comandas fechadas, ticket médio e margem do dono — tudo em tempo real. Gráfico dos últimos 14 dias e ranking dos barbeiros."
     >
-      <Browser url="app.manoelves.com.br/dashboard">
-        <div className="p-4">
-          <p style={{ fontFamily: '"Bebas Neue"' }} className="text-xl tracking-wider">Dashboard</p>
-          <p className="text-[10px] text-neutral-500">Visão maio/2026 · dados em tempo real</p>
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {[
-              { l: "Faturamento", v: "R$ 28.450" },
-              { l: "Comandas", v: "186" },
-              { l: "Ticket médio", v: "R$ 153" },
-              { l: "Margem dono", v: "R$ 14.225" },
-            ].map((k) => (
-              <div key={k.l} className="rounded-lg border border-neutral-200 p-2">
-                <p className="text-[8px] uppercase tracking-widest text-neutral-500">{k.l}</p>
-                <p style={{ fontFamily: '"Bebas Neue"' }} className="mt-0.5 text-lg tracking-wide">{k.v}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Últimos 14 dias</p>
-            <div className="mt-2 flex h-24 items-end gap-1">
-              {bars.map((b, i) => (
-                <div key={i} className="flex-1 rounded-t bg-neutral-900" style={{ height: `${(b/maxBar)*100}%` }} />
-              ))}
-            </div>
-            <div className="mt-1 flex justify-between text-[7px] text-neutral-400">
-              <span>08/05</span><span>14/05</span><span>21/05</span>
-            </div>
-          </div>
-          <div className="mt-3 rounded-lg border border-neutral-200 p-3">
-            <p style={{ fontFamily: '"Bebas Neue"' }} className="text-[12px] tracking-wider">Ranking de barbeiros · mês</p>
-            <ul className="mt-1 divide-y divide-neutral-200 text-[10px]">
-              {[
-                { n: "João Silva", v: "R$ 11.820" },
-                { n: "Pedro Alves", v: "R$ 9.140" },
-                { n: "Carlos Mendes", v: "R$ 7.490" },
-              ].map((r, i) => (
-                <li key={r.n} className="flex items-center justify-between py-1">
-                  <span className="flex items-center gap-2">
-                    <span style={{ fontFamily: '"Bebas Neue"' }} className="w-4 text-center text-sm">{i+1}</span>
-                    {r.n}
-                  </span>
-                  <span className="font-medium">{r.v}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/dashboard" src="/dashboard" />
+
       <Value
         items={[
           { icon: BarChart3, label: "Decisão por dado", text: "Sai do achismo: dono vê o que dá dinheiro e onde investir." },
