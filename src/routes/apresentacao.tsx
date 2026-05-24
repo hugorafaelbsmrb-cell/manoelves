@@ -1439,32 +1439,33 @@ function S_Settings() {
 function S_Closing() {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center bg-neutral-950 p-12 text-neutral-100">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">Por que Mano Elves</p>
+      <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-500">Próximo passo</p>
       <h2
         className="mt-3 max-w-4xl text-center text-4xl leading-[0.95] lg:text-6xl"
         style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
       >
-        Uma operação digital. Caixa previsível. Cliente fiel.
+        Vamos ativar sua barbearia ainda esta semana?
       </h2>
-      <div className="mt-10 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {[
-          { v: "+30%", l: "ocupação da agenda", d: "Com fila de espera e reengajamento ativos." },
-          { v: "+R$ 8k", l: "MRR de assinaturas", d: "Receita recorrente via Mercado Pago." },
-          { v: "-70%", l: "no-show", d: "Lembretes e proteção PIX." },
-        ].map((s) => (
-          <div key={s.l} className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-            <p
-              className="text-4xl"
-              style={{ fontFamily: '"Bebas Neue", Inter, sans-serif' }}
-            >{s.v}</p>
-            <p className="mt-1 text-xs uppercase tracking-widest text-neutral-400">{s.l}</p>
-            <p className="mt-2 text-xs text-neutral-500">{s.d}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-10 text-xs text-neutral-500">
-        Pronto para começar? <span className="text-neutral-100">contato@manoelves.com.br</span>
+      <p className="mt-5 max-w-xl text-center text-sm text-neutral-400">
+        Em uma call de 20 minutos a gente configura seu link, importa sua
+        agenda e já liga o WhatsApp automático. Você sai da call vendendo.
       </p>
+      <div className="mt-8 flex flex-col items-center gap-3">
+        <a
+          href="https://wa.me/5500000000000?text=Quero%20ativar%20a%20Mano%20Elves"
+          className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-8 py-4 text-sm font-semibold uppercase tracking-widest text-neutral-900 transition hover:scale-105"
+        >
+          <MessageCircle className="h-4 w-4" /> Falar agora no WhatsApp
+        </a>
+        <p className="text-xs text-neutral-500">ou contato@manoelves.com.br</p>
+      </div>
+      <div className="mt-10 flex items-center gap-4 text-[10px] uppercase tracking-[0.25em] text-neutral-600">
+        <span>14 dias de garantia</span>
+        <span>·</span>
+        <span>Setup incluso</span>
+        <span>·</span>
+        <span>Cancela quando quiser</span>
+      </div>
     </div>
   );
 }
@@ -1474,23 +1475,17 @@ function S_Closing() {
 ===================================================================== */
 
 const SLIDES: { title: string; component: () => React.ReactElement }[] = [
-  { title: "Capa", component: S_Cover },
-  { title: "Home pública", component: S_Home },
-  { title: "Catálogo de cortes", component: S_Catalog },
-  { title: "Landing do barbeiro", component: S_BarberLanding },
-  { title: "Agendamento + login SMS", component: S_PublicBooking },
-  { title: "Área do cliente (PWA + aniversário)", component: S_ClientArea },
-  { title: "Agenda interna", component: S_Agenda },
-  { title: "Alerta de novo agendamento", component: S_OwnerNotification },
-  { title: "Dashboard do dono", component: S_Dashboard },
-  { title: "Comanda + Mercado Pago", component: S_Comanda },
-  { title: "Mensagens no WhatsApp", component: S_WhatsAppFlows },
-  { title: "Assinaturas recorrentes", component: S_Subscriptions },
-  { title: "Signage TV", component: S_Signage },
-  { title: "Fila de espera", component: S_Waitlist },
-  { title: "Reengajamento WhatsApp", component: S_Reengagement },
-  { title: "Financeiro do barbeiro", component: S_Financial },
-  { title: "Configurações & integrações", component: S_Settings },
-  { title: "Cadastro restrito ao dono", component: S_AdminAccess },
-  { title: "Fechamento", component: S_Closing },
+  { title: "Gancho", component: S_Cover },
+  { title: "Problema", component: S_Problem },
+  { title: "Solução", component: S_Solution },
+  { title: "Demo · Agenda que vende", component: S_BarberLanding },
+  { title: "Demo · Agendamento + SMS", component: S_PublicBooking },
+  { title: "Demo · Comanda + Mercado Pago", component: S_Comanda },
+  { title: "Demo · Assinaturas (MRR)", component: S_Subscriptions },
+  { title: "Demo · WhatsApp automático", component: S_WhatsAppFlows },
+  { title: "Demo · Dashboard do dono", component: S_Dashboard },
+  { title: "Prova · ROI", component: S_Proof },
+  { title: "Oferta · Planos", component: S_Offer },
+  { title: "CTA · Próximo passo", component: S_Closing },
 ];
+
