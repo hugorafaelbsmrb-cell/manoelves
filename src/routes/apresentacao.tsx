@@ -475,7 +475,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 /* ---------- Reusable "real system" UI fragments (dark theme like the app) ---------- */
 
-function AppBrowser({ url, children }: { url: string; children: React.ReactNode }) {
+function AppBrowser({ url, src, children }: { url: string; src?: string; children?: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-700 bg-neutral-950 shadow-2xl">
       <div className="flex items-center gap-2 border-b border-neutral-800 bg-neutral-900 px-3 py-2">
@@ -486,17 +486,27 @@ function AppBrowser({ url, children }: { url: string; children: React.ReactNode 
           {url}
         </div>
       </div>
-      <div className="bg-neutral-950 text-neutral-100">{children}</div>
+      {src ? (
+        <ScaledIframe src={src} baseWidth={1280} baseHeight={800} dark />
+      ) : (
+        <div className="bg-neutral-950 text-neutral-100">{children}</div>
+      )}
     </div>
   );
 }
 
-function DarkPhone({ children }: { children: React.ReactNode }) {
+function DarkPhone({ src, children }: { src?: string; children?: React.ReactNode }) {
   return (
     <div className="mx-auto w-[290px] rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
       <div className="relative overflow-hidden rounded-[26px] bg-neutral-950">
         <div className="absolute left-1/2 top-1.5 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
-        <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+        {src ? (
+          <div className="overflow-hidden rounded-[26px]">
+            <ScaledIframe src={src} baseWidth={390} baseHeight={672} dark />
+          </div>
+        ) : (
+          <div className="h-[500px] overflow-hidden text-neutral-100">{children}</div>
+        )}
       </div>
     </div>
   );
