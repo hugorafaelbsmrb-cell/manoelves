@@ -1019,29 +1019,8 @@ function S_Financial() {
       title="Cada barbeiro vê o que ganhou"
       description="Comissão por serviço e por produto, fechamento por dia/semana/mês. Transparência total e zero conflito sobre números."
     >
-      <Browser url="app.manoelves.com.br/meu-financeiro">
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Stat label="Faturei (mês)" v="R$ 4.820" />
-            <Stat label="Comissão" v="R$ 2.410" hl />
-            <Stat label="Atendimentos" v="63" />
-          </div>
-          <p className="mt-3 text-[10px] uppercase tracking-widest text-neutral-500">Últimos pagamentos</p>
-          <ul className="mt-1 space-y-1 text-[11px]">
-            {[
-              {d:"21/05",c:"Lucas",v:"R$ 75,00", co:"R$ 37,50"},
-              {d:"21/05",c:"Bruno",v:"R$ 50,00", co:"R$ 25,00"},
-              {d:"20/05",c:"Felipe",v:"R$ 130,00", co:"R$ 65,00"},
-              {d:"20/05",c:"Diego",v:"R$ 75,00", co:"R$ 37,50"},
-            ].map((p, i) => (
-              <li key={i} className="flex justify-between border-b border-dashed border-neutral-200 py-1">
-                <span className="text-neutral-500">{p.d} · {p.c}</span>
-                <span><span className="text-neutral-500">{p.v}</span> → <span className="font-semibold">{p.co}</span></span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/meu-financeiro" src="/meu-financeiro" />
+
       <Value
         items={[
           { icon: Wallet, label: "Transparência", text: "Barbeiro vê em tempo real o que entrou e quanto é dele — confiança total." },
