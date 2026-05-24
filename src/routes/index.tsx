@@ -54,8 +54,8 @@ function HomePage() {
     <div
       className="dark relative min-h-screen text-foreground"
       style={{
-        backgroundColor: "hsl(var(--background))",
-        backgroundImage: `linear-gradient(hsl(var(--background) / 0.55), hsl(var(--background) / 0.7)), url(${textureBg})`,
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `linear-gradient(rgba(10,10,10,0.55), rgba(10,10,10,0.7)), url(${textureBg})`,
         backgroundSize: "auto, 420px 420px",
         backgroundRepeat: "no-repeat, repeat",
         backgroundAttachment: "fixed, fixed",
