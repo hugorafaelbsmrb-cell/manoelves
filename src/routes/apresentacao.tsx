@@ -16,6 +16,7 @@ import cutTexturizado from "@/assets/cuts/texturizado.jpg";
 import cutPompadour from "@/assets/cuts/pompadour.jpg";
 import cutCrewCut from "@/assets/cuts/crew-cut.jpg";
 import cutBarbaCompleta from "@/assets/cuts/barba-completa.jpg";
+import cutUndercut from "@/assets/cuts/undercut.jpg";
 import {
   MK_Landing, MK_BarberPublic, MK_BookFlow, MK_ClientArea,
   MK_Barbers, MK_Agenda, MK_Dashboard, MK_Comanda, MK_Subscriptions,
