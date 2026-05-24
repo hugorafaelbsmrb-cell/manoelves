@@ -277,8 +277,8 @@ export function MK_Agenda() {
               <div key={b} className="border-l border-neutral-800 bg-neutral-900 p-2 text-center text-xs font-semibold">{b}</div>
             ))}
             {hours.map((h,hi)=>(
-              <>
-                <div key={h} className="border-t border-neutral-800 bg-neutral-900 p-2 text-[10px] text-neutral-500">{h}</div>
+              <Fragment key={h}>
+                <div className="border-t border-neutral-800 bg-neutral-900 p-2 text-[10px] text-neutral-500">{h}</div>
                 {barbers.map((_,bi)=>{
                   const c = cells[`${hi}-${bi}`];
                   return (
@@ -287,7 +287,7 @@ export function MK_Agenda() {
                     </div>
                   );
                 })}
-              </>
+              </Fragment>
             ))}
           </div>
         </div>
