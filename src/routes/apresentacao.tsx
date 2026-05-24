@@ -765,38 +765,8 @@ function S_Comanda() {
       title="Do atendimento ao recebimento"
       description="Abre comanda direto do agendamento, adiciona produtos, fecha com PIX ou cartão via Mercado Pago. O recebimento é confirmado por webhook."
     >
-      <Browser url="app.manoelves.com.br/comanda">
-        <div className="grid grid-cols-[1fr_180px] gap-3 p-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500">Comanda #1042</p>
-            <p className="text-sm font-semibold">Lucas — João Silva</p>
-            <ul className="mt-3 space-y-1.5 text-[11px]">
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Corte tradicional</span><span>R$ 50,00</span>
-              </li>
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Barba na navalha</span><span>R$ 35,00</span>
-              </li>
-              <li className="flex justify-between border-b border-dashed border-neutral-200 pb-1">
-                <span>Pomada modeladora ×1</span><span>R$ 45,00</span>
-              </li>
-              <li className="flex justify-between pt-1 text-[13px] font-semibold">
-                <span>Total</span><span>R$ 130,00</span>
-              </li>
-            </ul>
-          </div>
-          <div className="space-y-1.5">
-            <button className="w-full rounded-md bg-neutral-900 py-2 text-[11px] font-semibold text-white">
-              Cobrar Mercado Pago
-            </button>
-            <button className="w-full rounded-md border border-neutral-300 py-2 text-[11px]">PIX direto</button>
-            <button className="w-full rounded-md border border-neutral-300 py-2 text-[11px]">Dinheiro</button>
-            <div className="mt-3 rounded-md bg-emerald-50 p-2 text-[10px] text-emerald-700">
-              ✓ Pagamento confirmado<br/>às 11:54
-            </div>
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/comanda" src="/comanda" />
+
       <Value
         items={[
           { icon: CreditCard, label: "Caixa digital", text: "Sem maquininha perdida, sem erro de troco. Recebimento rastreado por venda." },
