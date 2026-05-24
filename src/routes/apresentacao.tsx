@@ -981,32 +981,8 @@ function S_Waitlist() {
       title="Nenhum cliente perdido por falta de horário"
       description="Quando a agenda lota, o cliente entra na fila. Ao abrir um espaço, o sistema notifica automaticamente pelo WhatsApp."
     >
-      <Browser url="app.manoelves.com.br/fila-espera">
-        <div className="p-4">
-          <p className="text-[11px] uppercase tracking-widest text-neutral-500">Fila ativa</p>
-          <div className="mt-2 space-y-1.5">
-            {[
-              {n:"Rafael",p:"Manhã", w:"2h"},
-              {n:"Vitor",p:"Tarde", w:"5h"},
-              {n:"André",p:"Qualquer", w:"1h"},
-              {n:"Tiago",p:"Noite", w:"30min"},
-            ].map((c, i) => (
-              <div key={c.n} className="flex items-center justify-between rounded border border-neutral-200 p-2 text-[11px]">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 text-[10px] text-white">{i+1}</span>
-                  <div>
-                    <p className="font-semibold">{c.n}</p>
-                    <p className="text-[9px] text-neutral-500">Prefere: {c.p} · espera {c.w}</p>
-                  </div>
-                </div>
-                <button className="rounded bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                  Avisar
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/fila-espera" src="/fila-espera" />
+
       <Value
         items={[
           { icon: Bell, label: "Cancelamento = oportunidade", text: "Espaço aberto é preenchido em minutos com aviso automático." },
