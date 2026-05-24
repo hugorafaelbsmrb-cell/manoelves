@@ -723,40 +723,8 @@ function S_Agenda() {
       title="O dia inteiro em uma tela"
       description="Visão por barbeiro ou consolidada da loja. Arrastar para remarcar, clicar para abrir comanda, status colorido por situação."
     >
-      <Browser url="app.manoelves.com.br/agenda">
-        <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold">Quarta, 21 maio</p>
-            <div className="flex gap-1 text-[10px]">
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">Confirmados 12</span>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">Em atendimento 2</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 text-[10px]">
-            <div />
-            <div className="text-center font-semibold">João</div>
-            <div className="text-center font-semibold">Pedro</div>
-            <div className="text-center font-semibold">Carlos</div>
-            {["09","10","11","12","14","15","16"].map((h, row) => (
-              <div key={h} className="contents">
-                <div className="py-2 text-right text-neutral-400">{h}h</div>
-                {[0,1,2].map((c) => {
-                  const filled = (row + c) % 2 === 0;
-                  return (
-                    <div key={c} className={`h-10 rounded ${
-                      filled
-                        ? c === 1 ? "bg-amber-200" : "bg-emerald-200"
-                        : "bg-neutral-100"
-                    } flex items-center px-1.5`}>
-                      {filled ? <span className="truncate text-[9px] font-semibold text-neutral-800">Cliente {row+c+1}</span> : null}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
-      </Browser>
+      <Browser url="app.manoelves.com.br/agenda" src="/agenda" />
+
       <Value
         items={[
           { icon: Calendar, label: "Operação fluida", text: "Toda a equipe enxerga o mesmo painel em tempo real, sem agenda de papel." },
