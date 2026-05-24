@@ -309,17 +309,19 @@ export function MK_Dashboard() {
             [Calendar,"Agendamentos","312","+9%"],
             [Users,"Clientes ativos","186","+12%"],
             [TrendingUp,"Ticket médio","R$ 135","+4%"],
-          ].map(([Icon,label,val,delta])=>(
-            <div key={label as string} className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+          ].map((row)=>{
+            const Icon = row[0] as React.ComponentType<{className?: string}>;
+            const [, label, val, delta] = row as [unknown,string,string,string];
+            return (
+            <div key={label} className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
               <div className="flex items-center justify-between">
-                {/* @ts-expect-error icon */}
                 <Icon className="h-4 w-4 text-neutral-400" />
-                <span className="text-[10px] font-semibold text-emerald-400">{delta as string}</span>
+                <span className="text-[10px] font-semibold text-emerald-400">{delta}</span>
               </div>
-              <p className="mt-3 text-[10px] uppercase text-neutral-500">{label as string}</p>
-              <p className="text-xl font-bold">{val as string}</p>
+              <p className="mt-3 text-[10px] uppercase text-neutral-500">{label}</p>
+              <p className="text-xl font-bold">{val}</p>
             </div>
-          ))}
+          );})}
         </div>
         <div className="mt-5 grid grid-cols-3 gap-3">
           <div className="col-span-2 rounded-xl border border-neutral-800 bg-neutral-900 p-4">
