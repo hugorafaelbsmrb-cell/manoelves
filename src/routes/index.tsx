@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Scissors, Instagram, MapPin, LogIn, CalendarCheck } from "lucide-react";
+import { Instagram, MapPin, LogIn, CalendarCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HaircutCatalog } from "@/components/haircut-catalog";
 import textureBg from "@/assets/texture-bg.jpg";
+import logoUrl from "@/assets/manoelves-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,35 +48,27 @@ function HomePage() {
     },
   });
 
-  return (
-    <div className="dark relative min-h-screen bg-background text-foreground">
-      {/* Textured background */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 opacity-[0.18] mix-blend-screen"
-        style={{
-          backgroundImage: `url(${textureBg})`,
-          backgroundSize: "640px 640px",
-          backgroundRepeat: "repeat",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,transparent_0%,hsl(var(--background))_75%)]"
-      />
+  const logo = shop?.logo_url || logoUrl;
 
+  return (
+    <div
+      className="dark relative min-h-screen text-foreground"
+      style={{
+        backgroundColor: "hsl(var(--background))",
+        backgroundImage: `linear-gradient(hsl(var(--background) / 0.86), hsl(var(--background) / 0.92)), url(${textureBg})`,
+        backgroundSize: "auto, 520px 520px",
+        backgroundRepeat: "no-repeat, repeat",
+        backgroundAttachment: "fixed, fixed",
+      }}
+    >
       <header className="relative border-b border-border/40">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
           <div className="flex items-center gap-2">
-            {shop?.logo_url ? (
-              <img
-                src={shop.logo_url}
-                alt={shop?.name ?? "Logo"}
-                className="h-8 w-8 rounded-full object-cover"
-              />
-            ) : (
-              <Scissors className="h-5 w-5" />
-            )}
+            <img
+              src={logo}
+              alt={shop?.name ?? "Mano Elves"}
+              className="h-9 w-9 rounded-full object-contain"
+            />
             <span className="font-display text-xl tracking-wider">
               {shop?.name?.toUpperCase() ?? "MANO ELVES"}
             </span>
@@ -102,13 +95,11 @@ function HomePage() {
       )}
 
       <section className="relative mx-auto max-w-5xl px-5 py-16 text-center">
-        {shop?.logo_url && (
-          <img
-            src={shop.logo_url}
-            alt={shop?.name ?? "Logo"}
-            className="mx-auto mb-6 h-24 w-24 rounded-full border border-border/60 object-cover shadow-[0_0_40px_0_rgba(255,255,255,0.08)]"
-          />
-        )}
+        <img
+          src={logo}
+          alt={shop?.name ?? "Mano Elves"}
+          className="mx-auto mb-6 h-28 w-28 object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]"
+        />
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
           Barbearia
         </p>
