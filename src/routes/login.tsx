@@ -21,7 +21,16 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="dark min-h-screen text-foreground"
+      style={{
+        backgroundColor: "#1a0f08",
+        backgroundImage: `linear-gradient(rgba(10,5,2,0.92), rgba(10,5,2,0.96)), url(${textureBg})`,
+        backgroundSize: "auto, 720px 720px",
+        backgroundRepeat: "no-repeat, repeat",
+        backgroundAttachment: "fixed, fixed",
+      }}
+    >
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 flex flex-col items-center justify-center gap-3">
           <img src={logoUrl} alt="Mano Elves" className="h-20 w-auto" />
