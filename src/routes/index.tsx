@@ -1,19 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Instagram, MapPin, LogIn, CalendarCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { HaircutCatalog } from "@/components/haircut-catalog";
-import textureBg from "@/assets/texture-bg.jpg";
-import logoUrl from "@/assets/manoelves-logo.png";
+
+import { Hero } from "@/components/landing/Hero";
+import { Services } from "@/components/landing/Services";
+import { Team } from "@/components/landing/Team";
+import { Gallery } from "@/components/landing/Gallery";
+import { Plans } from "@/components/landing/Plans";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { Location } from "@/components/landing/Location";
+import { Footer } from "@/components/landing/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Barbearia Mano Elves — Agendamento Online" },
+      { title: "Barbearia Manoel Eves — Agendamento Online" },
       {
         name: "description",
         content:
-          "Escolha seu barbeiro e agende seu corte na Barbearia Mano Elves em segundos.",
+          "Escolha seu barbeiro e agende seu corte na Barbearia Manoel Eves em segundos.",
       },
     ],
   }),
@@ -48,152 +53,35 @@ function HomePage() {
     },
   });
 
-  const logo = shop?.logo_url || logoUrl;
-
   return (
-    <div
-      className="dark relative min-h-screen text-foreground"
-      style={{
-        backgroundColor: "#1a0f08",
-        backgroundImage: `linear-gradient(rgba(10,5,2,0.92), rgba(10,5,2,0.96)), url(${textureBg})`,
-        backgroundSize: "auto, 720px 720px",
-        backgroundRepeat: "no-repeat, repeat",
-        backgroundAttachment: "fixed, fixed",
-      }}
-    >
-      <header className="relative border-b border-border/40">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
-          <div className="flex items-center gap-2">
-            <img
-              src={logo}
-              alt={shop?.name ?? "Mano Elves"}
-              className="h-9 w-9 rounded-full object-contain"
-            />
-            <span className="font-display text-xl tracking-wider">
-              {shop?.name?.toUpperCase() ?? "MANO ELVES"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <LogIn className="h-3.5 w-3.5" /> Área do cliente
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="dark min-h-screen bg-[#0a0a0a] text-gray-200 font-sans selection:bg-[#d4a857] selection:text-black">
+      <Hero shop={shop} />
+      
+      <div id="servicos">
+        <Services />
+      </div>
 
-      {shop?.banner_url && (
-        <div className="mx-auto max-w-5xl px-5 pt-6">
-          <img
-            src={shop.banner_url}
-            alt="Banner Mano Elves"
-            className="aspect-[4/1] w-full rounded-xl border border-border object-cover"
-          />
-        </div>
-      )}
+      <div id="equipe">
+        <Team barbers={barbers || []} />
+      </div>
 
-      <section className="relative mx-auto max-w-5xl px-5 py-16 text-center">
-        <img
-          src={logo}
-          alt={shop?.name ?? "Mano Elves"}
-          className="mx-auto mb-6 h-28 w-28 object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]"
-        />
-        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          Barbearia
-        </p>
-        <h1 className="mt-4 font-display text-6xl sm:text-7xl">
-          {shop?.name ?? "Mano Elves"}
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
-          Corte, barba e atendimento de primeira. Escolha seu barbeiro e reserve
-          em segundos.
-        </p>
-        {shop?.address && (
-          <p className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" /> {shop.address}
-          </p>
-        )}
-        <div className="mt-8 flex justify-center">
-          <Link
-            to="/agendar"
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-foreground px-8 py-4 text-sm font-semibold uppercase tracking-widest text-background shadow-[0_0_0_0_rgba(255,255,255,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_30px_0_rgba(255,255,255,0.25)]"
-          >
-            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-            <CalendarCheck className="h-4 w-4" />
-            Agendar agora
-          </Link>
-        </div>
-      </section>
+      <div id="galeria">
+        <Gallery />
+      </div>
 
+      <div id="planos">
+        <Plans />
+      </div>
 
-      <section className="mx-auto max-w-5xl px-5 pb-10">
-        <HaircutCatalog />
-      </section>
+      <div id="depoimentos">
+        <Testimonials />
+      </div>
 
+      <div id="contato">
+        <Location shop={shop} />
+      </div>
 
-
-      <section id="barbeiros" className="mx-auto max-w-5xl px-5 pb-20 scroll-mt-20">
-        <h2 className="font-display text-2xl tracking-wider">Nossos barbeiros</h2>
-
-
-        {!barbers || barbers.length === 0 ? (
-          <div className="mt-6 rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-            Nenhum barbeiro ativo ainda. Faça login no{" "}
-            <Link to="/login" className="underline">
-              painel
-            </Link>{" "}
-            para cadastrar a equipe.
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {barbers.map((b) => (
-              <Link
-                key={b.id}
-                to="/$slug"
-                params={{ slug: b.slug! }}
-                className="group rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary text-lg font-display">
-                    {b.avatar_url ? (
-                      <img
-                        src={b.avatar_url}
-                        alt={b.full_name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      b.full_name?.slice(0, 1) || "B"
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-display text-lg tracking-wide">
-                      {b.full_name}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      barber.me/{b.slug}
-                    </p>
-                  </div>
-                </div>
-                {b.bio && (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                    {b.bio}
-                  </p>
-                )}
-                <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-foreground">
-                  Agendar →
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <footer className="border-t border-border/40 py-8 text-center text-xs text-muted-foreground">
-        <Instagram className="mx-auto h-4 w-4" />
-        <p className="mt-2">@barbearia.mano.elves</p>
-      </footer>
+      <Footer shop={shop} />
     </div>
   );
 }
