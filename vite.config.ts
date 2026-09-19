@@ -6,7 +6,6 @@ const isVercelBuild = process.env.VERCEL === "1";
 const isNetlifyBuild = process.env.NETLIFY === "true";
 
 export default defineConfig({
-  cloudflare: isVercelBuild || isNetlifyBuild ? false : undefined,
   tanstackStart: {
     server: { entry: "server" },
   },
