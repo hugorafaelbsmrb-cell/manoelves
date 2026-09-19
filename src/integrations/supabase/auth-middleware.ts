@@ -43,6 +43,8 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: No token provided');
     }
 
+    const { default: WebSocket } = await import('ws')
+
     const supabase = createClient<Database>(
       SUPABASE_URL!,
       SUPABASE_PUBLISHABLE_KEY!,
@@ -56,6 +58,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
           storage: undefined,
           persistSession: false,
           autoRefreshToken: false,
+        },
+        // Node 20 nao tem WebSocket nativo; sem o transport do pacote "ws"
+        // o RealtimeClient emite aviso e falha ao inicializar no servidor.
+        realtime: {
+          transport: WebSocket as never,
         },
       }
     );

@@ -22,9 +22,14 @@ async function getAuthenticatedSupabase() {
   }
 
   const token = authHeader.replace("Bearer ", "");
+  // Node 20 nao tem WebSocket nativo; sem o transport do pacote "ws"
+  // o RealtimeClient emite aviso e falha ao inicializar no servidor.
+  // Import dinamico para o "ws" nunca entrar no bundle do navegador.
+  const { default: WebSocket } = await import("ws");
   const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    realtime: { transport: WebSocket as never },
   });
 
   const { data, error } = await supabase.auth.getUser(token);
