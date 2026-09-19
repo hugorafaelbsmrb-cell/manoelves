@@ -3,6 +3,7 @@
 // Use this for admin operations in server functions and server routes only.
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 import type { Database } from './types';
 
 function createSupabaseAdminClient() {
@@ -24,7 +25,15 @@ function createSupabaseAdminClient() {
       storage: undefined,
       persistSession: false,
       autoRefreshToken: false,
-    }
+    },
+    // A VPS roda Node 20 (sem WebSocket nativo). Sem isso, o supabase-js
+    // lança "Node.js 20 detected without native WebSocket support" ao
+    // inicializar o RealtimeClient e TODAS as server functions quebram.
+    realtime: {
+      // A assinatura do construtor do pacote "ws" difere do tipo
+      // WebSocketLikeConstructor esperado; o cast via never resolve.
+      transport: WebSocket as never,
+    },
   });
 }
 
