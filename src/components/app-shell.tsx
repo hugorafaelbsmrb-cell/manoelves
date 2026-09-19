@@ -16,6 +16,7 @@ import {
   Tv,
   ChevronDown,
   FolderCog,
+  Megaphone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,6 +50,7 @@ const links: NavLink[] = [
   { to: "/meu-financeiro", label: "Meu financeiro", icon: <Wallet className="h-4 w-4" />, barberOnly: true },
   { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
   { to: "/reengajamento", label: "Reengajar", icon: <Heart className="h-4 w-4" />, ownerOnly: true },
+  { to: "/marketing", label: "Marketing", icon: <Megaphone className="h-4 w-4" />, ownerOnly: true },
   { to: "/signage", label: "Signage TV", icon: <Tv className="h-4 w-4" />, ownerOnly: true },
 ];
 

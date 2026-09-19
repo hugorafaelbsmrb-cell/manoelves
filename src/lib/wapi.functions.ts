@@ -5,32 +5,56 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyToken } from "@/lib/client-token.server";
 import { normalizePhone } from "@/lib/phone";
 
-type Settings = { uazapi_url?: string | null; uazapi_token?: string | null };
+// ============================================================
+// Gateway W-API (https://docs.w-api.app) — substitui a uazapi.
+// Auth: Authorization: Bearer <wapi_token> + instanceId na query.
+// Plano PRO: botões de ação (CALL/URL) via /v1/message/send-buttons-action.
+// ============================================================
+
+export const WAPI_BASE = "https://api.w-api.app";
+
 type Json = null | string | number | boolean | Json[] | { [k: string]: Json };
+
+type WapiSettings = { wapi_token?: string | null; wapi_instance_id?: string | null };
+
+export type WapiSendResponse = {
+  instanceId?: string;
+  messageId?: string;
+  insertedId?: string;
+};
 
 async function getConfig() {
   const { data, error } = await supabaseAdmin
     .from("integration_settings")
-    .select("uazapi_url, uazapi_token")
+    .select("wapi_token, wapi_instance_id")
     .limit(1)
-    .maybeSingle<Settings>();
+    .maybeSingle<WapiSettings>();
   if (error) throw new Error(error.message);
-  const url = data?.uazapi_url?.trim();
-  const token = data?.uazapi_token?.trim();
-  if (!url || !token) {
-    throw new Error("uazapi não configurada. Adicione URL e token em Configurações.");
+  const token = data?.wapi_token?.trim();
+  const instanceId = data?.wapi_instance_id?.trim();
+  if (!token || !instanceId) {
+    throw new Error(
+      "W-API não configurada. Adicione Token e Instance ID em Configurações.",
+    );
   }
-  return { base: url.replace(/\/+$/, ""), token };
+  return { token, instanceId };
 }
 
-async function uazapi(
+// Usado por outros módulos (marketing) para validar antes de enviar.
+export async function assertWapiConfigured(): Promise<void> {
+  await getConfig();
+}
+
+async function wapi<T = Json>(
   path: string,
   init: { method?: string; body?: unknown } = {},
-): Promise<Json> {
-  const { base, token } = await getConfig();
-  const res = await fetch(base + path, {
+): Promise<T> {
+  const { token, instanceId } = await getConfig();
+  const url = new URL(WAPI_BASE + path);
+  url.searchParams.set("instanceId", instanceId);
+  const res = await fetch(url.toString(), {
     method: init.method ?? "GET",
-    headers: { token, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: init.body ? JSON.stringify(init.body) : undefined,
   });
   const text = await res.text();
@@ -45,77 +69,139 @@ async function uazapi(
     const msg =
       (obj && typeof obj.error === "string" && obj.error) ||
       (obj && typeof obj.message === "string" && obj.message) ||
-      `uazapi ${res.status}`;
+      `W-API ${res.status}`;
     throw new Error(String(msg));
   }
-  return json;
+  return json as T;
 }
 
-function normalizeNumber(raw: string) {
-  const digits = raw.replace(/\D+/g, "");
+export function normalizeWapiNumber(raw: string) {
+  const digits = (raw ?? "").replace(/\D+/g, "");
   if (!digits) return digits;
   if (digits.length <= 11) return "55" + digits;
   return digits;
 }
 
-export const uazapiStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async () => uazapi("/instance/status"));
+// delayMessage da W-API aceita 1–15 segundos (ritmo entre envios na fila).
+function clampDelay(seconds?: number) {
+  if (!seconds || seconds < 1) return undefined;
+  return Math.min(15, Math.max(1, Math.round(seconds)));
+}
 
-const sendTextSchema = z.object({
-  number: z.string().min(8).max(20),
-  text: z.string().min(1).max(4096),
-});
+// ---------- envios brutos (server-side, reutilizados por outras libs) ----------
 
-export const uazapiSendText = createServerFn({ method: "POST" })
+export async function wapiSendText(
+  phone: string,
+  message: string,
+  delayMessage?: number,
+): Promise<WapiSendResponse> {
+  return wapi<WapiSendResponse>("/v1/message/send-text", {
+    method: "POST",
+    body: { phone, message, ...(clampDelay(delayMessage) ? { delayMessage: clampDelay(delayMessage) } : {}) },
+  });
+}
+
+export async function wapiSendImage(
+  phone: string,
+  imageUrl: string,
+  caption?: string,
+  delayMessage?: number,
+): Promise<WapiSendResponse> {
+  return wapi<WapiSendResponse>("/v1/message/send-image", {
+    method: "POST",
+    body: {
+      phone,
+      image: imageUrl,
+      ...(caption ? { caption } : {}),
+      ...(clampDelay(delayMessage) ? { delayMessage: clampDelay(delayMessage) } : {}),
+    },
+  });
+}
+
+export async function wapiSendVideo(
+  phone: string,
+  videoUrl: string,
+  caption?: string,
+  delayMessage?: number,
+): Promise<WapiSendResponse> {
+  return wapi<WapiSendResponse>("/v1/message/send-video", {
+    method: "POST",
+    body: {
+      phone,
+      video: videoUrl,
+      ...(caption ? { caption } : {}),
+      ...(clampDelay(delayMessage) ? { delayMessage: clampDelay(delayMessage) } : {}),
+    },
+  });
+}
+
+export type WapiButtonAction = {
+  type: "CALL" | "URL" | "REPLY";
+  buttonText: string;
+  url?: string;
+  phone?: string;
+};
+
+export async function wapiSendButtonsAction(
+  phone: string,
+  message: string,
+  buttonActions: WapiButtonAction[],
+  delayMessage?: number,
+): Promise<WapiSendResponse> {
+  return wapi<WapiSendResponse>("/v1/message/send-buttons-action", {
+    method: "POST",
+    body: {
+      phone,
+      message,
+      buttonActions,
+      ...(clampDelay(delayMessage) ? { delayMessage: clampDelay(delayMessage) } : {}),
+    },
+  });
+}
+
+// ---------- instância (usado pela tela de Configurações) ----------
+
+export async function wapiConnectionState(): Promise<Json> {
+  try {
+    return await wapi("/v1/instance/connection-state");
+  } catch {
+    // Fallback para instâncias sem endpoint de estado: info da instância.
+    return wapi("/v1/instance/info");
+  }
+}
+
+export async function wapiQrCodeBase64(): Promise<string> {
+  const res = await wapi<{ qrcode?: string; error?: boolean }>(
+    "/v1/instance/qr-code?image=disable",
+  );
+  if (!res?.qrcode) {
+    throw new Error(
+      "W-API não retornou QR code. A instância já pode estar conectada.",
+    );
+  }
+  return res.qrcode;
+}
+
+export const wapiStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => sendTextSchema.parse(d))
-  .handler(async ({ data }): Promise<{ ok: true; number: string }> => {
-    const number = normalizeNumber(data.number);
-    await uazapi("/send/text", {
-      method: "POST",
-      body: { number, text: data.text },
-    });
-    return { ok: true, number };
+  .handler(async () => {
+    const res = await wapiConnectionState();
+    return res;
   });
 
-const connectSchema = z.object({ phone: z.string().max(20).optional() }).optional();
-
-export const uazapiConnect = createServerFn({ method: "POST" })
+export const wapiQr = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => connectSchema.parse(d) ?? {})
-  .handler(async ({ data }) => {
-    const body: Record<string, string> = {};
-    if (data?.phone) body.phone = normalizeNumber(data.phone);
-    const res = (await uazapi("/instance/connect", {
-      method: "POST",
-      body,
-    })) as Record<string, unknown> | null;
-    const obj = (res && typeof res === "object" ? res : {}) as Record<string, unknown>;
-    const instance = (obj.instance ?? {}) as Record<string, unknown>;
-    const qrcode =
-      (typeof obj.qrcode === "string" && obj.qrcode) ||
-      (typeof instance.qrcode === "string" && instance.qrcode) ||
-      (typeof obj.qr === "string" && obj.qr) ||
-      null;
-    const paircode =
-      (typeof obj.paircode === "string" && obj.paircode) ||
-      (typeof instance.paircode === "string" && instance.paircode) ||
-      null;
-    const status =
-      (typeof obj.status === "string" && obj.status) ||
-      (typeof instance.status === "string" && instance.status) ||
-      null;
-    return { qrcode, paircode, status };
+  .handler(async () => {
+    const qrcode = await wapiQrCodeBase64();
+    return { qrcode };
   });
 
-export const uazapiDisconnect = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async () => uazapi("/instance/disconnect", { method: "POST" }));
-
+// ============================================================
+// Confirmação de agendamento.
 // Public — chamado pelo fluxo de agendamento (cliente não autenticado).
 // Exige o token do cliente (OTP verificado) e confere se o telefone do
 // agendamento bate com o telefone do token — evita envio abusivo de WhatsApp.
+// ============================================================
 const sendBookingConfirmationSchema = z.object({
   appointmentId: z.string().uuid(),
   token: z.string().min(10),
@@ -173,12 +259,9 @@ export const sendBookingConfirmation = createServerFn({ method: "POST" })
       `Seu horário com *${barberName}* está confirmado para *${dia}* às *${hora}*.\n\n` +
       `Qualquer imprevisto, é só responder esta mensagem. Até breve! ✂️`;
 
-    const number = normalizeNumber(appt.client_whatsapp);
+    const number = normalizeWapiNumber(appt.client_whatsapp);
     try {
-      await uazapi("/send/text", {
-        method: "POST",
-        body: { number, text },
-      });
+      await wapiSendText(number, text);
     } catch (e) {
       // log mesmo em falha p/ rastreio
       await supabaseAdmin.from("messages_log").insert({
@@ -201,11 +284,10 @@ export const sendBookingConfirmation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 // ============================================================
 // Envio de cobrança PIX (copia e cola) via WhatsApp.
-// Usa o endpoint /send/menu (type:button) com botão "copy:" —
-// gera nativamente o botão "copiar código" no WhatsApp.
+// W-API não oferece botão "copiar código" — o código vai como
+// texto monoespaçado (selecionável no WhatsApp).
 // ============================================================
 const sendOrderPixSchema = z.object({ orderId: z.string().uuid() });
 
@@ -245,45 +327,24 @@ export const sendOrderPixWhatsApp = createServerFn({ method: "POST" })
       `Olá, ${firstName}! ✂️\n` +
       `Aqui está o PIX da sua comanda *${order.invoice_number ?? ""}* na ${shopName}.\n\n` +
       `Valor: *${valor}*\n\n` +
-      `Toque em *Copiar código PIX* abaixo, abra o app do seu banco em *Pix › Pix Copia e Cola* e cole o código. Pronto! 🚀`;
+      `Copie o código abaixo, abra o app do seu banco em *Pix › Pix Copia e Cola* e cole o código. Pronto! 🚀\n\n` +
+      `*Código PIX (copia e cola):*\n` +
+      "```" +
+      `\n${order.pix_code}\n` +
+      "```";
 
-    const number = normalizeNumber(order.client_whatsapp);
+    const number = normalizeWapiNumber(order.client_whatsapp);
 
     try {
-      await uazapi("/send/menu", {
-        method: "POST",
-        body: {
-          number,
-          type: "button",
-          text,
-          footerText: "Pagamento seguro via Mercado Pago",
-          choices: [`Copiar código PIX|copy:${order.pix_code}`],
-        },
-      });
+      await wapiSendText(number, text);
     } catch (e) {
-      // Fallback: alguns dispositivos/contas não aceitam botões.
-      // Enviar como texto puro contendo o código.
-      try {
-        await uazapi("/send/text", {
-          method: "POST",
-          body: {
-            number,
-            text:
-              `${text}\n\n*Código PIX (copia e cola):*\n` +
-              "```" +
-              `\n${order.pix_code}\n` +
-              "```",
-          },
-        });
-      } catch (err) {
-        await supabaseAdmin.from("messages_log").insert({
-          kind: "pix",
-          to_phone: number,
-          to_name: order.client_name,
-          payload: `[ERRO] ${err instanceof Error ? err.message : String(err)}`,
-        });
-        throw err;
-      }
+      await supabaseAdmin.from("messages_log").insert({
+        kind: "pix",
+        to_phone: number,
+        to_name: order.client_name,
+        payload: `[ERRO] ${e instanceof Error ? e.message : String(e)}`,
+      });
+      throw e;
     }
 
     await supabaseAdmin.from("messages_log").insert({
@@ -295,10 +356,10 @@ export const sendOrderPixWhatsApp = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 // ============================================================
 // Envio dos links de assinatura (cartão recorrente + Pix do 1º mês).
-// O cliente recebe uma mensagem com 2 botões.
+// PRO: botão de ação com URL do checkout + código PIX como texto
+// (a W-API não tem botão "copiar"). Fallback LITE: texto puro.
 // ============================================================
 const sendSubscriptionLinksSchema = z.object({
   subscriptionId: z.string().uuid(),
@@ -328,46 +389,33 @@ export const sendSubscriptionLinksWhatsApp = createServerFn({ method: "POST" })
     const firstName = (sub.client_name ?? "").split(" ")[0] || "tudo bem";
     const shopName = shop?.name ?? "a barbearia";
     const valor = brl(sub.monthly_price_cents);
-    const text =
+    const intro =
       `Olá, ${firstName}! ✂️\n` +
       `Sua assinatura *${sub.plan_name}* na ${shopName} está pronta!\n\n` +
       `Valor: *${valor}/mês*\n\n` +
-      `Escolha como ativar:\n` +
-      `• *Cartão recorrente* — cobrança automática todo mês.\n` +
-      `• *Pix do 1º mês* — pague hoje e renove depois.`;
+      `Toque no botão abaixo para assinar com cartão, ou use o PIX do 1º mês.`;
+    const pixText =
+      `📱 *Pix do 1º mês (copia e cola):*\n` +
+      "```" +
+      `\n${data.pixCode}\n` +
+      "```";
 
-    const number = normalizeNumber(sub.client_whatsapp);
+    const number = normalizeWapiNumber(sub.client_whatsapp);
 
     try {
-      await uazapi("/send/menu", {
-        method: "POST",
-        body: {
-          number,
-          type: "button",
-          text,
-          footerText: "Pagamento seguro via Mercado Pago",
-          choices: [
-            `💳 Assinar com cartão|url:${data.mpInitPoint}`,
-            `📱 Copiar Pix do 1º mês|copy:${data.pixCode}`,
-          ],
-        },
-      });
+      // 1º — botão de ação com o checkout do cartão (plano PRO).
+      await wapiSendButtonsAction(number, intro, [
+        { type: "URL", buttonText: "💳 Assinar com cartão", url: data.mpInitPoint },
+      ]);
+      // 2º — código PIX como texto.
+      await wapiSendText(number, pixText);
     } catch (e) {
-      // Fallback: texto puro com link e código
+      // Fallback (plano LITE ou falha de botões): texto puro com link e código.
       try {
-        await uazapi("/send/text", {
-          method: "POST",
-          body: {
-            number,
-            text:
-              `${text}\n\n` +
-              `💳 *Assinar com cartão:* ${data.mpInitPoint}\n\n` +
-              `📱 *Pix do 1º mês (copia e cola):*\n` +
-              "```" +
-              `\n${data.pixCode}\n` +
-              "```",
-          },
-        });
+        await wapiSendText(
+          number,
+          `${intro}\n\n💳 *Assinar com cartão:* ${data.mpInitPoint}\n\n${pixText}`,
+        );
       } catch (err) {
         await supabaseAdmin.from("messages_log").insert({
           kind: "subscription",
@@ -387,5 +435,3 @@ export const sendSubscriptionLinksWhatsApp = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
-
-

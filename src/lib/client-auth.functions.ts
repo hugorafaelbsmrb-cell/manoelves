@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizePhone } from "@/lib/phone";
+import { normalizeWapiNumber, wapiSendText } from "@/lib/wapi.functions";
 import {
   generateOtpCode,
   hashEqualsHex,
@@ -10,31 +11,9 @@ import {
   verifyToken,
 } from "@/lib/client-token.server";
 
-// ---------- uazapi mínimo (server-only) ----------
-async function getUazapi() {
-  const { data, error } = await supabaseAdmin
-    .from("integration_settings")
-    .select("uazapi_url, uazapi_token")
-    .limit(1)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  const url = data?.uazapi_url?.trim();
-  const token = data?.uazapi_token?.trim();
-  if (!url || !token) throw new Error("WhatsApp não configurado pelo lojista.");
-  return { base: url.replace(/\/+$/, ""), token };
-}
-
+// ---------- W-API (server-only, reutiliza o gateway de wapi.functions) ----------
 async function sendWhatsAppText(number: string, text: string) {
-  const { base, token } = await getUazapi();
-  const res = await fetch(base + "/send/text", {
-    method: "POST",
-    headers: { token, "Content-Type": "application/json" },
-    body: JSON.stringify({ number, text }),
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`Falha ao enviar WhatsApp: ${res.status} ${t}`);
-  }
+  await wapiSendText(normalizeWapiNumber(number), text);
 }
 
 // ---------- requestClientOtp ----------

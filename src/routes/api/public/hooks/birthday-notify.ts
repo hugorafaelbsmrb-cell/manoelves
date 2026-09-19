@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-function normalizeNumber(raw: string) {
-  const digits = (raw ?? "").replace(/\D+/g, "");
-  if (!digits) return digits;
-  if (digits.length <= 11) return "55" + digits;
-  return digits;
-}
+import { normalizeWapiNumber, wapiSendText } from "@/lib/wapi.functions";
 
 function applyTemplate(
   tmpl: string,
@@ -18,7 +12,7 @@ function applyTemplate(
 }
 
 /**
- * Cron diário — envia mensagem de aniversário antecipada via uazapi.
+ * Cron diário — envia mensagem de aniversário antecipada via W-API.
  * Chamado por pg_cron uma vez por dia. Protegido por secret:
  *  - Exige ?secret=<internal_hooks_secret> ou header x-webhook-secret.
  *  - Valida que o envio ainda não foi feito no ano corrente (tabela de log).
@@ -32,7 +26,7 @@ export const Route = createFileRoute("/api/public/hooks/birthday-notify")({
         const { data: settings, error: sErr } = await supabaseAdmin
           .from("integration_settings")
           .select(
-            "uazapi_url, uazapi_token, birthday_days_before, birthday_discount_pct, birthday_message_template, birthday_notifications_enabled, internal_hooks_secret",
+            "wapi_token, wapi_instance_id, birthday_days_before, birthday_discount_pct, birthday_message_template, birthday_notifications_enabled, internal_hooks_secret",
           )
           .limit(1)
           .maybeSingle();
@@ -59,10 +53,10 @@ export const Route = createFileRoute("/api/public/hooks/birthday-notify")({
         if (!settings.birthday_notifications_enabled) {
           return Response.json({ ok: true, skipped: "disabled" });
         }
-        const base = (settings.uazapi_url ?? "").replace(/\/+$/, "");
-        const token = settings.uazapi_token ?? "";
-        if (!base || !token) {
-          return Response.json({ ok: true, skipped: "uazapi-not-configured" });
+        const wapiToken = settings.wapi_token ?? "";
+        const wapiInstance = settings.wapi_instance_id ?? "";
+        if (!wapiToken || !wapiInstance) {
+          return Response.json({ ok: true, skipped: "wapi-not-configured" });
         }
 
         const daysBefore = settings.birthday_days_before ?? 7;
@@ -110,15 +104,10 @@ export const Route = createFileRoute("/api/public/hooks/birthday-notify")({
             nome: firstName,
             desconto: discountPct,
           });
-          const number = normalizeNumber(c.whatsapp);
+          const number = normalizeWapiNumber(c.whatsapp);
 
           try {
-            const res = await fetch(`${base}/send/text`, {
-              method: "POST",
-              headers: { token, "Content-Type": "application/json" },
-              body: JSON.stringify({ number, text }),
-            });
-            if (!res.ok) throw new Error(`uazapi ${res.status}`);
+            await wapiSendText(number, text);
             await supabaseAdmin.from("birthday_notifications_log").insert({
               client_id: c.id,
               sent_for_year: year,

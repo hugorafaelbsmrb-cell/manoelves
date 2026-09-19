@@ -8,7 +8,7 @@ import { ArrowLeft, Check, Copy, QrCode, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { sendBookingConfirmation } from "@/lib/uazapi.functions";
+import { sendBookingConfirmation } from "@/lib/wapi.functions";
 import { requestClientOtp, verifyClientOtp } from "@/lib/client-auth.functions";
 import { createPublicBooking, confirmBookingPayment } from "@/lib/booking.functions";
 import { Button } from "@/components/ui/button";
@@ -311,7 +311,7 @@ function BookingPage() {
     setStep("done");
   }
 
-  // O log em messages_log é feito pela própria server fn (uazapi.functions).
+  // O log em messages_log é feito pela própria server fn (wapi.functions).
   async function sendConfirmation(apptId: string, token: string) {
     try {
       await sendBookingConfirmation({ data: { appointmentId: apptId, token } });

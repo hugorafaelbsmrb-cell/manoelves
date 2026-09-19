@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
 import { upsertClient } from "@/lib/clients";
 import { createOrderCheckout, createOrderPix } from "@/lib/payments.functions";
-import { sendOrderPixWhatsApp } from "@/lib/uazapi.functions";
+import { sendOrderPixWhatsApp } from "@/lib/wapi.functions";
 
 export const Route = createFileRoute("/comanda")({
   ssr: false,

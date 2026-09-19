@@ -6,8 +6,8 @@ import type { Database } from "@/integrations/supabase/types";
 
 // ============================================================
 // Configurações de integração — SERVER ONLY.
-// Segredos (mp_access_token, mp_webhook_secret, uazapi_token,
-// sighor_api_key, whatsapp_*) NUNCA voltam para o cliente.
+// Segredos (mp_access_token, mp_webhook_secret, wapi_token,
+// openai_api_key, sighor_api_key, whatsapp_*) NUNCA voltam para o cliente.
 // O cliente só recebe flags "configured" e campos públicos.
 // ============================================================
 
@@ -29,6 +29,8 @@ export type PublicIntegrationSettings = {
   sighor_configured: boolean;
   uazapi_url: string;
   uazapi_configured: boolean;
+  wapi_configured: boolean;
+  openai_configured: boolean;
   birthday_notifications_enabled: boolean;
   birthday_days_before: number;
   birthday_discount_pct: number;
@@ -42,7 +44,7 @@ export const getIntegrationSettings = createServerFn({ method: "GET" })
     const { data } = await supabaseAdmin
       .from("integration_settings")
       .select(
-        "mp_access_token, mp_public_key, mp_webhook_secret, whatsapp_token, whatsapp_phone_id, sighor_api_key, uazapi_url, uazapi_token, birthday_notifications_enabled, birthday_days_before, birthday_discount_pct, birthday_message_template",
+        "mp_access_token, mp_public_key, mp_webhook_secret, whatsapp_token, whatsapp_phone_id, sighor_api_key, uazapi_url, uazapi_token, wapi_token, wapi_instance_id, openai_api_key, birthday_notifications_enabled, birthday_days_before, birthday_discount_pct, birthday_message_template",
       )
       .limit(1)
       .maybeSingle();
@@ -56,6 +58,8 @@ export const getIntegrationSettings = createServerFn({ method: "GET" })
       sighor_configured: Boolean(data.sighor_api_key),
       uazapi_url: data.uazapi_url ?? "",
       uazapi_configured: Boolean(data.uazapi_url && data.uazapi_token),
+      wapi_configured: Boolean(data.wapi_token && data.wapi_instance_id),
+      openai_configured: Boolean(data.openai_api_key),
       birthday_notifications_enabled: data.birthday_notifications_enabled ?? true,
       birthday_days_before: data.birthday_days_before ?? 7,
       birthday_discount_pct: Number(data.birthday_discount_pct ?? 15),
@@ -76,6 +80,9 @@ const saveSettingsSchema = z.object({
   sighor_api_key: z.string().max(500).nullable().optional(),
   uazapi_url: z.string().max(500).nullable().optional(),
   uazapi_token: z.string().max(500).nullable().optional(),
+  wapi_token: z.string().max(500).nullable().optional(),
+  wapi_instance_id: z.string().max(200).nullable().optional(),
+  openai_api_key: z.string().max(500).nullable().optional(),
   birthday_notifications_enabled: z.boolean().optional(),
   birthday_days_before: z.number().int().min(0).max(60).optional(),
   birthday_discount_pct: z.number().min(0).max(100).optional(),

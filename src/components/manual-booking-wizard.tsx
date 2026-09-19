@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
 import { upsertClient } from "@/lib/clients";
-import { sendBookingConfirmation } from "@/lib/uazapi.functions";
+import { sendBookingConfirmation } from "@/lib/wapi.functions";
 
 type Step = "barber" | "service" | "datetime" | "client";
 

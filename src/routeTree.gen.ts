@@ -34,6 +34,8 @@ import { Route as SlugAgendarRouteImport } from './routes/$slug_.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 import { Route as ApiPublicHooksBirthdayNotifyRouteImport } from './routes/api/public/hooks/birthday-notify'
 import { Route as ApiPublicSignagePlaylistIdRouteImport } from './routes/api/public/signage.playlist.$id'
+import { Route as MarketingRouteImport } from './routes/marketing'
+import { Route as ApiPublicHooksMarketingSendScheduledRouteImport } from './routes/api/public/hooks/marketing-send-scheduled'
 
 const SignageRoute = SignageRouteImport.update({
   id: '/signage',
@@ -162,6 +164,17 @@ const ApiPublicSignagePlaylistIdRoute =
     path: '/api/public/signage/playlist/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
+const MarketingRoute = MarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksMarketingSendScheduledRoute =
+  ApiPublicHooksMarketingSendScheduledRouteImport.update({
+    id: '/api/public/hooks/marketing-send-scheduled',
+    path: '/api/public/hooks/marketing-send-scheduled',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -189,6 +202,8 @@ export interface FileRoutesByFullPath {
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
   '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
+  '/marketing': typeof MarketingRoute
+  '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -216,6 +231,8 @@ export interface FileRoutesByTo {
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
   '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
+  '/marketing': typeof MarketingRoute
+  '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -244,6 +261,8 @@ export interface FileRoutesById {
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
   '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
+  '/marketing': typeof MarketingRoute
+  '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -273,6 +292,8 @@ export interface FileRouteTypes {
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
     | '/api/public/signage/playlist/$id'
+    | '/marketing'
+    | '/api/public/hooks/marketing-send-scheduled'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -300,6 +321,8 @@ export interface FileRouteTypes {
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
     | '/api/public/signage/playlist/$id'
+    | '/marketing'
+    | '/api/public/hooks/marketing-send-scheduled'
   id:
     | '__root__'
     | '/'
@@ -327,6 +350,8 @@ export interface FileRouteTypes {
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
     | '/api/public/signage/playlist/$id'
+    | '/marketing'
+    | '/api/public/hooks/marketing-send-scheduled'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -355,6 +380,8 @@ export interface RootRouteChildren {
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
   ApiPublicHooksBirthdayNotifyRoute: typeof ApiPublicHooksBirthdayNotifyRoute
   ApiPublicSignagePlaylistIdRoute: typeof ApiPublicSignagePlaylistIdRoute
+  MarketingRoute: typeof MarketingRoute
+  ApiPublicHooksMarketingSendScheduledRoute: typeof ApiPublicHooksMarketingSendScheduledRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -534,6 +561,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSignagePlaylistIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/marketing-send-scheduled': {
+      id: '/api/public/hooks/marketing-send-scheduled'
+      path: '/api/public/hooks/marketing-send-scheduled'
+      fullPath: '/api/public/hooks/marketing-send-scheduled'
+      preLoaderRoute: typeof ApiPublicHooksMarketingSendScheduledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -563,6 +604,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
   ApiPublicHooksBirthdayNotifyRoute: ApiPublicHooksBirthdayNotifyRoute,
   ApiPublicSignagePlaylistIdRoute: ApiPublicSignagePlaylistIdRoute,
+  MarketingRoute: MarketingRoute,
+  ApiPublicHooksMarketingSendScheduledRoute:
+    ApiPublicHooksMarketingSendScheduledRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

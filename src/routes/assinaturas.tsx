@@ -33,7 +33,7 @@ import {
   createSubscriptionPreapproval,
   createSubscriptionFirstPix,
 } from "@/lib/payments.functions";
-import { sendSubscriptionLinksWhatsApp } from "@/lib/uazapi.functions";
+import { sendSubscriptionLinksWhatsApp } from "@/lib/wapi.functions";
 import { notifySubscriptionCreated } from "@/lib/push.functions";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
 

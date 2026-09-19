@@ -425,11 +425,14 @@ export type Database = {
           mp_access_token: string | null
           mp_public_key: string | null
           mp_webhook_secret: string | null
+          openai_api_key: string | null
           sighor_api_key: string | null
           sighor_default_playlist_id: string | null
           uazapi_token: string | null
           uazapi_url: string | null
           updated_at: string
+          wapi_instance_id: string | null
+          wapi_token: string | null
           whatsapp_phone_id: string | null
           whatsapp_token: string | null
         }
@@ -443,11 +446,14 @@ export type Database = {
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
+          openai_api_key?: string | null
           sighor_api_key?: string | null
           sighor_default_playlist_id?: string | null
           uazapi_token?: string | null
           uazapi_url?: string | null
           updated_at?: string
+          wapi_instance_id?: string | null
+          wapi_token?: string | null
           whatsapp_phone_id?: string | null
           whatsapp_token?: string | null
         }
@@ -461,15 +467,128 @@ export type Database = {
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
+          openai_api_key?: string | null
           sighor_api_key?: string | null
           sighor_default_playlist_id?: string | null
           uazapi_token?: string | null
           uazapi_url?: string | null
           updated_at?: string
+          wapi_instance_id?: string | null
+          wapi_token?: string | null
           whatsapp_phone_id?: string | null
           whatsapp_token?: string | null
         }
         Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          audience: Json
+          barber_slug: string | null
+          created_at: string
+          created_by: string | null
+          delay_seconds: number
+          failed_count: number
+          id: string
+          link_mode: string
+          link_target: string
+          media_kind: string
+          media_path: string | null
+          media_url: string | null
+          message_text: string
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: Json
+          barber_slug?: string | null
+          created_at?: string
+          created_by?: string | null
+          delay_seconds?: number
+          failed_count?: number
+          id?: string
+          link_mode?: string
+          link_target?: string
+          media_kind?: string
+          media_path?: string | null
+          media_url?: string | null
+          message_text?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: Json
+          barber_slug?: string | null
+          created_at?: string
+          created_by?: string | null
+          delay_seconds?: number
+          failed_count?: number
+          id?: string
+          link_mode?: string
+          link_target?: string
+          media_kind?: string
+          media_path?: string | null
+          media_url?: string | null
+          message_text?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          client_id: string | null
+          error: string | null
+          id: string
+          name: string | null
+          phone: string
+          sent_at: string | null
+          status: string
+          wapi_message_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          client_id?: string | null
+          error?: string | null
+          id?: string
+          name?: string | null
+          phone: string
+          sent_at?: string | null
+          status?: string
+          wapi_message_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          client_id?: string | null
+          error?: string | null
+          id?: string
+          name?: string | null
+          phone?: string
+          sent_at?: string | null
+          status?: string
+          wapi_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages_log: {
         Row: {
@@ -1088,6 +1207,7 @@ export type Database = {
         | "waitlist"
         | "subscription"
         | "pix"
+        | "marketing"
       order_status: "open" | "closed" | "cancelled"
       payment_method: "pix" | "card" | "cash"
     }
@@ -1233,6 +1353,7 @@ export const Constants = {
         "waitlist",
         "subscription",
         "pix",
+        "marketing",
       ],
       order_status: ["open", "closed", "cancelled"],
       payment_method: ["pix", "card", "cash"],

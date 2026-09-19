@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
+import { wapiStatus, wapiQr } from "@/lib/wapi.functions";
 import { getIntegrationSettings, saveIntegrationSettings } from "@/lib/settings.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BannerUpload } from "@/components/banner-upload";
@@ -37,13 +37,15 @@ type Settings = {
   whatsapp_token: string;
   whatsapp_phone_id: string;
   sighor_api_key: string;
-  uazapi_url: string;
-  uazapi_token: string;
+  wapi_token: string;
+  wapi_instance_id: string;
+  openai_api_key: string;
   mp_configured: boolean;
   mp_webhook_configured: boolean;
   whatsapp_configured: boolean;
   sighor_configured: boolean;
-  uazapi_configured: boolean;
+  wapi_configured: boolean;
+  openai_configured: boolean;
 };
 
 const empty: Settings = {
@@ -53,13 +55,15 @@ const empty: Settings = {
   whatsapp_token: "",
   whatsapp_phone_id: "",
   sighor_api_key: "",
-  uazapi_url: "",
-  uazapi_token: "",
+  wapi_token: "",
+  wapi_instance_id: "",
+  openai_api_key: "",
   mp_configured: false,
   mp_webhook_configured: false,
   whatsapp_configured: false,
   sighor_configured: false,
-  uazapi_configured: false,
+  wapi_configured: false,
+  openai_configured: false,
 };
 
 type Shop = { id?: string; banner_url: string };
@@ -99,8 +103,8 @@ function Page() {
           mp_webhook_configured: settings.mp_webhook_configured,
           whatsapp_configured: settings.whatsapp_configured,
           sighor_configured: settings.sighor_configured,
-          uazapi_url: settings.uazapi_url ?? "",
-          uazapi_configured: settings.uazapi_configured,
+          wapi_configured: settings.wapi_configured,
+          openai_configured: settings.openai_configured,
         });
         setBday({
           enabled: settings.birthday_notifications_enabled ?? true,
@@ -143,8 +147,9 @@ function Page() {
           whatsapp_token: toValue(s.whatsapp_token),
           whatsapp_phone_id: toValue(s.whatsapp_phone_id),
           sighor_api_key: toValue(s.sighor_api_key),
-          uazapi_url: toValue(s.uazapi_url),
-          uazapi_token: toValue(s.uazapi_token),
+          wapi_token: toValue(s.wapi_token),
+          wapi_instance_id: toValue(s.wapi_instance_id),
+          openai_api_key: toValue(s.openai_api_key),
           birthday_notifications_enabled: bday.enabled,
           birthday_days_before: bday.daysBefore,
           birthday_discount_pct: bday.discountPct,
@@ -160,7 +165,8 @@ function Page() {
         whatsapp_token: prev.whatsapp_token === CLEAR ? "" : prev.whatsapp_token,
         whatsapp_phone_id: prev.whatsapp_phone_id === CLEAR ? "" : prev.whatsapp_phone_id,
         sighor_api_key: prev.sighor_api_key === CLEAR ? "" : prev.sighor_api_key,
-        uazapi_token: prev.uazapi_token === CLEAR ? "" : prev.uazapi_token,
+        wapi_token: prev.wapi_token === CLEAR ? "" : prev.wapi_token,
+        openai_api_key: prev.openai_api_key === CLEAR ? "" : prev.openai_api_key,
       }));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao salvar");
@@ -218,7 +224,7 @@ function Page() {
             <div>
               <p className="text-sm font-medium">Notificações de aniversário</p>
               <p className="text-xs text-muted-foreground">
-                Envia mensagem via WhatsApp (uazapi) X dias antes do aniversário do cliente.
+                Envia mensagem via WhatsApp (W-API) X dias antes do aniversário do cliente.
               </p>
             </div>
             <Switch
@@ -320,30 +326,55 @@ function Page() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">uazapi — WhatsApp API</CardTitle>
+          <CardTitle className="text-base">W-API — WhatsApp API</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field
-            label="URL do servidor"
-            placeholder="https://seusubdominio.uazapi.com"
-            value={s.uazapi_url}
-            onChange={(v) => setS({ ...s, uazapi_url: v })}
+            label="Token"
+            placeholder="seu_token_do_painel"
+            value={s.wapi_token}
+            onChange={(v) => setS({ ...s, wapi_token: v })}
+            type="password"
+            masked={s.wapi_configured}
+            onClear={() => setS({ ...s, wapi_token: CLEAR })}
           />
           <Field
-            label="Token da instância"
-            placeholder="seu_token_da_instancia"
-            value={s.uazapi_token}
-            onChange={(v) => setS({ ...s, uazapi_token: v })}
-            type="password"
-            masked={s.uazapi_configured}
-            onClear={() => setS({ ...s, uazapi_token: CLEAR })}
+            label="Instance ID"
+            placeholder="ex.: X1A2B3-C4D5E6-F7G8H9"
+            value={s.wapi_instance_id}
+            onChange={(v) => setS({ ...s, wapi_instance_id: v })}
           />
           <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
-            <TestUazapi />
-            <ConnectUazapi />
-            <DisconnectUazapi />
+            <TestWapi />
+            <QrWapi />
             <p className="text-xs text-muted-foreground">
-              Salve antes de usar. Conectar gera um QR code para parear o WhatsApp.
+              Salve antes de usar. O QR code expira em ~20s (feche e abra de
+              novo para atualizar). Também dá para conectar pelo painel da
+              W-API.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">OpenAI — GPT (marketing)</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="API Key"
+            placeholder="sk-..."
+            value={s.openai_api_key}
+            onChange={(v) => setS({ ...s, openai_api_key: v })}
+            type="password"
+            masked={s.openai_configured}
+            onClear={() => setS({ ...s, openai_api_key: CLEAR })}
+          />
+          <div className="rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
+            <p className="font-medium text-foreground">Como obter:</p>
+            <p className="mt-1 text-muted-foreground">
+              plataforma.openai.com → API keys. Usada para escrever textos
+              (gpt-4o-mini) e gerar imagens (gpt-image-1) das campanhas.
             </p>
           </div>
         </CardContent>
@@ -356,8 +387,8 @@ function Page() {
   );
 }
 
-function TestUazapi() {
-  const status = useServerFn(uazapiStatus);
+function TestWapi() {
+  const status = useServerFn(wapiStatus);
   const [loading, setLoading] = useState(false);
   return (
     <Button
@@ -368,14 +399,14 @@ function TestUazapi() {
       onClick={async () => {
         setLoading(true);
         try {
-          const r = (await status()) as { instance?: { status?: string } } | Record<string, unknown>;
+          const r = (await status()) as Record<string, unknown>;
           const st =
-            (r as { instance?: { status?: string } }).instance?.status ??
-            (r as { status?: string }).status ??
+            (typeof r.state === "string" && r.state) ||
+            (typeof r.status === "string" && r.status) ||
             "ok";
-          toast.success(`uazapi: ${st}`);
+          toast.success(`W-API: ${st}`);
         } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Falha ao consultar uazapi");
+          toast.error(e instanceof Error ? e.message : "Falha ao consultar W-API");
         } finally {
           setLoading(false);
         }
@@ -386,161 +417,52 @@ function TestUazapi() {
   );
 }
 
-function ConnectUazapi() {
-  const connect = useServerFn(uazapiConnect);
-  const statusFn = useServerFn(uazapiStatus);
+function QrWapi() {
+  const qr = useServerFn(wapiQr);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [qr, setQr] = useState<string | null>(null);
-  const [pair, setPair] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    let stop = false;
-    const tick = async () => {
-      try {
-        const r = (await statusFn()) as
-          | { instance?: { status?: string } }
-          | { status?: string }
-          | Record<string, unknown>;
-        const st =
-          (r as { instance?: { status?: string } }).instance?.status ??
-          (r as { status?: string }).status ??
-          null;
-        if (!stop && st) {
-          setStatus(st);
-          if (st === "connected" || st === "open") {
-            setQr(null);
-            setPair(null);
-            toast.success("WhatsApp conectado");
-            setOpen(false);
-          }
-        }
-      } catch {
-        // ignore polling errors
-      }
-    };
-    const id = setInterval(tick, 3000);
-    void tick();
-    return () => {
-      stop = true;
-      clearInterval(id);
-    };
-  }, [open, statusFn]);
-
-  async function run(usePhone: boolean) {
-    setLoading(true);
-    setQr(null);
-    setPair(null);
-    setStatus(null);
-    try {
-      const r = await connect({ data: usePhone && phone ? { phone } : {} });
-      setQr(r.qrcode);
-      setPair(r.paircode);
-      setStatus(r.status);
-      if (!r.qrcode && !r.paircode) {
-        toast.success(`Status: ${r.status ?? "ok"}`);
-      }
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao conectar");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const qrSrc = qr
-    ? qr.startsWith("data:")
-      ? qr
-      : `data:image/png;base64,${qr}`
-    : null;
-
+  const [code, setCode] = useState<string | null>(null);
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (o) void run(false);
-      }}
-    >
-      <Button type="button" size="sm" onClick={() => setOpen(true)}>
-        Conectar instância
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        size="sm"
+        disabled={loading}
+        onClick={async () => {
+          setOpen(true);
+          setLoading(true);
+          try {
+            const r = await qr();
+            setCode(r.qrcode);
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Falha ao gerar QR");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
+        Conectar via QR
       </Button>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Conectar WhatsApp</DialogTitle>
           <DialogDescription>
-            Escaneie o QR code no WhatsApp → Aparelhos conectados, ou use o código de
-            pareamento informando seu número.
+            Escaneie no WhatsApp → Aparelhos conectados. O código expira em
+            ~20s — feche e abra de novo para atualizar.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="flex justify-center">
           {loading && <p className="text-sm text-muted-foreground">Gerando…</p>}
-          {qrSrc && (
-            <div className="flex justify-center">
-              <img src={qrSrc} alt="QR code" className="h-64 w-64" />
-            </div>
-          )}
-          {pair && (
-            <p className="text-center font-mono text-lg tracking-widest">{pair}</p>
-          )}
-          {status && (
-            <p className="text-center text-xs text-muted-foreground">Status: {status}</p>
-          )}
-          <div className="flex gap-2">
-            <Input
-              placeholder="Número com DDD (opcional, p/ paircode)"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+          {code && !loading && (
+            <img
+              src={code.startsWith("data:") ? code : `data:image/png;base64,${code}`}
+              alt="QR code"
+              className="h-64 w-64"
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={loading}
-              onClick={() => void run(true)}
-            >
-              Código
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={loading}
-              onClick={() => void run(false)}
-            >
-              Atualizar QR
-            </Button>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function DisconnectUazapi() {
-  const disconnect = useServerFn(uazapiDisconnect);
-  const [loading, setLoading] = useState(false);
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      disabled={loading}
-      onClick={async () => {
-        setLoading(true);
-        try {
-          await disconnect();
-          toast.success("Instância desconectada");
-        } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Falha ao desconectar");
-        } finally {
-          setLoading(false);
-        }
-      }}
-    >
-      {loading ? "Desconectando..." : "Desconectar"}
-    </Button>
   );
 }
 
