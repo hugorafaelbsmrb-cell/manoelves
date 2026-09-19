@@ -127,6 +127,34 @@ export const generateCampaignText = createServerFn({ method: "POST" })
     }
   });
 
+async function craftHeadline(
+  client: OpenAI,
+  shopName: string,
+  campaignText: string,
+): Promise<string> {
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content:
+          `Você é um redator publicitário sênior especializado em barbearias premium de alto nível. ` +
+          `Transforme a mensagem da campanha em uma headline curta e impactante para estampar em uma imagem promocional. ` +
+          `Regras: máximo 6 palavras; sem ponto final; sem emojis; pode usar pontuação dramática (— ou !); ` +
+          `deve transmitir valor, estilo ou urgência. Responda apenas com a headline, sem aspas.`,
+      },
+      {
+        role: "user",
+        content: `Barbearia: "${shopName}". Mensagem da campanha: "${campaignText}".`,
+      },
+    ],
+    max_tokens: 30,
+    temperature: 0.9,
+  });
+  const raw = completion.choices[0]?.message?.content?.trim() ?? "";
+  return raw.replace(/["“”]/g, "").replace(/\s+/g, " ").slice(0, 80);
+}
+
 export const generateCampaignImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -143,28 +171,37 @@ export const generateCampaignImage = createServerFn({ method: "POST" })
     const { shopName, logoUrl } = await getShopContext();
 
     // A imagem nasce do texto da campanha (e, se enviada, da imagem de
-    // referência do usuário): o GPT-Image recebe a mensagem pronta, a
-    // instrução de estampar o texto e a direção de arte clean/premium.
+    // referência do usuário): primeiro uma headline curta de impacto,
+    // depois a geração com direção de arte de barbearia premium.
     const trimmed = data.campaignText.trim().slice(0, 1500);
-    // Texto para estampar na imagem: sem markdown/emojis e curto
-    // (o gpt-image renderiza frases curtas com muito menos erro).
-    const stampRaw = trimmed
+    let headline = "";
+    try {
+      headline = await craftHeadline(client, shopName, trimmed);
+    } catch {
+      headline = "";
+    }
+    // Fallback: primeiras palavras do texto (sem markdown/emojis).
+    const fallbackStamp = trimmed
       .replace(/[*_~`]/g, "")
       .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
       .replace(/\s+/g, " ")
-      .trim();
-    const stamp =
-      stampRaw.length > 140
-        ? `${stampRaw.slice(0, 137).trimEnd().replace(/[^\p{L}\p{N}]+$/u, "")}…`
-        : stampRaw || trimmed;
+      .trim()
+      .split(" ")
+      .slice(0, 6)
+      .join(" ");
+    const stamp = headline || fallbackStamp || trimmed.slice(0, 80);
     const promptBase =
-      `Você é um diretor de arte especializado em marketing de barbearias premium de alto nível. ` +
-      `Crie uma imagem promocional para uma campanha de WhatsApp da barbearia "${shopName}". ` +
+      `Você é um diretor de arte sênior de campanhas para barbearias premium, ` +
+      `com referências em pôsteres vintage americanos de barbearia, editorial masculino de luxo ` +
+      `e fotografia cinematográfica moody. ` +
+      `Crie uma imagem promocional marcante para uma campanha de WhatsApp da barbearia "${shopName}". ` +
       `Tema da campanha: "${trimmed}". ` +
-      `Estampe na imagem, com tipografia elegante, bem legível e sem erros de ortografia, o seguinte texto: "${stamp}". ` +
-      `Priorize um visual clean: composição minimalista, fundo limpo, poucos elementos, ` +
-      `bastante espaço negativo, iluminação suave e profissional. ` +
-      `Estética de barbearia masculina premium, cores escuras com detalhes dourados. ` +
+      `Estampe na imagem, em destaque e com tipografia display forte e sofisticada (estilo pôster vintage, detalhes dourados), a headline: "${stamp}". ` +
+      `Direção de arte: barbearia premium com personalidade — couro, madeira escura, metal dourado, ` +
+      `navalha ou tesoura vintage, fumaça sutil, iluminação cinematográfica dramática (chiaroscuro), ` +
+      `texturas ricas, paleta preto profundo com dourado e toque âmbar. ` +
+      `Composição ousada e marcante, nada genérico. ` +
+      `Mantenha o visual limpo: fundo limpo, espaço negativo, poucos elementos. ` +
       `Sem logotipos e sem rostos de pessoas reais.`;
 
     try {

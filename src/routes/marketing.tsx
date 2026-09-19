@@ -630,8 +630,9 @@ function Page() {
                 </p>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                A imagem é gerada a partir do texto da campanha, com o texto
-                estampado em tipografia elegante e visual clean.
+                A IA cria uma headline curta de impacto a partir do texto e
+                gera a arte com visual premium de barbearia (vintage, dourado,
+                iluminação cinematográfica).
               </p>
               {draft.media_url && (
                 <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/30 p-2">
