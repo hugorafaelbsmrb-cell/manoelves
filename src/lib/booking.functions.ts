@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { verifyToken } from "@/lib/client-auth.functions";
+import { verifyToken } from "@/lib/client-token.server";
 import { normalizePhone } from "@/lib/phone";
 
 // ============================================================

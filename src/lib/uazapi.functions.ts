@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { verifyToken } from "@/lib/client-auth.functions";
+import { verifyToken } from "@/lib/client-token.server";
 import { normalizePhone } from "@/lib/phone";
 
 type Settings = { uazapi_url?: string | null; uazapi_token?: string | null };

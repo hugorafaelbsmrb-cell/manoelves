@@ -1,8 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createHash, createHmac, randomInt, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizePhone } from "@/lib/phone";
+import {
+  generateOtpCode,
+  hashEqualsHex,
+  hashCode,
+  signToken,
+  verifyToken,
+} from "@/lib/client-token.server";
 
 // ---------- uazapi mínimo (server-only) ----------
 async function getUazapi() {
@@ -30,60 +36,6 @@ async function sendWhatsAppText(number: string, text: string) {
     throw new Error(`Falha ao enviar WhatsApp: ${res.status} ${t}`);
   }
 }
-
-// ---------- Hash + Token ----------
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 dias
-
-function getSecret() {
-  const s = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!s) throw new Error("Servidor sem configuração de segredo.");
-  return s;
-}
-
-function hashCode(phone: string, code: string) {
-  return createHash("sha256").update(`${phone}:${code}`).digest("hex");
-}
-
-function b64url(buf: Buffer | string) {
-  return Buffer.from(buf)
-    .toString("base64")
-    .replace(/=+$/, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-function fromB64url(s: string) {
-  s = s.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4) s += "=";
-  return Buffer.from(s, "base64");
-}
-
-function signToken(phone: string) {
-  const payload = { phone, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS };
-  const body = b64url(JSON.stringify(payload));
-  const sig = b64url(createHmac("sha256", getSecret()).update(body).digest());
-  return `${body}.${sig}`;
-}
-
-function verifyToken(token: string): { phone: string } {
-  const [body, sig] = token.split(".");
-  if (!body || !sig) throw new Error("Token inválido.");
-  const expected = b64url(createHmac("sha256", getSecret()).update(body).digest());
-  const a = Buffer.from(sig);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) throw new Error("Token inválido.");
-  const payload = JSON.parse(fromB64url(body).toString("utf8")) as {
-    phone: string;
-    exp: number;
-  };
-  if (payload.exp < Math.floor(Date.now() / 1000)) throw new Error("Sessão expirada.");
-  return { phone: payload.phone };
-}
-
-// ============================================================
-// Valida o token do cliente (assinado com a service role).
-// Usado por server functions de agendamento (server-only).
-// ============================================================
-export { verifyToken };
 
 // ---------- requestClientOtp ----------
 // Código válido por 48h. Se já existir um código não expirado para o telefone,
@@ -121,7 +73,7 @@ export const requestClientOtp = createServerFn({ method: "POST" })
       throw new Error("Limite diário de códigos atingido. Tente novamente amanhã.");
     }
 
-    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    const code = generateOtpCode();
     const code_hash = hashCode(phone, code);
     const expires_at = new Date(Date.now() + OTP_TTL_MS).toISOString();
 
@@ -174,10 +126,7 @@ export const verifyClientOtp = createServerFn({ method: "POST" })
       throw new Error("Código expirado. Solicite um novo.");
     }
 
-    const incoming = hashCode(phone, data.code);
-    const a = Buffer.from(incoming, "hex");
-    const b = Buffer.from(row.code_hash, "hex");
-    const ok = a.length === b.length && timingSafeEqual(a, b);
+    const ok = hashEqualsHex(hashCode(phone, data.code), row.code_hash);
 
     if (!ok) {
       await supabaseAdmin
