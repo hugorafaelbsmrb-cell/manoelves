@@ -26,6 +26,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   ImagePlus,
   Megaphone,
@@ -550,15 +557,11 @@ function Page() {
               </p>
               {draft.media_url && (
                 <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/30 p-2">
-                  {draft.media_kind === "video" ? (
-                    <Video className="h-8 w-8 shrink-0 text-muted-foreground" />
-                  ) : (
-                    <img
-                      src={draft.media_url}
-                      alt="Mídia"
-                      className="h-14 w-14 shrink-0 rounded object-cover"
-                    />
-                  )}
+                  <HoverMedia
+                    url={draft.media_url}
+                    kind={draft.media_kind === "video" ? "video" : "image"}
+                    className={draft.media_kind === "video" ? "h-8 w-8" : "h-14 w-14"}
+                  />
                   <span className="truncate text-xs text-muted-foreground">
                     {draft.media_kind === "video" ? "Vídeo MP4 anexado" : "Imagem anexada"}
                   </span>
@@ -684,10 +687,11 @@ function Page() {
               </p>
               <div className="ml-auto w-fit max-w-[90%] rounded-lg rounded-tr-none bg-[#005c4b] px-3 py-2 shadow">
                 {draft.media_url && draft.media_kind === "image" && (
-                  <img
-                    src={draft.media_url}
-                    alt="Prévia"
-                    className="mb-2 max-h-40 w-full rounded object-cover"
+                  <HoverMedia
+                    url={draft.media_url}
+                    kind="image"
+                    className="mb-2 max-h-40 w-full"
+                    tooltipSide="top"
                   />
                 )}
                 <p className="whitespace-pre-wrap text-[13px] leading-snug text-white">
@@ -976,5 +980,65 @@ function Page() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * Miniatura de mídia com preview ampliado no hover
+ * (imagem em 288px; vídeo com player embutido).
+ */
+function HoverMedia({
+  url,
+  kind,
+  className,
+  tooltipSide = "right",
+}: {
+  url: string;
+  kind: "image" | "video";
+  className?: string;
+  tooltipSide?: "right" | "top" | "bottom" | "left";
+}) {
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {kind === "video" ? (
+            <Video
+              className={cn(
+                "shrink-0 cursor-zoom-in text-muted-foreground",
+                className,
+              )}
+            />
+          ) : (
+            <img
+              src={url}
+              alt="Mídia"
+              className={cn(
+                "shrink-0 cursor-zoom-in rounded object-cover",
+                className,
+              )}
+            />
+          )}
+        </TooltipTrigger>
+        <TooltipContent side={tooltipSide} className="p-1.5">
+          {kind === "video" ? (
+            <video
+              src={url}
+              controls
+              muted
+              autoPlay
+              loop
+              className="h-64 max-w-[320px] rounded"
+            />
+          ) : (
+            <img
+              src={url}
+              alt="Prévia ampliada"
+              className="h-72 w-72 rounded object-cover"
+            />
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

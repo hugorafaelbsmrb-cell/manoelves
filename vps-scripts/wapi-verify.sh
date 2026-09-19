@@ -1,0 +1,25 @@
+#!/bin/bash
+echo "=== PM2 LOGS (manoelves) ==="
+pm2 logs manoelves --lines 25 --nostream 2>&1 | tail -n 25
+echo ""
+echo "=== CRON JOBS ==="
+docker exec -i supabase-db psql -U postgres -d postgres -t -c "select jobname, schedule, active from cron.job where jobname like '%marketing%' or jobname like '%birthday%';"
+echo ""
+echo "=== TABELAS MARKETING ==="
+docker exec -i supabase-db psql -U postgres -d postgres -t -c "select count(*) as campaigns from marketing_campaigns; select count(*) as recipients from marketing_campaign_recipients;"
+echo ""
+echo "=== COLUNAS INTEGRATION_SETTINGS ==="
+docker exec -i supabase-db psql -U postgres -d postgres -t -c "select column_name from information_schema.columns where table_name='integration_settings' and column_name in ('wapi_token','wapi_instance_id','openai_api_key');"
+echo ""
+echo "=== BUCKET MARKETING ==="
+docker exec -i supabase-db psql -U postgres -d postgres -t -c "select id, public from storage.buckets where id='marketing';"
+echo ""
+echo "=== HOOK TEST (secret do DB) ==="
+SECRET=$(docker exec -i supabase-db psql -U postgres -d postgres -t -A -c "select value from app_settings where key='internal_hooks_secret' limit 1;")
+echo "secret length: ${#SECRET}"
+curl -s -X POST "http://127.0.0.1:3001/api/public/hooks/marketing-send-scheduled?secret=${SECRET}" -H "Content-Type: application/json" | head -c 400
+echo ""
+echo "=== ENUM MESSAGE_KIND ==="
+docker exec -i supabase-db psql -U postgres -d postgres -t -c "select enum_range(null::message_kind);"
+echo ""
+echo "DONE"

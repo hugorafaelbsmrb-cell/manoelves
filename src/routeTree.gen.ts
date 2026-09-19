@@ -14,6 +14,7 @@ import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as ReengajamentoRouteImport } from './routes/reengajamento'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as MeuFinanceiroRouteImport } from './routes/meu-financeiro'
+import { Route as MarketingRouteImport } from './routes/marketing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FilaEsperaRouteImport } from './routes/fila-espera'
@@ -32,10 +33,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignageTvRouteImport } from './routes/signage_.tv'
 import { Route as SlugAgendarRouteImport } from './routes/$slug_.agendar'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
+import { Route as ApiPublicHooksMarketingSendScheduledRouteImport } from './routes/api/public/hooks/marketing-send-scheduled'
 import { Route as ApiPublicHooksBirthdayNotifyRouteImport } from './routes/api/public/hooks/birthday-notify'
 import { Route as ApiPublicSignagePlaylistIdRouteImport } from './routes/api/public/signage.playlist.$id'
-import { Route as MarketingRouteImport } from './routes/marketing'
-import { Route as ApiPublicHooksMarketingSendScheduledRouteImport } from './routes/api/public/hooks/marketing-send-scheduled'
 
 const SignageRoute = SignageRouteImport.update({
   id: '/signage',
@@ -60,6 +60,11 @@ const ProdutosRoute = ProdutosRouteImport.update({
 const MeuFinanceiroRoute = MeuFinanceiroRouteImport.update({
   id: '/meu-financeiro',
   path: '/meu-financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketingRoute = MarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -152,6 +157,12 @@ const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
   path: '/api/public/mercadopago',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksMarketingSendScheduledRoute =
+  ApiPublicHooksMarketingSendScheduledRouteImport.update({
+    id: '/api/public/hooks/marketing-send-scheduled',
+    path: '/api/public/hooks/marketing-send-scheduled',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksBirthdayNotifyRoute =
   ApiPublicHooksBirthdayNotifyRouteImport.update({
     id: '/api/public/hooks/birthday-notify',
@@ -162,17 +173,6 @@ const ApiPublicSignagePlaylistIdRoute =
   ApiPublicSignagePlaylistIdRouteImport.update({
     id: '/api/public/signage/playlist/$id',
     path: '/api/public/signage/playlist/$id',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const MarketingRoute = MarketingRouteImport.update({
-  id: '/marketing',
-  path: '/marketing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksMarketingSendScheduledRoute =
-  ApiPublicHooksMarketingSendScheduledRouteImport.update({
-    id: '/api/public/hooks/marketing-send-scheduled',
-    path: '/api/public/hooks/marketing-send-scheduled',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -192,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/fila-espera': typeof FilaEsperaRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
@@ -201,9 +202,8 @@ export interface FileRoutesByFullPath {
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
-  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
-  '/marketing': typeof MarketingRoute
   '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -221,6 +221,7 @@ export interface FileRoutesByTo {
   '/fila-espera': typeof FilaEsperaRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
@@ -230,9 +231,8 @@ export interface FileRoutesByTo {
   '/signage/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
-  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
-  '/marketing': typeof MarketingRoute
   '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -251,6 +251,7 @@ export interface FileRoutesById {
   '/fila-espera': typeof FilaEsperaRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/meu-financeiro': typeof MeuFinanceiroRoute
   '/produtos': typeof ProdutosRoute
   '/reengajamento': typeof ReengajamentoRoute
@@ -260,9 +261,8 @@ export interface FileRoutesById {
   '/signage_/tv': typeof SignageTvRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
   '/api/public/hooks/birthday-notify': typeof ApiPublicHooksBirthdayNotifyRoute
-  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
-  '/marketing': typeof MarketingRoute
   '/api/public/hooks/marketing-send-scheduled': typeof ApiPublicHooksMarketingSendScheduledRoute
+  '/api/public/signage/playlist/$id': typeof ApiPublicSignagePlaylistIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -282,6 +282,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/financeiro'
     | '/login'
+    | '/marketing'
     | '/meu-financeiro'
     | '/produtos'
     | '/reengajamento'
@@ -291,9 +292,8 @@ export interface FileRouteTypes {
     | '/signage/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
-    | '/api/public/signage/playlist/$id'
-    | '/marketing'
     | '/api/public/hooks/marketing-send-scheduled'
+    | '/api/public/signage/playlist/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -311,6 +311,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/financeiro'
     | '/login'
+    | '/marketing'
     | '/meu-financeiro'
     | '/produtos'
     | '/reengajamento'
@@ -320,9 +321,8 @@ export interface FileRouteTypes {
     | '/signage/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
-    | '/api/public/signage/playlist/$id'
-    | '/marketing'
     | '/api/public/hooks/marketing-send-scheduled'
+    | '/api/public/signage/playlist/$id'
   id:
     | '__root__'
     | '/'
@@ -340,6 +340,7 @@ export interface FileRouteTypes {
     | '/fila-espera'
     | '/financeiro'
     | '/login'
+    | '/marketing'
     | '/meu-financeiro'
     | '/produtos'
     | '/reengajamento'
@@ -349,9 +350,8 @@ export interface FileRouteTypes {
     | '/signage_/tv'
     | '/api/public/mercadopago'
     | '/api/public/hooks/birthday-notify'
-    | '/api/public/signage/playlist/$id'
-    | '/marketing'
     | '/api/public/hooks/marketing-send-scheduled'
+    | '/api/public/signage/playlist/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -370,6 +370,7 @@ export interface RootRouteChildren {
   FilaEsperaRoute: typeof FilaEsperaRoute
   FinanceiroRoute: typeof FinanceiroRoute
   LoginRoute: typeof LoginRoute
+  MarketingRoute: typeof MarketingRoute
   MeuFinanceiroRoute: typeof MeuFinanceiroRoute
   ProdutosRoute: typeof ProdutosRoute
   ReengajamentoRoute: typeof ReengajamentoRoute
@@ -379,9 +380,8 @@ export interface RootRouteChildren {
   SignageTvRoute: typeof SignageTvRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
   ApiPublicHooksBirthdayNotifyRoute: typeof ApiPublicHooksBirthdayNotifyRoute
-  ApiPublicSignagePlaylistIdRoute: typeof ApiPublicSignagePlaylistIdRoute
-  MarketingRoute: typeof MarketingRoute
   ApiPublicHooksMarketingSendScheduledRoute: typeof ApiPublicHooksMarketingSendScheduledRoute
+  ApiPublicSignagePlaylistIdRoute: typeof ApiPublicSignagePlaylistIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -419,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/meu-financeiro'
       fullPath: '/meu-financeiro'
       preLoaderRoute: typeof MeuFinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -547,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMercadopagoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/marketing-send-scheduled': {
+      id: '/api/public/hooks/marketing-send-scheduled'
+      path: '/api/public/hooks/marketing-send-scheduled'
+      fullPath: '/api/public/hooks/marketing-send-scheduled'
+      preLoaderRoute: typeof ApiPublicHooksMarketingSendScheduledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/birthday-notify': {
       id: '/api/public/hooks/birthday-notify'
       path: '/api/public/hooks/birthday-notify'
@@ -559,20 +573,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/signage/playlist/$id'
       fullPath: '/api/public/signage/playlist/$id'
       preLoaderRoute: typeof ApiPublicSignagePlaylistIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/marketing': {
-      id: '/marketing'
-      path: '/marketing'
-      fullPath: '/marketing'
-      preLoaderRoute: typeof MarketingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/marketing-send-scheduled': {
-      id: '/api/public/hooks/marketing-send-scheduled'
-      path: '/api/public/hooks/marketing-send-scheduled'
-      fullPath: '/api/public/hooks/marketing-send-scheduled'
-      preLoaderRoute: typeof ApiPublicHooksMarketingSendScheduledRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -594,6 +594,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilaEsperaRoute: FilaEsperaRoute,
   FinanceiroRoute: FinanceiroRoute,
   LoginRoute: LoginRoute,
+  MarketingRoute: MarketingRoute,
   MeuFinanceiroRoute: MeuFinanceiroRoute,
   ProdutosRoute: ProdutosRoute,
   ReengajamentoRoute: ReengajamentoRoute,
@@ -603,10 +604,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignageTvRoute: SignageTvRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
   ApiPublicHooksBirthdayNotifyRoute: ApiPublicHooksBirthdayNotifyRoute,
-  ApiPublicSignagePlaylistIdRoute: ApiPublicSignagePlaylistIdRoute,
-  MarketingRoute: MarketingRoute,
   ApiPublicHooksMarketingSendScheduledRoute:
     ApiPublicHooksMarketingSendScheduledRoute,
+  ApiPublicSignagePlaylistIdRoute: ApiPublicSignagePlaylistIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

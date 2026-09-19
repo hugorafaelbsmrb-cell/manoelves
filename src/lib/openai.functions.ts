@@ -3,6 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { composeCampaignLogo } from "@/lib/campaign-image.server";
 
 // ============================================================
 // OpenAI — textos (gpt-4o-mini) e imagens (gpt-image-1) para as
@@ -58,7 +59,7 @@ function friendlyOpenAiError(e: unknown): Error {
 
 async function getShopContext() {
   const [{ data: shop }, { data: services }] = await Promise.all([
-    supabaseAdmin.from("barbershop").select("name").limit(1).maybeSingle(),
+    supabaseAdmin.from("barbershop").select("name, logo_url").limit(1).maybeSingle(),
     supabaseAdmin
       .from("products")
       .select("name")
@@ -69,6 +70,7 @@ async function getShopContext() {
   ]);
   return {
     shopName: shop?.name ?? "Mano Elves",
+    logoUrl: shop?.logo_url ?? null,
     serviceNames: (services ?? []).map((s) => s.name),
   };
 }
@@ -129,7 +131,7 @@ export const generateCampaignImage = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ url: string }> => {
     consumeAiBudget();
     const client = await getOpenAiClient();
-    const { shopName } = await getShopContext();
+    const { shopName, logoUrl } = await getShopContext();
 
     // A imagem nasce do texto da campanha: o GPT-Image recebe a mensagem
     // pronta e a instrução de representá-la com visual clean/minimalista.
@@ -152,7 +154,9 @@ export const generateCampaignImage = createServerFn({ method: "POST" })
       });
       const b64 = res.data?.[0]?.b64_json;
       if (!b64) throw new Error("A IA não retornou imagem.");
-      const bytes = Buffer.from(b64, "base64");
+      const raw = Buffer.from(b64, "base64");
+      // Aplica a logo do sistema (se disponível) antes de publicar.
+      const bytes = await composeCampaignLogo(raw, logoUrl);
       const fileName = `campaign-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
       const { error } = await supabaseAdmin.storage
         .from("marketing")
