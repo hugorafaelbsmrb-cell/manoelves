@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Env (segredos — nunca versionar; modelo em deploy/app.env.production.example)
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

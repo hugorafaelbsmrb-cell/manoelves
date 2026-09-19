@@ -12,7 +12,9 @@ cd /opt/manoelves
 
 echo "===== 1) PRESERVA .env LOCAL ====="
 cp .env /tmp/manoelves.env.bak
-git checkout -- .env
+# .env nao e mais versionado (.gitignore); o checkout so limpa mudancas
+# locais quando o arquivo ainda existir no repo (historico antigo).
+git checkout -- .env 2>/dev/null || true
 
 echo "===== 2) GIT PULL ====="
 git pull origin main
