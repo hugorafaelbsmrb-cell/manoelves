@@ -125,7 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {(isOwner || isBarber) && <PushNotificationManager />}
       {isOwner && <NewAppointmentNotifier />}
       <header className="border-b border-border bg-sidebar">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
             <span className="font-display text-base sm:text-lg tracking-wider">MANO ELVES</span>
@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         {/* Desktop / tablet top nav */}
-        <nav className="mx-auto hidden max-w-6xl gap-1 overflow-x-auto px-5 pb-2 text-sm md:flex">
+        <nav className="mx-auto hidden max-w-7xl flex-wrap gap-1 px-5 pb-2 text-sm md:flex">
           {visible.map((l) => {
             const active = pathname === l.to;
             return (
@@ -210,7 +210,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs outline-none">
               <FolderCog className="h-4 w-4" /> Menu completo <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[12rem] max-h-[70vh] overflow-y-auto">
+            <DropdownMenuContent
+              align="start"
+              className="grid max-h-[85vh] min-w-[17rem] grid-cols-2 gap-1 overflow-y-auto p-2"
+            >
               {visible.map((l) => (
                 <DropdownMenuItem key={l.to} asChild>
                   <Link to={l.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
