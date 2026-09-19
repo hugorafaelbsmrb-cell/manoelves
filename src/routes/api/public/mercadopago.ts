@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notifyPaymentReceived, notifySubscriptionActivated, notifySubscriptionPaymentReceived } from "@/lib/push.server";
 
 async function getSettings() {
   const { data } = await supabaseAdmin
@@ -116,11 +117,29 @@ export const Route = createFileRoute("/api/public/mercadopago")({
               // Validação de valor: o total pago precisa bater com a comanda.
               const { data: order } = await supabaseAdmin
                 .from("orders")
-                .select("total_cents")
+                .select("total_cents, client_name")
                 .eq("id", ref)
                 .maybeSingle();
               if (!order) {
-                console.error("MP webhook: comanda não encontrada", ref);
+                // PIX do 1º mês de assinatura usa external_reference "sub:<id>".
+                if (ref.startsWith("sub:")) {
+                  const subId = ref.slice(4);
+                  const { data: sub } = await supabaseAdmin
+                    .from("subscriptions")
+                    .select("id, client_name, plan_name, monthly_price_cents")
+                    .eq("id", subId)
+                    .maybeSingle();
+                  if (sub && pay.status === "approved") {
+                    void notifySubscriptionPaymentReceived({
+                      id: sub.id,
+                      clientName: sub.client_name ?? "Cliente",
+                      planName: sub.plan_name ?? "Plano",
+                      amountCents: sub.monthly_price_cents,
+                    }).catch((e) => console.error("[push] assinatura paga:", e));
+                  }
+                } else {
+                  console.error("MP webhook: comanda não encontrada", ref);
+                }
                 return new Response("ok");
               }
               const expected = order.total_cents / 100;
@@ -138,6 +157,15 @@ export const Route = createFileRoute("/api/public/mercadopago")({
                   payment_status: pay.status, // approved | pending | rejected | etc
                 })
                 .eq("id", ref);
+
+              // Notifica o dono quando o pagamento é aprovado.
+              if (pay.status === "approved") {
+                void notifyPaymentReceived({
+                  orderId: ref,
+                  clientName: order.client_name ?? "Cliente",
+                  amountCents: order.total_cents,
+                }).catch((e) => console.error("[push] pagamento recebido:", e));
+              }
             }
           } else if (type === "preapproval" || type === "subscription_preapproval") {
             const pre = await fetchPreapproval(settings.mp_access_token, dataId);
@@ -150,6 +178,22 @@ export const Route = createFileRoute("/api/public/mercadopago")({
                   is_active: pre.status === "authorized",
                 })
                 .eq("id", ref);
+
+              // Notifica o dono quando a assinatura é autorizada.
+              if (pre.status === "authorized") {
+                const { data: sub } = await supabaseAdmin
+                  .from("subscriptions")
+                  .select("id, client_name, plan_name")
+                  .eq("id", ref)
+                  .maybeSingle();
+                if (sub) {
+                  void notifySubscriptionActivated({
+                    id: sub.id,
+                    clientName: sub.client_name ?? "Cliente",
+                    planName: sub.plan_name ?? "Plano",
+                  }).catch((e) => console.error("[push] assinatura ativa:", e));
+                }
+              }
             }
           }
         } catch (e) {

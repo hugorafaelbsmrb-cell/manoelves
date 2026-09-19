@@ -34,6 +34,7 @@ import {
   createSubscriptionFirstPix,
 } from "@/lib/payments.functions";
 import { sendSubscriptionLinksWhatsApp } from "@/lib/uazapi.functions";
+import { notifySubscriptionCreated } from "@/lib/push.functions";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
 
 export const Route = createFileRoute("/assinaturas")({
@@ -164,6 +165,7 @@ function NewSubscriptionWizard() {
   const createPix = useServerFn(createSubscriptionFirstPix);
   const createMP = useServerFn(createSubscriptionPreapproval);
   const sendLinks = useServerFn(sendSubscriptionLinksWhatsApp);
+  const notifySub = useServerFn(notifySubscriptionCreated);
 
   const { data: plans } = useQuery({
     queryKey: ["subscription-plans"],
@@ -221,6 +223,9 @@ function NewSubscriptionWizard() {
           pixCode: pix.pix_code,
         },
       });
+
+      // Se quem criou é um barbeiro, avisa o dono (fire-and-forget).
+      void notifySub({ data: { subscriptionId: sub.id } }).catch(() => {});
 
       toast.success("Assinatura criada e links enviados no WhatsApp!");
       qc.invalidateQueries({ queryKey: ["subs"] });

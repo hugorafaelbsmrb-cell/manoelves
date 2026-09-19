@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NewAppointmentNotifier } from "@/components/new-appointment-notifier";
+import { PushNotificationManager } from "@/components/push-notification-manager";
 
 interface NavLink {
   to: string;
@@ -119,6 +120,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {(isOwner || isBarber) && <PushNotificationManager />}
       {isOwner && <NewAppointmentNotifier />}
       <header className="border-b border-border bg-sidebar">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">

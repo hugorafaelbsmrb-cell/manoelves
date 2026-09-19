@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyToken } from "@/lib/client-token.server";
 import { normalizePhone } from "@/lib/phone";
+import { notifyNewAppointment, notifyAppointmentPaymentConfirmed } from "@/lib/push.server";
 
 // ============================================================
 // Agendamento público — SERVER ONLY.
@@ -189,6 +190,15 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       );
     }
 
+    // 8) Notifica barbeiro + dono (fire-and-forget, nunca quebra o fluxo).
+    void notifyNewAppointment({
+      id: appt.id,
+      clientName: name,
+      startAt: start.toISOString(),
+      barberId: data.barberId,
+      pendingPayment: requiresPix,
+    }).catch((e) => console.error("[push] novo agendamento:", e));
+
     return { id: appt.id, requiresPix };
   });
 
@@ -202,7 +212,7 @@ export const confirmBookingPayment = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ ok: boolean }> => {
     const { data: appt } = await supabaseAdmin
       .from("appointments")
-      .select("id, status")
+      .select("id, status, client_name, barber_id, start_at")
       .eq("id", data.appointmentId)
       .maybeSingle();
     if (!appt) throw new Error("Agendamento não encontrado.");
@@ -213,5 +223,14 @@ export const confirmBookingPayment = createServerFn({ method: "POST" })
       .eq("id", appt.id)
       .eq("status", "pending_payment");
     if (error) throw new Error(error.message);
+
+    // Avisa barbeiro + dono que o sinal PIX chegou.
+    void notifyAppointmentPaymentConfirmed({
+      id: appt.id,
+      clientName: appt.client_name ?? "Cliente",
+      startAt: appt.start_at,
+      barberId: appt.barber_id,
+    }).catch((e) => console.error("[push] sinal PIX:", e));
+
     return { ok: true };
   });
