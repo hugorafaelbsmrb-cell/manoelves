@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import logoUrl from "@/assets/manoelves-logo.png";
-import textureBg from "@/assets/texture-bg.jpg";
+import barbershopBg from "@/assets/barbershop-bg.jpg";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,10 +25,10 @@ function LoginPage() {
       className="dark min-h-screen text-foreground"
       style={{
         backgroundColor: "#1a0f08",
-        backgroundImage: `linear-gradient(rgba(10,5,2,0.92), rgba(10,5,2,0.96)), url(${textureBg})`,
-        backgroundSize: "auto, 720px 720px",
-        backgroundRepeat: "no-repeat, repeat",
-        backgroundAttachment: "fixed, fixed",
+        backgroundImage: `linear-gradient(rgba(10,5,2,0.72), rgba(10,5,2,0.86)), url(${barbershopBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
       }}
     >
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
