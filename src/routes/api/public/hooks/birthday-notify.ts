@@ -19,18 +19,20 @@ function applyTemplate(
 
 /**
  * Cron diário — envia mensagem de aniversário antecipada via uazapi.
- * Chamado por pg_cron uma vez por dia. Não exige header de auth, mas:
+ * Chamado por pg_cron uma vez por dia. Protegido por secret:
+ *  - Exige ?secret=<internal_hooks_secret> ou header x-webhook-secret.
  *  - Valida que o envio ainda não foi feito no ano corrente (tabela de log).
  *  - Roda só se birthday_notifications_enabled = true.
  */
 export const Route = createFileRoute("/api/public/hooks/birthday-notify")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const url = new URL(request.url);
         const { data: settings, error: sErr } = await supabaseAdmin
           .from("integration_settings")
           .select(
-            "uazapi_url, uazapi_token, birthday_days_before, birthday_discount_pct, birthday_message_template, birthday_notifications_enabled",
+            "uazapi_url, uazapi_token, birthday_days_before, birthday_discount_pct, birthday_message_template, birthday_notifications_enabled, internal_hooks_secret",
           )
           .limit(1)
           .maybeSingle();
@@ -40,7 +42,21 @@ export const Route = createFileRoute("/api/public/hooks/birthday-notify")({
             headers: { "Content-Type": "application/json" },
           });
         }
-        if (!settings || !settings.birthday_notifications_enabled) {
+        if (!settings) {
+          return Response.json({ ok: true, skipped: "disabled" });
+        }
+
+        // Secret obrigatório quando configurado — impede disparo externo do hook.
+        if (settings.internal_hooks_secret) {
+          const provided =
+            url.searchParams.get("secret") ??
+            request.headers.get("x-webhook-secret");
+          if (provided !== settings.internal_hooks_secret) {
+            return new Response("unauthorized", { status: 401 });
+          }
+        }
+
+        if (!settings.birthday_notifications_enabled) {
           return Response.json({ ok: true, skipped: "disabled" });
         }
         const base = (settings.uazapi_url ?? "").replace(/\/+$/, "");

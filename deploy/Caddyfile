@@ -1,0 +1,31 @@
+# ============================================================
+# Mano Elves — Caddyfile (proxy reverso)
+# Arquivo: /etc/caddy/Caddyfile na VPS
+#
+# Sem domínio (situação atual):
+#   - App responde em http://IP_DA_VPS (porta 80)
+#   - Supabase (Kong) responde direto em http://IP_DA_VPS:8000
+# ============================================================
+
+:80 {
+	encode gzip
+	reverse_proxy 127.0.0.1:3001
+}
+
+# ------------------------------------------------------------
+# Quando tiver domínio, substitua o bloco acima por estes dois.
+# O Caddy emite HTTPS automaticamente (Let's Encrypt):
+# ------------------------------------------------------------
+# app.seudominio.com {
+#     encode gzip
+#     reverse_proxy 127.0.0.1:3001
+# }
+#
+# supabase.seudominio.com {
+#     reverse_proxy 127.0.0.1:8000
+# }
+# ------------------------------------------------------------
+# Depois, atualize também:
+#   - API_EXTERNAL_URL e SITE_URL no .env do Supabase
+#   - SUPABASE_URL no .env do app
+#   - webhook do Mercado Pago e cron-jobs.sql para o novo domínio

@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { verifyToken } from "@/lib/client-auth.functions";
+import { normalizePhone } from "@/lib/phone";
 
 type Settings = { uazapi_url?: string | null; uazapi_token?: string | null };
 type Json = null | string | number | boolean | Json[] | { [k: string]: Json };
@@ -112,9 +114,11 @@ export const uazapiDisconnect = createServerFn({ method: "POST" })
   .handler(async () => uazapi("/instance/disconnect", { method: "POST" }));
 
 // Public — chamado pelo fluxo de agendamento (cliente não autenticado).
-// Valida o appointment via service role e envia a confirmação por WhatsApp.
+// Exige o token do cliente (OTP verificado) e confere se o telefone do
+// agendamento bate com o telefone do token — evita envio abusivo de WhatsApp.
 const sendBookingConfirmationSchema = z.object({
   appointmentId: z.string().uuid(),
+  token: z.string().min(10),
 });
 
 export const sendBookingConfirmation = createServerFn({ method: "POST" })
@@ -128,6 +132,16 @@ export const sendBookingConfirmation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!appt) throw new Error("Agendamento não encontrado");
     if (!appt.client_whatsapp) return { ok: false, skipped: "sem telefone" };
+
+    // Token do cliente precisa bater com o WhatsApp do agendamento.
+    try {
+      const { phone } = verifyToken(data.token);
+      if (normalizePhone(phone) !== normalizePhone(appt.client_whatsapp)) {
+        return { ok: false, skipped: "token não corresponde" };
+      }
+    } catch {
+      return { ok: false, skipped: "token inválido" };
+    }
 
     const { data: barber } = await supabaseAdmin
       .from("profiles")

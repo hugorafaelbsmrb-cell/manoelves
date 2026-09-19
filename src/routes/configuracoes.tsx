@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { uazapiStatus, uazapiConnect, uazapiDisconnect } from "@/lib/uazapi.functions";
+import { getIntegrationSettings, saveIntegrationSettings } from "@/lib/settings.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BannerUpload } from "@/components/banner-upload";
 import { HaircutCatalogManager } from "@/components/haircut-catalog-manager";
@@ -26,8 +27,10 @@ export const Route = createFileRoute("/configuracoes")({
   ),
 });
 
+// Marcador para "limpar" um segredo no salvamento.
+const CLEAR = "__CLEAR__";
+
 type Settings = {
-  id?: string;
   mp_access_token: string;
   mp_public_key: string;
   mp_webhook_secret: string;
@@ -36,6 +39,11 @@ type Settings = {
   sighor_api_key: string;
   uazapi_url: string;
   uazapi_token: string;
+  mp_configured: boolean;
+  mp_webhook_configured: boolean;
+  whatsapp_configured: boolean;
+  sighor_configured: boolean;
+  uazapi_configured: boolean;
 };
 
 const empty: Settings = {
@@ -47,6 +55,11 @@ const empty: Settings = {
   sighor_api_key: "",
   uazapi_url: "",
   uazapi_token: "",
+  mp_configured: false,
+  mp_webhook_configured: false,
+  whatsapp_configured: false,
+  sighor_configured: false,
+  uazapi_configured: false,
 };
 
 type Shop = { id?: string; banner_url: string };
@@ -59,6 +72,8 @@ type Birthday = {
 
 function Page() {
   const { isOwner, loading } = useAuth();
+  const getSettingsFn = useServerFn(getIntegrationSettings);
+  const saveSettingsFn = useServerFn(saveIntegrationSettings);
   const [s, setS] = useState<Settings>(empty);
   const [shop, setShop] = useState<Shop>({ banner_url: "" });
   const [bday, setBday] = useState<Birthday>({
@@ -72,43 +87,33 @@ function Page() {
 
   useEffect(() => {
     (async () => {
-      const [{ data }, { data: shopRow }] = await Promise.all([
-        supabase.from("integration_settings").select("*").limit(1).maybeSingle(),
+      const [{ data: shopRow }, settings] = await Promise.all([
         supabase.from("barbershop").select("id, banner_url").limit(1).maybeSingle(),
+        getSettingsFn().catch(() => null),
       ]);
-      if (data) {
-        const d = data as typeof data & {
-          sighor_api_key?: string | null;
-          uazapi_url?: string | null;
-          uazapi_token?: string | null;
-          birthday_notifications_enabled?: boolean;
-          birthday_days_before?: number;
-          birthday_discount_pct?: number;
-          birthday_message_template?: string;
-        };
+      if (settings) {
         setS({
-          id: data.id,
-          mp_access_token: data.mp_access_token ?? "",
-          mp_public_key: data.mp_public_key ?? "",
-          mp_webhook_secret: data.mp_webhook_secret ?? "",
-          whatsapp_token: data.whatsapp_token ?? "",
-          whatsapp_phone_id: data.whatsapp_phone_id ?? "",
-          sighor_api_key: d.sighor_api_key ?? "",
-          uazapi_url: d.uazapi_url ?? "",
-          uazapi_token: d.uazapi_token ?? "",
+          ...empty,
+          mp_public_key: settings.mp_public_key ?? "",
+          mp_configured: settings.mp_configured,
+          mp_webhook_configured: settings.mp_webhook_configured,
+          whatsapp_configured: settings.whatsapp_configured,
+          sighor_configured: settings.sighor_configured,
+          uazapi_url: settings.uazapi_url ?? "",
+          uazapi_configured: settings.uazapi_configured,
         });
         setBday({
-          enabled: d.birthday_notifications_enabled ?? true,
-          daysBefore: d.birthday_days_before ?? 7,
-          discountPct: Number(d.birthday_discount_pct ?? 15),
+          enabled: settings.birthday_notifications_enabled ?? true,
+          daysBefore: settings.birthday_days_before ?? 7,
+          discountPct: Number(settings.birthday_discount_pct ?? 15),
           template:
-            d.birthday_message_template ??
+            settings.birthday_message_template ??
             "Olá {nome}! 🎉 Use o cupom *ANIVER{desconto}* para {desconto}% off no mês do seu aniversário.",
         });
       }
       if (shopRow) setShop({ id: shopRow.id, banner_url: (shopRow as { banner_url?: string }).banner_url ?? "" });
     })();
-  }, []);
+  }, [getSettingsFn]);
 
   if (loading) return null;
   if (!isOwner) {
@@ -127,37 +132,46 @@ function Page() {
 
   async function save() {
     setSaving(true);
-    const payload = {
-      mp_access_token: s.mp_access_token || null,
-      mp_public_key: s.mp_public_key || null,
-      mp_webhook_secret: s.mp_webhook_secret || null,
-      whatsapp_token: s.whatsapp_token || null,
-      whatsapp_phone_id: s.whatsapp_phone_id || null,
-      sighor_api_key: s.sighor_api_key || null,
-      uazapi_url: s.uazapi_url || null,
-      uazapi_token: s.uazapi_token || null,
-      birthday_notifications_enabled: bday.enabled,
-      birthday_days_before: bday.daysBefore,
-      birthday_discount_pct: bday.discountPct,
-      birthday_message_template: bday.template,
-      updated_at: new Date().toISOString(),
-    } as never;
-    let res;
-    if (s.id) {
-      res = await supabase.from("integration_settings").update(payload).eq("id", s.id);
-    } else {
-      res = await supabase.from("integration_settings").insert(payload);
+    // vazio = mantém; CLEAR = limpa; preenchido = atualiza.
+    const toValue = (v: string) => (v === CLEAR ? null : v === "" ? undefined : v);
+    try {
+      await saveSettingsFn({
+        data: {
+          mp_access_token: toValue(s.mp_access_token),
+          mp_public_key: toValue(s.mp_public_key),
+          mp_webhook_secret: toValue(s.mp_webhook_secret),
+          whatsapp_token: toValue(s.whatsapp_token),
+          whatsapp_phone_id: toValue(s.whatsapp_phone_id),
+          sighor_api_key: toValue(s.sighor_api_key),
+          uazapi_url: toValue(s.uazapi_url),
+          uazapi_token: toValue(s.uazapi_token),
+          birthday_notifications_enabled: bday.enabled,
+          birthday_days_before: bday.daysBefore,
+          birthday_discount_pct: bday.discountPct,
+          birthday_message_template: bday.template,
+        },
+      });
+      toast.success("Configurações salvas");
+      // limpa marcadores de "limpar" após salvar
+      setS((prev) => ({
+        ...prev,
+        mp_access_token: prev.mp_access_token === CLEAR ? "" : prev.mp_access_token,
+        mp_webhook_secret: prev.mp_webhook_secret === CLEAR ? "" : prev.mp_webhook_secret,
+        whatsapp_token: prev.whatsapp_token === CLEAR ? "" : prev.whatsapp_token,
+        whatsapp_phone_id: prev.whatsapp_phone_id === CLEAR ? "" : prev.whatsapp_phone_id,
+        sighor_api_key: prev.sighor_api_key === CLEAR ? "" : prev.sighor_api_key,
+        uazapi_token: prev.uazapi_token === CLEAR ? "" : prev.uazapi_token,
+      }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao salvar");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    if (res.error) return toast.error(res.error.message);
-    toast.success("Configurações salvas");
   }
 
   const webhookUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/api/public/mercadopago${
-          s.mp_webhook_secret ? `?secret=${encodeURIComponent(s.mp_webhook_secret)}` : ""
-        }`
+      ? `${window.location.origin}/api/public/mercadopago`
       : "";
 
   return (
@@ -256,6 +270,8 @@ function Page() {
             value={s.mp_access_token}
             onChange={(v) => setS({ ...s, mp_access_token: v })}
             type="password"
+            masked={s.mp_configured}
+            onClear={() => setS({ ...s, mp_access_token: CLEAR })}
           />
           <Field
             label="Public Key"
@@ -268,6 +284,8 @@ function Page() {
             placeholder="qualquer string forte"
             value={s.mp_webhook_secret}
             onChange={(v) => setS({ ...s, mp_webhook_secret: v })}
+            masked={s.mp_webhook_configured}
+            onClear={() => setS({ ...s, mp_webhook_secret: CLEAR })}
           />
           <div className="sm:col-span-2 rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
             <p className="font-medium text-foreground">URL de notificação (cole no painel do Mercado Pago):</p>
@@ -288,6 +306,8 @@ function Page() {
             value={s.sighor_api_key}
             onChange={(v) => setS({ ...s, sighor_api_key: v })}
             type="password"
+            masked={s.sighor_configured}
+            onClear={() => setS({ ...s, sighor_api_key: CLEAR })}
           />
           <div className="rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
             <p className="font-medium text-foreground">Como obter:</p>
@@ -315,6 +335,8 @@ function Page() {
             value={s.uazapi_token}
             onChange={(v) => setS({ ...s, uazapi_token: v })}
             type="password"
+            masked={s.uazapi_configured}
+            onClear={() => setS({ ...s, uazapi_token: CLEAR })}
           />
           <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
             <TestUazapi />
@@ -528,20 +550,37 @@ function Field({
   onChange,
   placeholder,
   type = "text",
+  masked,
+  onClear,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
+  // Segredos nunca voltam do servidor: quando configurado, mostramos
+  // placeholder indicando que está salvo; "Limpar" marca para apagar.
+  masked?: boolean;
+  onClear?: () => void;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">{label}</Label>
+        {onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[11px] text-muted-foreground hover:text-destructive"
+          >
+            Limpar
+          </button>
+        )}
+      </div>
       <Input
         type={type}
         value={value}
-        placeholder={placeholder}
+        placeholder={masked ? "(salvo — deixe vazio para manter)" : placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>

@@ -79,10 +79,19 @@ function verifyToken(token: string): { phone: string } {
   return { phone: payload.phone };
 }
 
+// ============================================================
+// Valida o token do cliente (assinado com a service role).
+// Usado por server functions de agendamento (server-only).
+// ============================================================
+export { verifyToken };
+
 // ---------- requestClientOtp ----------
 // Código válido por 48h. Se já existir um código não expirado para o telefone,
 // não reenviamos a mensagem (economia de envios via API).
 const OTP_TTL_MS = 48 * 60 * 60 * 1000;
+
+// Anti-abuso: teto global diário de envios (custo de mensagens WhatsApp).
+const OTP_DAILY_GLOBAL_CAP = 200;
 
 export const requestClientOtp = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -100,6 +109,16 @@ export const requestClientOtp = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing && new Date(existing.expires_at).getTime() > Date.now()) {
       return { ok: true, reused: true };
+    }
+
+    // Teto global diário de envios.
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from("client_otp_codes")
+      .select("phone", { count: "exact", head: true })
+      .gte("created_at", since);
+    if ((count ?? 0) >= OTP_DAILY_GLOBAL_CAP) {
+      throw new Error("Limite diário de códigos atingido. Tente novamente amanhã.");
     }
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");

@@ -8,9 +8,9 @@ import { ArrowLeft, Check, Copy, QrCode, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { upsertClient } from "@/lib/clients";
 import { sendBookingConfirmation } from "@/lib/uazapi.functions";
 import { requestClientOtp, verifyClientOtp } from "@/lib/client-auth.functions";
+import { createPublicBooking, confirmBookingPayment } from "@/lib/booking.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,8 +42,10 @@ function BookingPage() {
   const navigate = useNavigate();
   const askOtp = useServerFn(requestClientOtp);
   const checkOtp = useServerFn(verifyClientOtp);
+  const createBooking = useServerFn(createPublicBooking);
+  const confirmPayment = useServerFn(confirmBookingPayment);
 
-  const [step, setStep] = useState<"date" | "form" | "pix" | "done">("date");
+  const [step, setStep] = useState<"date" | "form" | "otp" | "pix" | "done">("date");
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [clientName, setClientName] = useState("");
@@ -54,6 +56,9 @@ function BookingPage() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpReused, setOtpReused] = useState(false);
+  const [hasToken, setHasToken] = useState<boolean>(
+    () => typeof window !== "undefined" && !!localStorage.getItem("client_token"),
+  );
 
   const { data: barber } = useQuery({
     queryKey: ["barber", slug],
@@ -208,9 +213,10 @@ function BookingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingHours, selection, slots.length]);
 
-  // Quando o agendamento for concluído, envia o código de acesso por WhatsApp.
+  // Envia o código de acesso quando o passo exige (OTP do agendamento
+  // ou área do cliente após concluir). Quem já tem token não precisa.
   useEffect(() => {
-    if (step !== "done" || otpSent || !clientWhatsapp) return;
+    if ((step !== "otp" && step !== "done") || otpSent || !clientWhatsapp || hasToken) return;
     setOtpSent(true);
     askOtp({ data: { phone: clientWhatsapp } })
       .then((r) => setOtpReused(r.reused))
@@ -218,7 +224,7 @@ function BookingPage() {
         console.warn("Falha ao enviar OTP:", e);
         setOtpSent(false);
       });
-  }, [step, otpSent, clientWhatsapp, askOtp]);
+  }, [step, otpSent, clientWhatsapp, askOtp, hasToken]);
 
   async function confirmOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -227,6 +233,7 @@ function BookingPage() {
     try {
       const res = await checkOtp({ data: { phone: clientWhatsapp, code: otpCode } });
       localStorage.setItem("client_token", res.token);
+      setHasToken(true);
       toast.success("Acesso liberado!");
       navigate({ to: "/cliente" });
     } catch (err) {
@@ -237,60 +244,59 @@ function BookingPage() {
   }
 
 
-  async function submitBooking() {
+  // Verifica o código e, com o token obtido, cria o agendamento.
+  async function confirmAndBook(e: React.FormEvent) {
+    e.preventDefault();
+    if (otpCode.length !== 6) return;
+    setOtpLoading(true);
+    try {
+      const res = await checkOtp({ data: { phone: clientWhatsapp, code: otpCode } });
+      localStorage.setItem("client_token", res.token);
+      setHasToken(true);
+      await submitBooking(res.token);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Código inválido");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  // Criação validada no SERVIDOR (createPublicBooking): token obrigatório,
+  // rate limit, conflito de horário e preço/duração recalculados.
+  async function submitBooking(token: string) {
     if (!barber || !selection || !selectedSlot) return;
     setSubmitting(true);
     try {
-      const start = selectedSlot;
-      const end = addMinutes(start, selection.totalMinutes);
-      const requiresPix = shop?.no_show_protection ?? true;
-
-      const clientId = await upsertClient({
-        name: clientName,
-        whatsapp: clientWhatsapp,
+      const r = await createBooking({
+        data: {
+          barberId: barber.id,
+          clientName,
+          clientWhatsapp,
+          startAt: selectedSlot.toISOString(),
+          serviceIds: selection.serviceIds,
+          comboId: selection.comboId,
+          token,
+        },
       });
-      const { data: appt, error } = await supabase
-        .from("appointments")
-        .insert({
-          barber_id: barber.id,
-          client_name: clientName,
-          client_whatsapp: clientWhatsapp,
-          client_id: clientId,
-          start_at: start.toISOString(),
-          end_at: end.toISOString(),
-          status: requiresPix ? "pending_payment" : "confirmed",
-          total_cents: selection.totalCents,
-          combo_id: selection.comboId,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      setCreatedId(appt.id);
+      setCreatedId(r.id);
 
-      // serviços do combo/serviço
-      if (selection.serviceIds.length) {
-        const { data: svcs } = await supabase
-          .from("services")
-          .select("id, price_cents, duration_minutes")
-          .in("id", selection.serviceIds);
-        await supabase.from("appointment_items").insert(
-          (svcs ?? []).map((s) => ({
-            appointment_id: appt.id,
-            service_id: s.id,
-            price_cents: s.price_cents,
-            duration_minutes: s.duration_minutes,
-          })),
-        );
-      }
-
-      if (requiresPix) {
+      if (r.requiresPix) {
         setStep("pix");
       } else {
-        await logWhatsAppConfirmation(appt.id, clientName, clientWhatsapp, start);
+        await sendConfirmation(r.id, token);
         setStep("done");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao agendar");
+      const msg = e instanceof Error ? e.message : "Erro ao agendar";
+      // Sessão/token inválido → volta para o passo OTP.
+      if (msg.includes("Sessão") || msg.includes("Token") || msg.includes("código")) {
+        localStorage.removeItem("client_token");
+        setHasToken(false);
+        setOtpSent(false);
+        setOtpCode("");
+        setStep("otp");
+      }
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -298,24 +304,17 @@ function BookingPage() {
 
   async function simulatePixPaid() {
     if (!createdId || !selectedSlot) return;
-    await supabase.from("appointments").update({ status: "confirmed" }).eq("id", createdId);
-    await logWhatsAppConfirmation(createdId, clientName, clientWhatsapp, selectedSlot);
+    await confirmPayment({ data: { appointmentId: createdId } });
+    const token = localStorage.getItem("client_token") ?? "";
+    await sendConfirmation(createdId, token);
     toast.success("Pagamento aprovado (simulado).");
     setStep("done");
   }
 
-  async function logWhatsAppConfirmation(apptId: string, name: string, phone: string, when: Date) {
-    await supabase.from("messages_log").insert([
-      {
-        kind: "confirmation",
-        to_phone: phone,
-        to_name: name,
-        appointment_id: apptId,
-        payload: `Olá ${name}! Seu horário com ${barber?.full_name} está confirmado para ${format(when, "dd/MM 'às' HH:mm", { locale: ptBR })}.`,
-      },
-    ]);
+  // O log em messages_log é feito pela própria server fn (uazapi.functions).
+  async function sendConfirmation(apptId: string, token: string) {
     try {
-      await sendBookingConfirmation({ data: { appointmentId: apptId } });
+      await sendBookingConfirmation({ data: { appointmentId: apptId, token } });
     } catch (e) {
       console.warn("Falha ao enviar WhatsApp:", e);
     }
@@ -437,7 +436,15 @@ function BookingPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                submitBooking();
+                const token = localStorage.getItem("client_token");
+                if (token) {
+                  void submitBooking(token);
+                } else {
+                  // Sem token: exige confirmação do WhatsApp antes de agendar.
+                  setOtpSent(false);
+                  setOtpCode("");
+                  setStep("otp");
+                }
               }}
               className="mt-6 space-y-4"
             >
@@ -467,6 +474,59 @@ function BookingPage() {
               </Button>
             </form>
           </>
+        )}
+
+        {step === "otp" && (
+          <div className="mt-6 space-y-4">
+            <button
+              onClick={() => setStep("form")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← Voltar
+            </button>
+            <div className="rounded-xl border border-primary/40 bg-primary/5 p-6">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-lg tracking-wide">
+                  Confirme seu WhatsApp
+                </h3>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {otpReused
+                  ? "Você já possui um código válido enviado recentemente. Digite-o abaixo."
+                  : `Enviamos um código de 6 dígitos no WhatsApp ${clientWhatsapp} para confirmar que é você.`}
+              </p>
+              <form onSubmit={confirmAndBook} className="mt-4 space-y-3">
+                <Input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-lg tracking-[0.5em]"
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={otpLoading || otpCode.length !== 6}
+                >
+                  {otpLoading ? "Verificando..." : "Verificar e agendar"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtpCode("");
+                }}
+                className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Não recebi — reenviar código
+              </button>
+            </div>
+          </div>
         )}
 
         {step === "pix" && (
@@ -522,40 +582,48 @@ function BookingPage() {
                   Acesse sua área de cliente
                 </h4>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {otpReused
-                  ? "Você já possui um código válido enviado recentemente. Digite-o abaixo."
-                  : `Enviamos um código de 6 dígitos no WhatsApp ${clientWhatsapp}. Válido por 48 horas.`}
-              </p>
-              <form onSubmit={confirmOtp} className="mt-4 space-y-3">
-                <Input
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="••••••"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                  className="text-center text-lg tracking-[0.5em]"
-                  required
-                />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={otpLoading || otpCode.length !== 6}
-                >
-                  {otpLoading ? "Verificando..." : "Entrar na minha área"}
+              {hasToken ? (
+                <Button className="mt-4 w-full" onClick={() => navigate({ to: "/cliente" })}>
+                  Entrar na minha área
                 </Button>
-              </form>
-              <button
-                type="button"
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtpCode("");
-                }}
-                className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
-              >
-                Não recebi — reenviar código
-              </button>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {otpReused
+                      ? "Você já possui um código válido enviado recentemente. Digite-o abaixo."
+                      : `Enviamos um código de 6 dígitos no WhatsApp ${clientWhatsapp}. Válido por 48 horas.`}
+                  </p>
+                  <form onSubmit={confirmOtp} className="mt-4 space-y-3">
+                    <Input
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                      className="text-center text-lg tracking-[0.5em]"
+                      required
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={otpLoading || otpCode.length !== 6}
+                    >
+                      {otpLoading ? "Verificando..." : "Entrar na minha área"}
+                    </Button>
+                  </form>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtpCode("");
+                    }}
+                    className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
+                  >
+                    Não recebi — reenviar código
+                  </button>
+                </>
+              )}
             </div>
 
             <Link

@@ -244,6 +244,27 @@ export type Database = {
         }
         Relationships: []
       }
+      mp_webhook_events: {
+        Row: {
+          event_key: string
+          type: string
+          data_id: string
+          processed_at: string
+        }
+        Insert: {
+          event_key: string
+          type: string
+          data_id: string
+          processed_at?: string
+        }
+        Update: {
+          event_key?: string
+          type?: string
+          data_id?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           birthday: string | null
@@ -400,6 +421,7 @@ export type Database = {
           birthday_message_template: string
           birthday_notifications_enabled: boolean
           id: string
+          internal_hooks_secret: string | null
           mp_access_token: string | null
           mp_public_key: string | null
           mp_webhook_secret: string | null
@@ -417,6 +439,7 @@ export type Database = {
           birthday_message_template?: string
           birthday_notifications_enabled?: boolean
           id?: string
+          internal_hooks_secret?: string | null
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
@@ -434,6 +457,7 @@ export type Database = {
           birthday_message_template?: string
           birthday_notifications_enabled?: boolean
           id?: string
+          internal_hooks_secret?: string | null
           mp_access_token?: string | null
           mp_public_key?: string | null
           mp_webhook_secret?: string | null
