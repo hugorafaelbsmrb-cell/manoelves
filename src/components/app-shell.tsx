@@ -147,14 +147,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         {/* Desktop / tablet top nav */}
-        <nav className="mx-auto hidden max-w-7xl flex-wrap gap-1 px-5 pb-2 text-sm md:flex">
+        <nav className="mx-auto hidden max-w-7xl gap-0.5 overflow-x-auto px-5 pb-2 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex">
           {visible.map((l) => {
             const active = pathname === l.to;
             return (
               <Link
                 key={l.to}
                 to={l.to}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs ${
                   active
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -167,7 +167,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {visibleCadastro.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger
-                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs outline-none ${
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs outline-none ${
                   cadastroActive
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <DropdownMenuItem key={l.to} asChild>
                     <Link
                       to={l.to}
-                      className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm ${
+                      className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm ${
                         pathname === l.to ? "bg-accent text-accent-foreground" : ""
                       }`}
                     >
@@ -194,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {isOwner && (
             <Link
               to={settingsLink.to}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
+              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs ${
                 pathname === settingsLink.to
                   ? "bg-secondary text-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -216,27 +216,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {visible.map((l) => (
                 <DropdownMenuItem key={l.to} asChild>
-                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
                     {l.icon} {l.label}
                   </Link>
                 </DropdownMenuItem>
               ))}
               {visibleCadastro.map((l) => (
                 <DropdownMenuItem key={l.to} asChild>
-                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
                     {l.icon} {l.label}
                   </Link>
                 </DropdownMenuItem>
               ))}
               {isOwner && (
                 <DropdownMenuItem asChild>
-                  <Link to={settingsLink.to} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                  <Link to={settingsLink.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
                     {settingsLink.icon} {settingsLink.label}
                   </Link>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem asChild>
-                <Link to="/cliente" className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+                <Link to="/cliente" className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
                   <Users className="h-4 w-4" /> Área do cliente
                 </Link>
               </DropdownMenuItem>
