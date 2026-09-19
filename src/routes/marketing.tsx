@@ -137,7 +137,6 @@ function Page() {
     "casual",
   );
   const [gptBusy, setGptBusy] = useState(false);
-  const [imgPrompt, setImgPrompt] = useState("");
   const [imgBusy, setImgBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -378,13 +377,16 @@ function Page() {
   }
 
   async function runGptImage() {
-    if (!imgPrompt.trim()) {
-      toast.error("Descreva a imagem que você quer.");
+    const text = draft.message_text.trim();
+    if (!text) {
+      toast.error(
+        "Escreva (ou gere com GPT) o texto da campanha antes de gerar a imagem.",
+      );
       return;
     }
     setImgBusy(true);
     try {
-      const r = await imageFn({ data: { prompt: imgPrompt } });
+      const r = await imageFn({ data: { campaignText: text } });
       setDraft((p) => ({ ...p, media_kind: "image", media_url: r.url }));
       toast.success("Imagem gerada com IA");
     } catch (e) {
@@ -519,7 +521,7 @@ function Page() {
                   onClick={() => void runGptImage()}
                 >
                   <ImagePlus className="mr-1 h-3.5 w-3.5" />
-                  {imgBusy ? "Gerando..." : "Gerar imagem com GPT"}
+                  {imgBusy ? "Gerando..." : "Gerar imagem do texto"}
                 </Button>
                 {draft.media_kind !== "none" && (
                   <Button
@@ -542,14 +544,10 @@ function Page() {
                   onChange={(e) => void onFilePick(e.target.files?.[0])}
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  className="h-8 flex-1 text-xs"
-                  placeholder="Descreva a imagem para o GPT (ex.: navalha dourada sobre couro escuro)"
-                  value={imgPrompt}
-                  onChange={(e) => setImgPrompt(e.target.value)}
-                />
-              </div>
+              <p className="text-[11px] text-muted-foreground">
+                A imagem é gerada a partir do texto da campanha, com visual
+                clean e minimalista.
+              </p>
               {draft.media_url && (
                 <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/30 p-2">
                   {draft.media_kind === "video" ? (

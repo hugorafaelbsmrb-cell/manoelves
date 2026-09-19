@@ -124,18 +124,23 @@ export const generateCampaignText = createServerFn({ method: "POST" })
 export const generateCampaignImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ prompt: z.string().min(3).max(1000) }).parse(d),
+    z.object({ campaignText: z.string().min(10).max(4000) }).parse(d),
   )
   .handler(async ({ data }): Promise<{ url: string }> => {
     consumeAiBudget();
     const client = await getOpenAiClient();
     const { shopName } = await getShopContext();
 
+    // A imagem nasce do texto da campanha: o GPT-Image recebe a mensagem
+    // pronta e a instrução de representá-la com visual clean/minimalista.
+    const trimmed = data.campaignText.trim().slice(0, 1500);
     const fullPrompt =
-      `Imagem promocional para campanha de WhatsApp da barbearia "${shopName}". ` +
-      `Estética: barbearia moderna masculina, cores escuras com dourado, visual premium e profissional. ` +
-      `Sem texto, sem palavras, sem logotipos e sem rostos de pessoas reais. ` +
-      `Ideia da campanha: ${data.prompt}`;
+      `Crie uma imagem promocional para uma campanha de WhatsApp da barbearia "${shopName}". ` +
+      `A imagem deve representar visualmente o tema desta mensagem de campanha: "${trimmed}". ` +
+      `Priorize um visual clean: composição minimalista, fundo limpo, poucos elementos, ` +
+      `bastante espaço negativo, iluminação suave e profissional. ` +
+      `Estética de barbearia masculina premium, cores escuras com detalhes dourados. ` +
+      `Sem texto, sem palavras, sem números, sem logotipos e sem rostos de pessoas reais.`;
 
     try {
       const res = await client.images.generate({
