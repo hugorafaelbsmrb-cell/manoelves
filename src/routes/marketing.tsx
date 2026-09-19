@@ -145,7 +145,9 @@ function Page() {
   );
   const [gptBusy, setGptBusy] = useState(false);
   const [imgBusy, setImgBusy] = useState(false);
+  const [refUrl, setRefUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const refFileRef = useRef<HTMLInputElement>(null);
 
   const refreshList = useCallback(async () => {
     try {
@@ -393,7 +395,9 @@ function Page() {
     }
     setImgBusy(true);
     try {
-      const r = await imageFn({ data: { campaignText: text } });
+      const r = await imageFn({
+        data: { campaignText: text, referenceUrl: refUrl },
+      });
       setDraft((p) => ({ ...p, media_kind: "image", media_url: r.url }));
       toast.success("Imagem gerada com IA");
     } catch (e) {
@@ -443,6 +447,40 @@ function Page() {
       toast.success(isVideo ? "Vídeo enviado" : "Imagem enviada");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha no upload");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onRefPick(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("A referência precisa ser uma imagem.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Imagem de referência acima de 8MB.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
+        reader.readAsDataURL(file);
+      });
+      const r = await uploadFn({
+        data: {
+          dataBase64: dataUrl,
+          fileName: file.name,
+          contentType: file.type,
+        },
+      });
+      setRefUrl(r.url);
+      toast.success("Referência anexada — será a base da próxima geração.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha no upload da referência");
     } finally {
       setBusy(false);
     }
@@ -528,7 +566,7 @@ function Page() {
                   onClick={() => void runGptImage()}
                 >
                   <ImagePlus className="mr-1 h-3.5 w-3.5" />
-                  {imgBusy ? "Gerando..." : "Gerar imagem do texto"}
+                  {imgBusy ? "Gerando..." : refUrl ? "Gerar com referência" : "Gerar imagem do texto"}
                 </Button>
                 {draft.media_kind !== "none" && (
                   <Button
@@ -550,6 +588,46 @@ function Page() {
                   className="hidden"
                   onChange={(e) => void onFilePick(e.target.files?.[0])}
                 />
+              </div>
+              {/* Imagem de referência: base criativa para a geração da IA */}
+              <div className="space-y-1.5 rounded-md border border-border p-3">
+                <Label className="text-xs">Imagem de referência (opcional)</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => refFileRef.current?.click()}
+                  >
+                    <Upload className="mr-1 h-3.5 w-3.5" /> Enviar referência
+                  </Button>
+                  {refUrl && (
+                    <>
+                      <HoverMedia url={refUrl} kind="image" className="h-10 w-10" />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground"
+                        onClick={() => setRefUrl(null)}
+                      >
+                        Remover
+                      </Button>
+                    </>
+                  )}
+                  <input
+                    ref={refFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => void onRefPick(e.target.files?.[0])}
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  A IA usa essa imagem como base criativa (identidade visual e
+                  estilo) ao gerar a arte da campanha.
+                </p>
               </div>
               <p className="text-[11px] text-muted-foreground">
                 A imagem é gerada a partir do texto da campanha, com visual
