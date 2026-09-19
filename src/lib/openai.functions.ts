@@ -143,17 +143,29 @@ export const generateCampaignImage = createServerFn({ method: "POST" })
     const { shopName, logoUrl } = await getShopContext();
 
     // A imagem nasce do texto da campanha (e, se enviada, da imagem de
-    // referência do usuário): o GPT-Image recebe a mensagem pronta e a
-    // instrução de representá-la com visual clean/minimalista.
+    // referência do usuário): o GPT-Image recebe a mensagem pronta, a
+    // instrução de estampar o texto e a direção de arte clean/premium.
     const trimmed = data.campaignText.trim().slice(0, 1500);
+    // Texto para estampar na imagem: sem markdown/emojis e curto
+    // (o gpt-image renderiza frases curtas com muito menos erro).
+    const stampRaw = trimmed
+      .replace(/[*_~`]/g, "")
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const stamp =
+      stampRaw.length > 140
+        ? `${stampRaw.slice(0, 137).trimEnd().replace(/[^\p{L}\p{N}]+$/u, "")}…`
+        : stampRaw || trimmed;
     const promptBase =
       `Você é um diretor de arte especializado em marketing de barbearias premium de alto nível. ` +
       `Crie uma imagem promocional para uma campanha de WhatsApp da barbearia "${shopName}". ` +
-      `A imagem deve representar visualmente o tema desta mensagem de campanha: "${trimmed}". ` +
+      `Tema da campanha: "${trimmed}". ` +
+      `Estampe na imagem, com tipografia elegante, bem legível e sem erros de ortografia, o seguinte texto: "${stamp}". ` +
       `Priorize um visual clean: composição minimalista, fundo limpo, poucos elementos, ` +
       `bastante espaço negativo, iluminação suave e profissional. ` +
       `Estética de barbearia masculina premium, cores escuras com detalhes dourados. ` +
-      `Sem texto, sem palavras, sem números, sem logotipos e sem rostos de pessoas reais.`;
+      `Sem logotipos e sem rostos de pessoas reais.`;
 
     try {
       let b64: string | undefined;
