@@ -9,13 +9,15 @@ interface HeroProps {
 
 export function Hero({ shop }: HeroProps) {
   const logo = shop?.logo_url || logoUrl;
+  // Banner salvo em Configurações tem prioridade; sem ele, usa a textura estática.
+  const banner = shop?.banner_url || textureBg;
 
   return (
     <div
       className="relative min-h-[90vh] flex flex-col"
       style={{
         backgroundColor: "#0a0a0a",
-        backgroundImage: `linear-gradient(to bottom, rgba(10,10,10,0.8), rgba(10,10,10,0.95)), url(${textureBg})`,
+        backgroundImage: `linear-gradient(to bottom, rgba(10,10,10,0.8), rgba(10,10,10,0.95)), url(${banner})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
