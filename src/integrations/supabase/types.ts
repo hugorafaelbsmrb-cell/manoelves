@@ -131,40 +131,49 @@ export type Database = {
           address: string | null
           banner_url: string | null
           created_at: string
+          gallery_urls: Json
           id: string
           logo_url: string | null
+          map_embed_url: string | null
           name: string
           no_show_deposit_cents: number
           no_show_protection: boolean
           phone: string | null
           pix_key: string | null
           updated_at: string
+          working_hours: string | null
         }
         Insert: {
           address?: string | null
           banner_url?: string | null
           created_at?: string
+          gallery_urls?: Json
           id?: string
           logo_url?: string | null
+          map_embed_url?: string | null
           name?: string
           no_show_deposit_cents?: number
           no_show_protection?: boolean
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
+          working_hours?: string | null
         }
         Update: {
           address?: string | null
           banner_url?: string | null
           created_at?: string
+          gallery_urls?: Json
           id?: string
           logo_url?: string | null
+          map_embed_url?: string | null
           name?: string
           no_show_deposit_cents?: number
           no_show_protection?: boolean
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
+          working_hours?: string | null
         }
         Relationships: []
       }

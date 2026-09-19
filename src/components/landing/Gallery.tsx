@@ -1,4 +1,6 @@
-const images = [
+import type { Json } from "@/integrations/supabase/types";
+
+const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80&w=800",
   "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800",
   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
@@ -7,7 +9,20 @@ const images = [
   "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800"
 ];
 
-export function Gallery() {
+interface GalleryProps {
+  shop: {
+    gallery_urls?: Json | null;
+  } | null | undefined;
+}
+
+export function Gallery({ shop }: GalleryProps) {
+  // Imagens enviadas em Configurações têm prioridade; sem elas, usa
+  // as imagens padrão de demonstração.
+  const raw = shop?.gallery_urls;
+  const arr = Array.isArray(raw) ? (raw as unknown[]) : [];
+  const urls: string[] = arr.filter((x): x is string => typeof x === "string");
+  const images: string[] = urls.length > 0 ? urls : DEFAULT_IMAGES;
+
   return (
     <section className="bg-[#111] py-24">
       <div className="mx-auto max-w-7xl px-6">

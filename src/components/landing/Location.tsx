@@ -1,11 +1,27 @@
 import { MapPin, Clock, MessageCircle } from "lucide-react";
 
 interface LocationProps {
-  shop: any;
+  shop: {
+    address?: string | null;
+    phone?: string | null;
+    working_hours?: string | null;
+    map_embed_url?: string | null;
+  } | null | undefined;
 }
 
 export function Location({ shop }: LocationProps) {
-  const address = shop?.address || "Rua Fictícia, 123 - Centro, Cidade - UF";
+  const address = shop?.address?.trim() || "Rua Fictícia, 123 - Centro, Cidade - UF";
+  const phone = shop?.phone?.trim() || "";
+  const waNumber = phone.replace(/\D/g, "");
+  const whatsappLink = waNumber ? `https://wa.me/${waNumber}` : "https://wa.me/5511999999999";
+  const whatsappLabel = phone || "+55 (11) 99999-9999";
+  const hours =
+    shop?.working_hours?.trim() ||
+    "Seg a Sex: 09h às 20h\nSábado: 09h às 18h\nDomingo: Fechado";
+  // Mapa: usa o embed salvo em Configurações; sem ele, gera do endereço.
+  const mapSrc =
+    shop?.map_embed_url?.trim() ||
+    `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
   return (
     <section className="bg-[#0a0a0a] py-24 relative border-t border-white/5">
@@ -16,7 +32,7 @@ export function Location({ shop }: LocationProps) {
             {/* Overlay para não roubar scroll na primeira interação */}
             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent pointer-events-none transition-colors duration-500 z-10"></div>
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117565.65969562725!2d-43.27954154999999!3d-22.951916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9b8bf186b595bb%3A0xc0fb130d222eb619!2sRio%20de%20Janeiro%2C%20RJ!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr" 
+              src={mapSrc}
               width="100%" 
               height="100%" 
               style={{ border: 0, filter: "grayscale(1) contrast(1.2) opacity(0.8)" }} 
@@ -48,7 +64,7 @@ export function Location({ shop }: LocationProps) {
                 </div>
                 <div>
                   <h3 className="text-white font-medium mb-1 uppercase tracking-wider text-sm">Horário de Funcionamento</h3>
-                  <p className="text-gray-400 font-light">Seg a Sex: 09h às 20h<br/>Sábado: 09h às 18h<br/>Domingo: Fechado</p>
+                  <p className="text-gray-400 font-light whitespace-pre-line">{hours}</p>
                 </div>
               </div>
 
@@ -58,8 +74,8 @@ export function Location({ shop }: LocationProps) {
                 </div>
                 <div>
                   <h3 className="text-white font-medium mb-1 uppercase tracking-wider text-sm">WhatsApp</h3>
-                  <a href="https://wa.me/5511999999999" target="_blank" rel="noreferrer" className="text-gray-400 font-light hover:text-[#d4a857] transition-colors">
-                    +55 (11) 99999-9999
+                  <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-gray-400 font-light hover:text-[#d4a857] transition-colors">
+                    {whatsappLabel}
                   </a>
                 </div>
               </div>
@@ -67,7 +83,7 @@ export function Location({ shop }: LocationProps) {
 
             <div className="mt-10">
               <a 
-                href="https://wa.me/5511999999999" 
+                href={whatsappLink}
                 target="_blank" 
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 bg-transparent border border-[#d4a857] text-[#d4a857] hover:bg-[#d4a857] hover:text-black px-6 py-3 text-sm font-bold uppercase tracking-widest transition-all"

@@ -66,7 +66,7 @@ function HomePage() {
       </div>
 
       <div id="galeria">
-        <Gallery />
+        <Gallery shop={shop} />
       </div>
 
       <div id="planos">

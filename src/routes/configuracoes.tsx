@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -66,7 +66,17 @@ const empty: Settings = {
   openai_configured: false,
 };
 
-type Shop = { id?: string; banner_url: string };
+type Shop = {
+  id?: string;
+  name: string;
+  address: string;
+  phone: string;
+  working_hours: string;
+  map_embed_url: string;
+  banner_url: string;
+  logo_url: string;
+  gallery_urls: string[];
+};
 type Birthday = {
   enabled: boolean;
   daysBefore: number;
@@ -79,7 +89,16 @@ function Page() {
   const getSettingsFn = useServerFn(getIntegrationSettings);
   const saveSettingsFn = useServerFn(saveIntegrationSettings);
   const [s, setS] = useState<Settings>(empty);
-  const [shop, setShop] = useState<Shop>({ banner_url: "" });
+  const [shop, setShop] = useState<Shop>({
+    name: "",
+    address: "",
+    phone: "",
+    working_hours: "",
+    map_embed_url: "",
+    banner_url: "",
+    logo_url: "",
+    gallery_urls: [],
+  });
   const [bday, setBday] = useState<Birthday>({
     enabled: true,
     daysBefore: 7,
@@ -88,11 +107,20 @@ function Page() {
       "Olá {nome}! 🎉 Seu aniversário está chegando e queremos comemorar com você! Use o cupom *ANIVER{desconto}* e ganhe {desconto}% de desconto em qualquer serviço durante o mês do seu aniversário. Agende seu horário e venha celebrar! ✂️🎂",
   });
   const [saving, setSaving] = useState(false);
+  const [shopSaving, setShopSaving] = useState(false);
+  const [galleryBusy, setGalleryBusy] = useState(false);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
       const [{ data: shopRow }, settings] = await Promise.all([
-        supabase.from("barbershop").select("id, banner_url").limit(1).maybeSingle(),
+        supabase
+          .from("barbershop")
+          .select(
+            "id, name, address, phone, working_hours, map_embed_url, banner_url, logo_url, gallery_urls",
+          )
+          .limit(1)
+          .maybeSingle(),
         getSettingsFn().catch(() => null),
       ]);
       if (settings) {
@@ -115,7 +143,22 @@ function Page() {
             "Olá {nome}! 🎉 Use o cupom *ANIVER{desconto}* para {desconto}% off no mês do seu aniversário.",
         });
       }
-      if (shopRow) setShop({ id: shopRow.id, banner_url: (shopRow as { banner_url?: string }).banner_url ?? "" });
+      if (shopRow) {
+        const r = shopRow as Record<string, unknown>;
+        setShop({
+          id: r.id as string,
+          name: (r.name as string) ?? "",
+          address: (r.address as string) ?? "",
+          phone: (r.phone as string) ?? "",
+          working_hours: (r.working_hours as string) ?? "",
+          map_embed_url: (r.map_embed_url as string) ?? "",
+          banner_url: (r.banner_url as string) ?? "",
+          logo_url: (r.logo_url as string) ?? "",
+          gallery_urls: Array.isArray(r.gallery_urls)
+            ? (r.gallery_urls as string[])
+            : [],
+        });
+      }
     })();
   }, [getSettingsFn]);
 
@@ -124,13 +167,84 @@ function Page() {
     return <p className="text-sm text-muted-foreground">Acesso restrito ao dono.</p>;
   }
 
+  async function persistShop(patch: Partial<Shop>) {
+    if (shop.id) {
+      const { error } = await supabase
+        .from("barbershop")
+        .update(patch)
+        .eq("id", shop.id);
+      if (error) throw error;
+    } else {
+      const { data, error } = await supabase
+        .from("barbershop")
+        .insert({ name: "Mano Elves", ...patch })
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      if (data) setShop((prev) => ({ ...prev, id: data.id }));
+    }
+  }
+
   async function saveShopBanner(url: string) {
     setShop((prev) => ({ ...prev, banner_url: url }));
-    if (shop.id) {
-      await supabase.from("barbershop").update({ banner_url: url || null }).eq("id", shop.id);
-    } else {
-      const { data } = await supabase.from("barbershop").insert({ banner_url: url || null, name: "Mano Elves" }).select("id").maybeSingle();
-      if (data) setShop({ id: data.id, banner_url: url });
+    try {
+      // vazio = sem banner (a landing cai no fundo padrão)
+      await persistShop({ banner_url: url });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao salvar banner");
+    }
+  }
+
+  async function saveShopData() {
+    setShopSaving(true);
+    try {
+      await persistShop({
+        name: shop.name.trim() || "Mano Elves",
+        address: shop.address.trim(),
+        phone: shop.phone.trim(),
+        working_hours: shop.working_hours.trim(),
+        map_embed_url: shop.map_embed_url.trim(),
+      });
+      toast.success("Dados da barbearia salvos");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao salvar");
+    } finally {
+      setShopSaving(false);
+    }
+  }
+
+  async function addGalleryImage(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Selecione uma imagem.");
+    if (file.size > 8 * 1024 * 1024) return toast.error("Imagem deve ter no máximo 8MB.");
+    setGalleryBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `gallery/gallery-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      const next = [...shop.gallery_urls, data.publicUrl];
+      setShop((prev) => ({ ...prev, gallery_urls: next }));
+      await persistShop({ gallery_urls: next });
+      toast.success("Imagem adicionada à galeria");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setGalleryBusy(false);
+    }
+  }
+
+  async function removeGalleryImage(url: string) {
+    const next = shop.gallery_urls.filter((u) => u !== url);
+    setShop((prev) => ({ ...prev, gallery_urls: next }));
+    try {
+      await persistShop({ gallery_urls: next });
+      toast.success("Imagem removida");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao remover");
     }
   }
 
@@ -201,6 +315,113 @@ function Page() {
             label="Banner exibido no topo do site"
             hint="Recomendado 1920×480 (proporção 4:1). Aparece na página inicial."
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Dados da barbearia — site</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Nome</Label>
+            <Input
+              value={shop.name}
+              onChange={(e) => setShop({ ...shop, name: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">WhatsApp (com DDI e DDD)</Label>
+            <Input
+              value={shop.phone}
+              onChange={(e) => setShop({ ...shop, phone: e.target.value })}
+              placeholder="+55 11 99999-9999"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label className="text-xs">Endereço</Label>
+            <Input
+              value={shop.address}
+              onChange={(e) => setShop({ ...shop, address: e.target.value })}
+              placeholder="Rua, número - bairro, cidade - UF"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Horários (uma linha por dia)</Label>
+            <Textarea
+              rows={3}
+              value={shop.working_hours}
+              onChange={(e) =>
+                setShop({ ...shop, working_hours: e.target.value })
+              }
+              placeholder={"Seg a Sex: 09h às 20h\nSábado: 09h às 18h\nDomingo: Fechado"}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Mapa (link de incorporação do Google Maps)</Label>
+            <Textarea
+              rows={3}
+              value={shop.map_embed_url}
+              onChange={(e) =>
+                setShop({ ...shop, map_embed_url: e.target.value })
+              }
+              placeholder={"Cole o link src do embed (Google Maps → Compartilhar → Incorporar mapa). Vazio = mapa gerado pelo endereço."}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Button type="button" onClick={() => void saveShopData()} disabled={shopSaving}>
+              {shopSaving ? "Salvando..." : "Salvar dados do site"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Galeria da landing page</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-3">
+            {shop.gallery_urls.map((url, i) => (
+              <div key={url} className="relative">
+                <img
+                  src={url}
+                  alt={`Imagem ${i + 1}`}
+                  className="h-24 w-24 rounded-md border border-border object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => void removeGalleryImage(url)}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-xs text-white"
+                  title="Remover"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <label className="cursor-pointer">
+              <input
+                ref={galleryFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={galleryBusy}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void addGalleryImage(f);
+                  e.target.value = "";
+                }}
+              />
+              <span className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-border text-2xl text-muted-foreground hover:bg-secondary">
+                +
+              </span>
+            </label>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            {galleryBusy
+              ? "Enviando…"
+              : "Fotos exibidas na seção Galeria do site. Sem fotos, o site mostra as imagens de demonstração."}
+          </p>
         </CardContent>
       </Card>
 
