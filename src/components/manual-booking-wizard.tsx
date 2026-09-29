@@ -36,7 +36,7 @@ export function ManualBookingWizard() {
   const sendConfirmationFn = useServerFn(sendBookingConfirmation);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>(isOwner ? "barber" : "service");
-  const [barberId, setBarberId] = useState<string | null>(isOwner ? null : user?.id ?? null);
+  const [barberId, setBarberId] = useState<string | null>(isOwner ? null : (user?.id ?? null));
   const [selected, setSelected] = useState<SelectedService[]>([]);
   const [date, setDate] = useState(() => startOfDay(new Date()));
   const [slot, setSlot] = useState<Date | null>(null);
@@ -47,14 +47,11 @@ export function ManualBookingWizard() {
     () => selected.reduce((s, x) => s + x.duration_minutes, 0),
     [selected],
   );
-  const totalCents = useMemo(
-    () => selected.reduce((s, x) => s + x.price_cents, 0),
-    [selected],
-  );
+  const totalCents = useMemo(() => selected.reduce((s, x) => s + x.price_cents, 0), [selected]);
 
   function reset() {
     setStep(isOwner ? "barber" : "service");
-    setBarberId(isOwner ? null : user?.id ?? null);
+    setBarberId(isOwner ? null : (user?.id ?? null));
     setSelected([]);
     setDate(startOfDay(new Date()));
     setSlot(null);
@@ -151,7 +148,9 @@ export function ManualBookingWizard() {
     const weekday = date.getDay();
     const windows = workingHours.filter((w) => w.weekday === weekday);
     if (windows.length === 0) return [];
-    const stepMin = 15;
+    // Horários de hora em hora, coerente com a grade de disponibilidade
+    // do perfil do barbeiro e com a página pública de agendamento.
+    const stepMin = 60;
     const totalMin = totalMinutes + (buffer ?? 10);
     const now = new Date();
     const out: Date[] = [];
@@ -183,9 +182,7 @@ export function ManualBookingWizard() {
 
   function toggleService(s: SelectedService) {
     setSelected((prev) =>
-      prev.find((x) => x.id === s.id)
-        ? prev.filter((x) => x.id !== s.id)
-        : [...prev, s],
+      prev.find((x) => x.id === s.id) ? prev.filter((x) => x.id !== s.id) : [...prev, s],
     );
   }
 
@@ -253,9 +250,7 @@ export function ManualBookingWizard() {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="font-display tracking-wider">
-            Novo agendamento manual
-          </DialogTitle>
+          <DialogTitle className="font-display tracking-wider">Novo agendamento manual</DialogTitle>
           <DialogDescription>
             Passo {stepIndex} de {stepTotal}
           </DialogDescription>
@@ -278,9 +273,7 @@ export function ManualBookingWizard() {
                 </button>
               ))}
               {barbers && barbers.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Nenhum barbeiro cadastrado.
-                </p>
+                <p className="text-xs text-muted-foreground">Nenhum barbeiro cadastrado.</p>
               )}
             </div>
           </div>
@@ -289,9 +282,7 @@ export function ManualBookingWizard() {
         {step === "service" && (
           <div className="space-y-3">
             <StepBack onBack={() => isOwner && setStep("barber")} show={isOwner} />
-            <p className="text-sm text-muted-foreground">
-              Selecione um ou mais serviços
-            </p>
+            <p className="text-sm text-muted-foreground">Selecione um ou mais serviços</p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(services ?? []).map((s) => {
                 const active = selected.some((x) => x.id === s.id);
@@ -350,15 +341,11 @@ export function ManualBookingWizard() {
             <StepBack onBack={() => setStep("service")} show />
             <div className="rounded-md border border-border bg-card p-2 text-xs">
               <span className="text-muted-foreground">Serviços:</span>{" "}
-              <span className="font-medium">
-                {selected.map((s) => s.name).join(" + ")}
-              </span>{" "}
-              · {minutesLabel(totalMinutes)} · {brl(totalCents)}
+              <span className="font-medium">{selected.map((s) => s.name).join(" + ")}</span> ·{" "}
+              {minutesLabel(totalMinutes)} · {brl(totalCents)}
             </div>
             <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-                Dia
-              </p>
+              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Dia</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {days.map((d) => {
                   const active = isSameDay(d, date);
@@ -389,9 +376,7 @@ export function ManualBookingWizard() {
               </div>
             </div>
             <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-                Horário
-              </p>
+              <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Horário</p>
               {slots.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
                   Nenhum horário disponível neste dia.
@@ -434,10 +419,8 @@ export function ManualBookingWizard() {
               </p>
               <p className="mt-1">
                 <span className="text-muted-foreground">Serviços:</span>{" "}
-                <span className="font-medium">
-                  {selected.map((s) => s.name).join(" + ")}
-                </span>{" "}
-                · {brl(totalCents)}
+                <span className="font-medium">{selected.map((s) => s.name).join(" + ")}</span> ·{" "}
+                {brl(totalCents)}
               </p>
             </div>
             <ClientCombobox value={client} onChange={setClient} />

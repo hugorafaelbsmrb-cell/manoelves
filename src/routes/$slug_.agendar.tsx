@@ -87,7 +87,9 @@ function BookingPage() {
       if (comboId) {
         const { data: combo } = await supabase
           .from("combos")
-          .select("id, name, price_cents, combo_services(service_id, services(id, duration_minutes))")
+          .select(
+            "id, name, price_cents, combo_services(service_id, services(id, duration_minutes))",
+          )
           .eq("id", comboId)
           .maybeSingle();
         if (!combo) return null;
@@ -97,8 +99,7 @@ function BookingPage() {
           totalCents: combo.price_cents,
           totalMinutes: items.reduce(
             (s, cs) =>
-              s +
-              ((cs.services as { duration_minutes?: number } | null)?.duration_minutes ?? 0),
+              s + ((cs.services as { duration_minutes?: number } | null)?.duration_minutes ?? 0),
             0,
           ),
           comboId: combo.id,
@@ -108,8 +109,8 @@ function BookingPage() {
       const idList = serviceIds
         ? serviceIds.split(",").filter(Boolean)
         : serviceId
-        ? [serviceId]
-        : [];
+          ? [serviceId]
+          : [];
       if (idList.length === 0) return null;
       const { data: svcs } = await supabase
         .from("services")
@@ -167,14 +168,19 @@ function BookingPage() {
     },
   });
 
-  const days = useMemo(() => Array.from({ length: 14 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
+  const days = useMemo(
+    () => Array.from({ length: 14 }, (_, i) => addDays(startOfDay(new Date()), i)),
+    [],
+  );
 
   const slots = useMemo(() => {
     if (!selection || !workingHours) return [] as Date[];
     const weekday = selectedDate.getDay();
     const windows = workingHours.filter((w) => w.weekday === weekday);
     if (windows.length === 0) return [];
-    const stepMin = 15;
+    // Horários exibidos de hora em hora (09:00, 10:00, ...), coerente com a
+    // grade de disponibilidade configurada no perfil do barbeiro.
+    const stepMin = 60;
     const totalMin = selection.totalMinutes + (buffer ?? 10);
     const result: Date[] = [];
     for (const w of windows) {
@@ -206,9 +212,7 @@ function BookingPage() {
     if (!workingHours || !selection) return;
     if (slots.length > 0) return;
     if (!isSameDay(selectedDate, startOfDay(new Date()))) return;
-    const next = days.slice(1).find((d) =>
-      workingHours.some((w) => w.weekday === d.getDay()),
-    );
+    const next = days.slice(1).find((d) => workingHours.some((w) => w.weekday === d.getDay()));
     if (next) setSelectedDate(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingHours, selection, slots.length]);
@@ -242,7 +246,6 @@ function BookingPage() {
       setOtpLoading(false);
     }
   }
-
 
   // Verifica o código e, com o token obtido, cria o agendamento.
   async function confirmAndBook(e: React.FormEvent) {
@@ -319,7 +322,6 @@ function BookingPage() {
       console.warn("Falha ao enviar WhatsApp:", e);
     }
   }
-
 
   const pixCode = useMemo(
     () =>
@@ -487,9 +489,7 @@ function BookingPage() {
             <div className="rounded-xl border border-primary/40 bg-primary/5 p-6">
               <div className="flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-primary" />
-                <h3 className="font-display text-lg tracking-wide">
-                  Confirme seu WhatsApp
-                </h3>
+                <h3 className="font-display text-lg tracking-wide">Confirme seu WhatsApp</h3>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {otpReused
@@ -567,9 +567,7 @@ function BookingPage() {
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success text-success-foreground">
                 <Check className="h-6 w-6" />
               </div>
-              <h3 className="mt-3 font-display text-2xl tracking-wider">
-                Agendamento confirmado!
-              </h3>
+              <h3 className="mt-3 font-display text-2xl tracking-wider">Agendamento confirmado!</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 {format(selectedSlot, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
               </p>
@@ -578,9 +576,7 @@ function BookingPage() {
             <div className="rounded-xl border border-primary/40 bg-primary/5 p-6">
               <div className="flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-primary" />
-                <h4 className="font-display text-lg tracking-wide">
-                  Acesse sua área de cliente
-                </h4>
+                <h4 className="font-display text-lg tracking-wide">Acesse sua área de cliente</h4>
               </div>
               {hasToken ? (
                 <Button className="mt-4 w-full" onClick={() => navigate({ to: "/cliente" })}>
@@ -668,16 +664,8 @@ function WaitlistJoin({ barberId, period }: { barberId: string; period: string }
   return (
     <div className="space-y-2 text-left">
       <p className="text-xs">Entre na fila — avisamos se vagar:</p>
-      <Input
-        placeholder="Seu nome"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <Input
-        placeholder="WhatsApp"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
+      <Input placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
       <Button size="sm" className="w-full" onClick={join}>
         Entrar na fila
       </Button>
