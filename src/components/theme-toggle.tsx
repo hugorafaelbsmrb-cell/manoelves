@@ -23,6 +23,9 @@ export function ThemeToggle() {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
+    // Mantém a cor da barra de status do navegador coerente com o tema.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#141414" : "#ffffff");
   }, [theme]);
 
   return (
