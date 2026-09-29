@@ -23,6 +23,7 @@ export const createBarber = createServerFn({ method: "POST" })
         password: z.string().min(8).max(72),
         full_name: z.string().trim().min(1).max(120),
         phone: z.string().trim().max(40).optional().nullable(),
+        role: z.enum(["barber", "owner"]).default("barber"),
       })
       .parse(input),
   )
@@ -41,16 +42,92 @@ export const createBarber = createServerFn({ method: "POST" })
     const newUserId = created.user.id;
 
     // O trigger handle_new_user cria profile + role automaticamente.
-    // Garante role = barber (o primeiro usuário vira owner; aqui já existe um owner, então virá barber).
+    // Garante o papel escolhido pelo dono (barber ou owner).
     await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: newUserId, role: "barber" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: newUserId, role: data.role }, { onConflict: "user_id,role" });
 
     if (data.phone) {
       await supabaseAdmin.from("profiles").update({ phone: data.phone }).eq("id", newUserId);
     }
 
     return { id: newUserId };
+  });
+
+export const listOwners = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertOwner(context.userId);
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "owner");
+    const ids = (roles ?? []).map((r) => r.user_id);
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", ids);
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    const emailById = new Map<string, string>();
+    for (const u of list?.users ?? []) emailById.set(u.id, u.email ?? "");
+    return (profiles ?? []).map((p) => ({
+      user_id: p.id,
+      full_name: p.full_name ?? "—",
+      email: emailById.get(p.id) ?? "",
+    }));
+  });
+
+export const grantOwnerByEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ email: z.string().trim().email().max(255) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.userId);
+    // Encontra o usuário já cadastrado com esse e-mail.
+    const { data: list, error } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (error) throw new Error(error.message);
+    const found = (list?.users ?? []).find(
+      (u) => (u.email ?? "").toLowerCase() === data.email.toLowerCase(),
+    );
+    if (!found) {
+      throw new Error(
+        "Nenhuma conta encontrada com esse e-mail. Cadastre a pessoa primeiro (abaixo) e depois adicione como dono.",
+      );
+    }
+    const { error: upErr } = await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: found.id, role: "owner" }, { onConflict: "user_id,role" });
+    if (upErr) throw new Error(upErr.message);
+    return { id: found.id };
+  });
+
+export const removeOwnerAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ user_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.userId);
+    if (data.user_id === context.userId) {
+      throw new Error("Você não pode remover o próprio acesso de dono.");
+    }
+    const { data: owners } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "owner");
+    if ((owners ?? []).length <= 1) {
+      throw new Error("O sistema precisa de pelo menos um dono.");
+    }
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id)
+      .eq("role", "owner");
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const updateBarberPassword = createServerFn({ method: "POST" })
@@ -74,9 +151,7 @@ export const updateBarberPassword = createServerFn({ method: "POST" })
 
 export const deleteBarber = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ barber_id: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ barber_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertOwner(context.userId);
     if (data.barber_id === context.userId) {

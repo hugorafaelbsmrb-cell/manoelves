@@ -1,1213 +1,1226 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
+      blocked_slots: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          slot_date: string;
+          start_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          slot_date: string;
+          start_at: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          slot_date?: string;
+          start_at?: string;
+        };
+        Relationships: [];
+      };
       appointment_items: {
         Row: {
-          appointment_id: string
-          duration_minutes: number
-          id: string
-          price_cents: number
-          service_id: string
-        }
+          appointment_id: string;
+          duration_minutes: number;
+          id: string;
+          price_cents: number;
+          service_id: string;
+        };
         Insert: {
-          appointment_id: string
-          duration_minutes: number
-          id?: string
-          price_cents: number
-          service_id: string
-        }
+          appointment_id: string;
+          duration_minutes: number;
+          id?: string;
+          price_cents: number;
+          service_id: string;
+        };
         Update: {
-          appointment_id?: string
-          duration_minutes?: number
-          id?: string
-          price_cents?: number
-          service_id?: string
-        }
+          appointment_id?: string;
+          duration_minutes?: number;
+          id?: string;
+          price_cents?: number;
+          service_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "appointment_items_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            foreignKeyName: "appointment_items_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "appointment_items_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
+            foreignKeyName: "appointment_items_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       appointments: {
         Row: {
-          barber_id: string
-          client_email: string | null
-          client_id: string | null
-          client_name: string
-          client_whatsapp: string
-          combo_id: string | null
-          created_at: string
-          end_at: string
-          id: string
-          notes: string | null
-          start_at: string
-          status: Database["public"]["Enums"]["appointment_status"]
-          total_cents: number
-          updated_at: string
-        }
+          barber_id: string;
+          client_email: string | null;
+          client_id: string | null;
+          client_name: string;
+          client_whatsapp: string;
+          combo_id: string | null;
+          created_at: string;
+          end_at: string;
+          id: string;
+          notes: string | null;
+          start_at: string;
+          status: Database["public"]["Enums"]["appointment_status"];
+          total_cents: number;
+          updated_at: string;
+        };
         Insert: {
-          barber_id: string
-          client_email?: string | null
-          client_id?: string | null
-          client_name: string
-          client_whatsapp: string
-          combo_id?: string | null
-          created_at?: string
-          end_at: string
-          id?: string
-          notes?: string | null
-          start_at: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-          total_cents?: number
-          updated_at?: string
-        }
+          barber_id: string;
+          client_email?: string | null;
+          client_id?: string | null;
+          client_name: string;
+          client_whatsapp: string;
+          combo_id?: string | null;
+          created_at?: string;
+          end_at: string;
+          id?: string;
+          notes?: string | null;
+          start_at: string;
+          status?: Database["public"]["Enums"]["appointment_status"];
+          total_cents?: number;
+          updated_at?: string;
+        };
         Update: {
-          barber_id?: string
-          client_email?: string | null
-          client_id?: string | null
-          client_name?: string
-          client_whatsapp?: string
-          combo_id?: string | null
-          created_at?: string
-          end_at?: string
-          id?: string
-          notes?: string | null
-          start_at?: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-          total_cents?: number
-          updated_at?: string
-        }
+          barber_id?: string;
+          client_email?: string | null;
+          client_id?: string | null;
+          client_name?: string;
+          client_whatsapp?: string;
+          combo_id?: string | null;
+          created_at?: string;
+          end_at?: string;
+          id?: string;
+          notes?: string | null;
+          start_at?: string;
+          status?: Database["public"]["Enums"]["appointment_status"];
+          total_cents?: number;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "appointments_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "appointments_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "appointments_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            foreignKeyName: "appointments_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "appointments_combo_id_fkey"
-            columns: ["combo_id"]
-            isOneToOne: false
-            referencedRelation: "combos"
-            referencedColumns: ["id"]
+            foreignKeyName: "appointments_combo_id_fkey";
+            columns: ["combo_id"];
+            isOneToOne: false;
+            referencedRelation: "combos";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       barbershop: {
         Row: {
-          address: string | null
-          banner_url: string | null
-          created_at: string
-          gallery_urls: Json
-          id: string
-          logo_url: string | null
-          map_embed_url: string | null
-          name: string
-          no_show_deposit_cents: number
-          no_show_protection: boolean
-          phone: string | null
-          pix_key: string | null
-          updated_at: string
-          working_hours: string | null
-        }
+          address: string | null;
+          banner_url: string | null;
+          created_at: string;
+          gallery_urls: Json;
+          id: string;
+          logo_url: string | null;
+          map_embed_url: string | null;
+          name: string;
+          no_show_deposit_cents: number;
+          no_show_protection: boolean;
+          phone: string | null;
+          pix_key: string | null;
+          updated_at: string;
+          working_hours: string | null;
+        };
         Insert: {
-          address?: string | null
-          banner_url?: string | null
-          created_at?: string
-          gallery_urls?: Json
-          id?: string
-          logo_url?: string | null
-          map_embed_url?: string | null
-          name?: string
-          no_show_deposit_cents?: number
-          no_show_protection?: boolean
-          phone?: string | null
-          pix_key?: string | null
-          updated_at?: string
-          working_hours?: string | null
-        }
+          address?: string | null;
+          banner_url?: string | null;
+          created_at?: string;
+          gallery_urls?: Json;
+          id?: string;
+          logo_url?: string | null;
+          map_embed_url?: string | null;
+          name?: string;
+          no_show_deposit_cents?: number;
+          no_show_protection?: boolean;
+          phone?: string | null;
+          pix_key?: string | null;
+          updated_at?: string;
+          working_hours?: string | null;
+        };
         Update: {
-          address?: string | null
-          banner_url?: string | null
-          created_at?: string
-          gallery_urls?: Json
-          id?: string
-          logo_url?: string | null
-          map_embed_url?: string | null
-          name?: string
-          no_show_deposit_cents?: number
-          no_show_protection?: boolean
-          phone?: string | null
-          pix_key?: string | null
-          updated_at?: string
-          working_hours?: string | null
-        }
-        Relationships: []
-      }
+          address?: string | null;
+          banner_url?: string | null;
+          created_at?: string;
+          gallery_urls?: Json;
+          id?: string;
+          logo_url?: string | null;
+          map_embed_url?: string | null;
+          name?: string;
+          no_show_deposit_cents?: number;
+          no_show_protection?: boolean;
+          phone?: string | null;
+          pix_key?: string | null;
+          updated_at?: string;
+          working_hours?: string | null;
+        };
+        Relationships: [];
+      };
       birthday_notifications_log: {
         Row: {
-          client_id: string
-          id: string
-          sent_at: string
-          sent_for_year: number
-        }
+          client_id: string;
+          id: string;
+          sent_at: string;
+          sent_for_year: number;
+        };
         Insert: {
-          client_id: string
-          id?: string
-          sent_at?: string
-          sent_for_year: number
-        }
+          client_id: string;
+          id?: string;
+          sent_at?: string;
+          sent_for_year: number;
+        };
         Update: {
-          client_id?: string
-          id?: string
-          sent_at?: string
-          sent_for_year?: number
-        }
+          client_id?: string;
+          id?: string;
+          sent_at?: string;
+          sent_for_year?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "birthday_notifications_log_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            foreignKeyName: "birthday_notifications_log_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       buffer_settings: {
         Row: {
-          barber_id: string
-          buffer_minutes: number
-        }
+          barber_id: string;
+          buffer_minutes: number;
+        };
         Insert: {
-          barber_id: string
-          buffer_minutes?: number
-        }
+          barber_id: string;
+          buffer_minutes?: number;
+        };
         Update: {
-          barber_id?: string
-          buffer_minutes?: number
-        }
+          barber_id?: string;
+          buffer_minutes?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "buffer_settings_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "buffer_settings_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       client_otp_codes: {
         Row: {
-          attempts: number
-          code_hash: string
-          created_at: string
-          expires_at: string
-          phone: string
-        }
+          attempts: number;
+          code_hash: string;
+          created_at: string;
+          expires_at: string;
+          phone: string;
+        };
         Insert: {
-          attempts?: number
-          code_hash: string
-          created_at?: string
-          expires_at: string
-          phone: string
-        }
+          attempts?: number;
+          code_hash: string;
+          created_at?: string;
+          expires_at: string;
+          phone: string;
+        };
         Update: {
-          attempts?: number
-          code_hash?: string
-          created_at?: string
-          expires_at?: string
-          phone?: string
-        }
-        Relationships: []
-      }
+          attempts?: number;
+          code_hash?: string;
+          created_at?: string;
+          expires_at?: string;
+          phone?: string;
+        };
+        Relationships: [];
+      };
       mp_webhook_events: {
         Row: {
-          event_key: string
-          type: string
-          data_id: string
-          processed_at: string
-        }
+          event_key: string;
+          type: string;
+          data_id: string;
+          processed_at: string;
+        };
         Insert: {
-          event_key: string
-          type: string
-          data_id: string
-          processed_at?: string
-        }
+          event_key: string;
+          type: string;
+          data_id: string;
+          processed_at?: string;
+        };
         Update: {
-          event_key?: string
-          type?: string
-          data_id?: string
-          processed_at?: string
-        }
-        Relationships: []
-      }
+          event_key?: string;
+          type?: string;
+          data_id?: string;
+          processed_at?: string;
+        };
+        Relationships: [];
+      };
       clients: {
         Row: {
-          birthday: string | null
-          created_at: string
-          email: string | null
-          id: string
-          name: string
-          notes: string | null
-          updated_at: string
-          whatsapp: string
-        }
+          birthday: string | null;
+          created_at: string;
+          email: string | null;
+          id: string;
+          name: string;
+          notes: string | null;
+          updated_at: string;
+          whatsapp: string;
+        };
         Insert: {
-          birthday?: string | null
-          created_at?: string
-          email?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          updated_at?: string
-          whatsapp: string
-        }
+          birthday?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          updated_at?: string;
+          whatsapp: string;
+        };
         Update: {
-          birthday?: string | null
-          created_at?: string
-          email?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          updated_at?: string
-          whatsapp?: string
-        }
-        Relationships: []
-      }
+          birthday?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          updated_at?: string;
+          whatsapp?: string;
+        };
+        Relationships: [];
+      };
       combo_services: {
         Row: {
-          combo_id: string
-          service_id: string
-        }
+          combo_id: string;
+          service_id: string;
+        };
         Insert: {
-          combo_id: string
-          service_id: string
-        }
+          combo_id: string;
+          service_id: string;
+        };
         Update: {
-          combo_id?: string
-          service_id?: string
-        }
+          combo_id?: string;
+          service_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "combo_services_combo_id_fkey"
-            columns: ["combo_id"]
-            isOneToOne: false
-            referencedRelation: "combos"
-            referencedColumns: ["id"]
+            foreignKeyName: "combo_services_combo_id_fkey";
+            columns: ["combo_id"];
+            isOneToOne: false;
+            referencedRelation: "combos";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "combo_services_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
+            foreignKeyName: "combo_services_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       combos: {
         Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          price_cents: number
-          updated_at: string
-        }
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          price_cents: number;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          price_cents: number
-          updated_at?: string
-        }
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          price_cents: number;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          price_cents?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          price_cents?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       commission_rules: {
         Row: {
-          barber_id: string
-          product_pct: number
-          service_pct: number
-        }
+          barber_id: string;
+          product_pct: number;
+          service_pct: number;
+        };
         Insert: {
-          barber_id: string
-          product_pct?: number
-          service_pct?: number
-        }
+          barber_id: string;
+          product_pct?: number;
+          service_pct?: number;
+        };
         Update: {
-          barber_id?: string
-          product_pct?: number
-          service_pct?: number
-        }
+          barber_id?: string;
+          product_pct?: number;
+          service_pct?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "commission_rules_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "commission_rules_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       haircut_styles: {
         Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image_url: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-        }
+          created_at: string;
+          description: string | null;
+          id: string;
+          image_url: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-        }
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image_url: string;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image_url?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       integration_settings: {
         Row: {
-          birthday_days_before: number
-          birthday_discount_pct: number
-          birthday_message_template: string
-          birthday_notifications_enabled: boolean
-          id: string
-          internal_hooks_secret: string | null
-          mp_access_token: string | null
-          mp_public_key: string | null
-          mp_webhook_secret: string | null
-          openai_api_key: string | null
-          sighor_api_key: string | null
-          sighor_default_playlist_id: string | null
-          uazapi_token: string | null
-          uazapi_url: string | null
-          updated_at: string
-          wapi_instance_id: string | null
-          wapi_token: string | null
-          whatsapp_phone_id: string | null
-          whatsapp_token: string | null
-        }
+          birthday_days_before: number;
+          birthday_discount_pct: number;
+          birthday_message_template: string;
+          birthday_notifications_enabled: boolean;
+          id: string;
+          internal_hooks_secret: string | null;
+          mp_access_token: string | null;
+          mp_public_key: string | null;
+          mp_webhook_secret: string | null;
+          openai_api_key: string | null;
+          sighor_api_key: string | null;
+          sighor_default_playlist_id: string | null;
+          uazapi_token: string | null;
+          uazapi_url: string | null;
+          updated_at: string;
+          wapi_instance_id: string | null;
+          wapi_token: string | null;
+          whatsapp_phone_id: string | null;
+          whatsapp_token: string | null;
+        };
         Insert: {
-          birthday_days_before?: number
-          birthday_discount_pct?: number
-          birthday_message_template?: string
-          birthday_notifications_enabled?: boolean
-          id?: string
-          internal_hooks_secret?: string | null
-          mp_access_token?: string | null
-          mp_public_key?: string | null
-          mp_webhook_secret?: string | null
-          openai_api_key?: string | null
-          sighor_api_key?: string | null
-          sighor_default_playlist_id?: string | null
-          uazapi_token?: string | null
-          uazapi_url?: string | null
-          updated_at?: string
-          wapi_instance_id?: string | null
-          wapi_token?: string | null
-          whatsapp_phone_id?: string | null
-          whatsapp_token?: string | null
-        }
+          birthday_days_before?: number;
+          birthday_discount_pct?: number;
+          birthday_message_template?: string;
+          birthday_notifications_enabled?: boolean;
+          id?: string;
+          internal_hooks_secret?: string | null;
+          mp_access_token?: string | null;
+          mp_public_key?: string | null;
+          mp_webhook_secret?: string | null;
+          openai_api_key?: string | null;
+          sighor_api_key?: string | null;
+          sighor_default_playlist_id?: string | null;
+          uazapi_token?: string | null;
+          uazapi_url?: string | null;
+          updated_at?: string;
+          wapi_instance_id?: string | null;
+          wapi_token?: string | null;
+          whatsapp_phone_id?: string | null;
+          whatsapp_token?: string | null;
+        };
         Update: {
-          birthday_days_before?: number
-          birthday_discount_pct?: number
-          birthday_message_template?: string
-          birthday_notifications_enabled?: boolean
-          id?: string
-          internal_hooks_secret?: string | null
-          mp_access_token?: string | null
-          mp_public_key?: string | null
-          mp_webhook_secret?: string | null
-          openai_api_key?: string | null
-          sighor_api_key?: string | null
-          sighor_default_playlist_id?: string | null
-          uazapi_token?: string | null
-          uazapi_url?: string | null
-          updated_at?: string
-          wapi_instance_id?: string | null
-          wapi_token?: string | null
-          whatsapp_phone_id?: string | null
-          whatsapp_token?: string | null
-        }
-        Relationships: []
-      }
+          birthday_days_before?: number;
+          birthday_discount_pct?: number;
+          birthday_message_template?: string;
+          birthday_notifications_enabled?: boolean;
+          id?: string;
+          internal_hooks_secret?: string | null;
+          mp_access_token?: string | null;
+          mp_public_key?: string | null;
+          mp_webhook_secret?: string | null;
+          openai_api_key?: string | null;
+          sighor_api_key?: string | null;
+          sighor_default_playlist_id?: string | null;
+          uazapi_token?: string | null;
+          uazapi_url?: string | null;
+          updated_at?: string;
+          wapi_instance_id?: string | null;
+          wapi_token?: string | null;
+          whatsapp_phone_id?: string | null;
+          whatsapp_token?: string | null;
+        };
+        Relationships: [];
+      };
       marketing_campaigns: {
         Row: {
-          audience: Json
-          barber_slug: string | null
-          created_at: string
-          created_by: string | null
-          delay_seconds: number
-          failed_count: number
-          id: string
-          link_mode: string
-          link_target: string
-          media_kind: string
-          media_path: string | null
-          media_url: string | null
-          message_text: string
-          scheduled_at: string | null
-          sent_at: string | null
-          sent_count: number
-          status: string
-          title: string
-          updated_at: string
-        }
+          audience: Json;
+          barber_slug: string | null;
+          created_at: string;
+          created_by: string | null;
+          delay_seconds: number;
+          failed_count: number;
+          id: string;
+          link_mode: string;
+          link_target: string;
+          media_kind: string;
+          media_path: string | null;
+          media_url: string | null;
+          message_text: string;
+          scheduled_at: string | null;
+          sent_at: string | null;
+          sent_count: number;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
         Insert: {
-          audience?: Json
-          barber_slug?: string | null
-          created_at?: string
-          created_by?: string | null
-          delay_seconds?: number
-          failed_count?: number
-          id?: string
-          link_mode?: string
-          link_target?: string
-          media_kind?: string
-          media_path?: string | null
-          media_url?: string | null
-          message_text?: string
-          scheduled_at?: string | null
-          sent_at?: string | null
-          sent_count?: number
-          status?: string
-          title: string
-          updated_at?: string
-        }
+          audience?: Json;
+          barber_slug?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          delay_seconds?: number;
+          failed_count?: number;
+          id?: string;
+          link_mode?: string;
+          link_target?: string;
+          media_kind?: string;
+          media_path?: string | null;
+          media_url?: string | null;
+          message_text?: string;
+          scheduled_at?: string | null;
+          sent_at?: string | null;
+          sent_count?: number;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
         Update: {
-          audience?: Json
-          barber_slug?: string | null
-          created_at?: string
-          created_by?: string | null
-          delay_seconds?: number
-          failed_count?: number
-          id?: string
-          link_mode?: string
-          link_target?: string
-          media_kind?: string
-          media_path?: string | null
-          media_url?: string | null
-          message_text?: string
-          scheduled_at?: string | null
-          sent_at?: string | null
-          sent_count?: number
-          status?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          audience?: Json;
+          barber_slug?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          delay_seconds?: number;
+          failed_count?: number;
+          id?: string;
+          link_mode?: string;
+          link_target?: string;
+          media_kind?: string;
+          media_path?: string | null;
+          media_url?: string | null;
+          message_text?: string;
+          scheduled_at?: string | null;
+          sent_at?: string | null;
+          sent_count?: number;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       marketing_campaign_recipients: {
         Row: {
-          campaign_id: string
-          client_id: string | null
-          error: string | null
-          id: string
-          name: string | null
-          phone: string
-          sent_at: string | null
-          status: string
-          wapi_message_id: string | null
-        }
+          campaign_id: string;
+          client_id: string | null;
+          error: string | null;
+          id: string;
+          name: string | null;
+          phone: string;
+          sent_at: string | null;
+          status: string;
+          wapi_message_id: string | null;
+        };
         Insert: {
-          campaign_id: string
-          client_id?: string | null
-          error?: string | null
-          id?: string
-          name?: string | null
-          phone: string
-          sent_at?: string | null
-          status?: string
-          wapi_message_id?: string | null
-        }
+          campaign_id: string;
+          client_id?: string | null;
+          error?: string | null;
+          id?: string;
+          name?: string | null;
+          phone: string;
+          sent_at?: string | null;
+          status?: string;
+          wapi_message_id?: string | null;
+        };
         Update: {
-          campaign_id?: string
-          client_id?: string | null
-          error?: string | null
-          id?: string
-          name?: string | null
-          phone?: string
-          sent_at?: string | null
-          status?: string
-          wapi_message_id?: string | null
-        }
+          campaign_id?: string;
+          client_id?: string | null;
+          error?: string | null;
+          id?: string;
+          name?: string | null;
+          phone?: string;
+          sent_at?: string | null;
+          status?: string;
+          wapi_message_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "marketing_campaign_recipients_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "marketing_campaigns"
-            referencedColumns: ["id"]
+            foreignKeyName: "marketing_campaign_recipients_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "marketing_campaigns";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       messages_log: {
         Row: {
-          appointment_id: string | null
-          created_at: string
-          id: string
-          kind: Database["public"]["Enums"]["message_kind"]
-          payload: string
-          to_name: string | null
-          to_phone: string
-        }
+          appointment_id: string | null;
+          created_at: string;
+          id: string;
+          kind: Database["public"]["Enums"]["message_kind"];
+          payload: string;
+          to_name: string | null;
+          to_phone: string;
+        };
         Insert: {
-          appointment_id?: string | null
-          created_at?: string
-          id?: string
-          kind: Database["public"]["Enums"]["message_kind"]
-          payload: string
-          to_name?: string | null
-          to_phone: string
-        }
+          appointment_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: Database["public"]["Enums"]["message_kind"];
+          payload: string;
+          to_name?: string | null;
+          to_phone: string;
+        };
         Update: {
-          appointment_id?: string | null
-          created_at?: string
-          id?: string
-          kind?: Database["public"]["Enums"]["message_kind"]
-          payload?: string
-          to_name?: string | null
-          to_phone?: string
-        }
+          appointment_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: Database["public"]["Enums"]["message_kind"];
+          payload?: string;
+          to_name?: string | null;
+          to_phone?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "messages_log_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            foreignKeyName: "messages_log_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       order_items: {
         Row: {
-          description: string
-          id: string
-          kind: string
-          order_id: string
-          qty: number
-          ref_id: string
-          total_cents: number
-          unit_price_cents: number
-        }
+          description: string;
+          id: string;
+          kind: string;
+          order_id: string;
+          qty: number;
+          ref_id: string;
+          total_cents: number;
+          unit_price_cents: number;
+        };
         Insert: {
-          description: string
-          id?: string
-          kind: string
-          order_id: string
-          qty?: number
-          ref_id: string
-          total_cents: number
-          unit_price_cents: number
-        }
+          description: string;
+          id?: string;
+          kind: string;
+          order_id: string;
+          qty?: number;
+          ref_id: string;
+          total_cents: number;
+          unit_price_cents: number;
+        };
         Update: {
-          description?: string
-          id?: string
-          kind?: string
-          order_id?: string
-          qty?: number
-          ref_id?: string
-          total_cents?: number
-          unit_price_cents?: number
-        }
+          description?: string;
+          id?: string;
+          kind?: string;
+          order_id?: string;
+          qty?: number;
+          ref_id?: string;
+          total_cents?: number;
+          unit_price_cents?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       orders: {
         Row: {
-          appointment_id: string | null
-          barber_id: string
-          client_name: string
-          client_whatsapp: string | null
-          closed_at: string | null
-          created_at: string
-          id: string
-          invoice_number: string | null
-          mp_init_point: string | null
-          mp_payment_id: string | null
-          mp_payment_pix_id: string | null
-          mp_preference_id: string | null
-          payment_status: string | null
-          pix_code: string | null
-          pix_qr_base64: string | null
-          status: Database["public"]["Enums"]["order_status"]
-          subtotal_cents: number
-          total_cents: number
-          updated_at: string
-        }
+          appointment_id: string | null;
+          barber_id: string;
+          client_name: string;
+          client_whatsapp: string | null;
+          closed_at: string | null;
+          created_at: string;
+          id: string;
+          invoice_number: string | null;
+          mp_init_point: string | null;
+          mp_payment_id: string | null;
+          mp_payment_pix_id: string | null;
+          mp_preference_id: string | null;
+          payment_status: string | null;
+          pix_code: string | null;
+          pix_qr_base64: string | null;
+          status: Database["public"]["Enums"]["order_status"];
+          subtotal_cents: number;
+          total_cents: number;
+          updated_at: string;
+        };
         Insert: {
-          appointment_id?: string | null
-          barber_id: string
-          client_name: string
-          client_whatsapp?: string | null
-          closed_at?: string | null
-          created_at?: string
-          id?: string
-          invoice_number?: string | null
-          mp_init_point?: string | null
-          mp_payment_id?: string | null
-          mp_payment_pix_id?: string | null
-          mp_preference_id?: string | null
-          payment_status?: string | null
-          pix_code?: string | null
-          pix_qr_base64?: string | null
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal_cents?: number
-          total_cents?: number
-          updated_at?: string
-        }
+          appointment_id?: string | null;
+          barber_id: string;
+          client_name: string;
+          client_whatsapp?: string | null;
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          invoice_number?: string | null;
+          mp_init_point?: string | null;
+          mp_payment_id?: string | null;
+          mp_payment_pix_id?: string | null;
+          mp_preference_id?: string | null;
+          payment_status?: string | null;
+          pix_code?: string | null;
+          pix_qr_base64?: string | null;
+          status?: Database["public"]["Enums"]["order_status"];
+          subtotal_cents?: number;
+          total_cents?: number;
+          updated_at?: string;
+        };
         Update: {
-          appointment_id?: string | null
-          barber_id?: string
-          client_name?: string
-          client_whatsapp?: string | null
-          closed_at?: string | null
-          created_at?: string
-          id?: string
-          invoice_number?: string | null
-          mp_init_point?: string | null
-          mp_payment_id?: string | null
-          mp_payment_pix_id?: string | null
-          mp_preference_id?: string | null
-          payment_status?: string | null
-          pix_code?: string | null
-          pix_qr_base64?: string | null
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal_cents?: number
-          total_cents?: number
-          updated_at?: string
-        }
+          appointment_id?: string | null;
+          barber_id?: string;
+          client_name?: string;
+          client_whatsapp?: string | null;
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          invoice_number?: string | null;
+          mp_init_point?: string | null;
+          mp_payment_id?: string | null;
+          mp_payment_pix_id?: string | null;
+          mp_preference_id?: string | null;
+          payment_status?: string | null;
+          pix_code?: string | null;
+          pix_qr_base64?: string | null;
+          status?: Database["public"]["Enums"]["order_status"];
+          subtotal_cents?: number;
+          total_cents?: number;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "orders_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            foreignKeyName: "orders_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "orders_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "orders_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       payments: {
         Row: {
-          barber_amount_cents: number
-          barber_id: string
-          id: string
-          method: Database["public"]["Enums"]["payment_method"]
-          order_id: string
-          owner_amount_cents: number
-          paid_at: string
-          total_cents: number
-        }
+          barber_amount_cents: number;
+          barber_id: string;
+          id: string;
+          method: Database["public"]["Enums"]["payment_method"];
+          order_id: string;
+          owner_amount_cents: number;
+          paid_at: string;
+          total_cents: number;
+        };
         Insert: {
-          barber_amount_cents?: number
-          barber_id: string
-          id?: string
-          method: Database["public"]["Enums"]["payment_method"]
-          order_id: string
-          owner_amount_cents?: number
-          paid_at?: string
-          total_cents: number
-        }
+          barber_amount_cents?: number;
+          barber_id: string;
+          id?: string;
+          method: Database["public"]["Enums"]["payment_method"];
+          order_id: string;
+          owner_amount_cents?: number;
+          paid_at?: string;
+          total_cents: number;
+        };
         Update: {
-          barber_amount_cents?: number
-          barber_id?: string
-          id?: string
-          method?: Database["public"]["Enums"]["payment_method"]
-          order_id?: string
-          owner_amount_cents?: number
-          paid_at?: string
-          total_cents?: number
-        }
+          barber_amount_cents?: number;
+          barber_id?: string;
+          id?: string;
+          method?: Database["public"]["Enums"]["payment_method"];
+          order_id?: string;
+          owner_amount_cents?: number;
+          paid_at?: string;
+          total_cents?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "payments_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "payments_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "payments_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
+            foreignKeyName: "payments_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       products: {
         Row: {
-          cost_cents: number
-          created_at: string
-          id: string
-          image_url: string | null
-          is_active: boolean
-          is_internal_use: boolean
-          low_stock_alert: number
-          name: string
-          price_cents: number
-          stock: number
-          updated_at: string
-        }
+          cost_cents: number;
+          created_at: string;
+          id: string;
+          image_url: string | null;
+          is_active: boolean;
+          is_internal_use: boolean;
+          low_stock_alert: number;
+          name: string;
+          price_cents: number;
+          stock: number;
+          updated_at: string;
+        };
         Insert: {
-          cost_cents?: number
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          is_internal_use?: boolean
-          low_stock_alert?: number
-          name: string
-          price_cents: number
-          stock?: number
-          updated_at?: string
-        }
+          cost_cents?: number;
+          created_at?: string;
+          id?: string;
+          image_url?: string | null;
+          is_active?: boolean;
+          is_internal_use?: boolean;
+          low_stock_alert?: number;
+          name: string;
+          price_cents: number;
+          stock?: number;
+          updated_at?: string;
+        };
         Update: {
-          cost_cents?: number
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          is_internal_use?: boolean
-          low_stock_alert?: number
-          name?: string
-          price_cents?: number
-          stock?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          cost_cents?: number;
+          created_at?: string;
+          id?: string;
+          image_url?: string | null;
+          is_active?: boolean;
+          is_internal_use?: boolean;
+          low_stock_alert?: number;
+          name?: string;
+          price_cents?: number;
+          stock?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       push_subscriptions: {
         Row: {
-          created_at: string
-          endpoint: string
-          id: string
-          keys: Json
-          last_used_at: string | null
-          user_agent: string | null
-          user_id: string
-        }
+          created_at: string;
+          endpoint: string;
+          id: string;
+          keys: Json;
+          last_used_at: string | null;
+          user_agent: string | null;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          endpoint: string
-          id?: string
-          keys: Json
-          last_used_at?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          keys: Json;
+          last_used_at?: string | null;
+          user_agent?: string | null;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          endpoint?: string
-          id?: string
-          keys?: Json
-          last_used_at?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          keys?: Json;
+          last_used_at?: string | null;
+          user_agent?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
-          avatar_url: string | null
-          banner_url: string | null
-          bio: string | null
-          created_at: string
-          full_name: string
-          id: string
-          is_active: boolean
-          phone: string | null
-          slug: string | null
-          updated_at: string
-        }
+          avatar_url: string | null;
+          banner_url: string | null;
+          bio: string | null;
+          created_at: string;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          phone: string | null;
+          slug: string | null;
+          updated_at: string;
+        };
         Insert: {
-          avatar_url?: string | null
-          banner_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string
-          id: string
-          is_active?: boolean
-          phone?: string | null
-          slug?: string | null
-          updated_at?: string
-        }
+          avatar_url?: string | null;
+          banner_url?: string | null;
+          bio?: string | null;
+          created_at?: string;
+          full_name?: string;
+          id: string;
+          is_active?: boolean;
+          phone?: string | null;
+          slug?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          avatar_url?: string | null
-          banner_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string
-          id?: string
-          is_active?: boolean
-          phone?: string | null
-          slug?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          avatar_url?: string | null;
+          banner_url?: string | null;
+          bio?: string | null;
+          created_at?: string;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          phone?: string | null;
+          slug?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       services: {
         Row: {
-          created_at: string
-          duration_minutes: number
-          id: string
-          is_active: boolean
-          name: string
-          price_cents: number
-          updated_at: string
-        }
+          created_at: string;
+          duration_minutes: number;
+          id: string;
+          is_active: boolean;
+          name: string;
+          price_cents: number;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          duration_minutes: number
-          id?: string
-          is_active?: boolean
-          name: string
-          price_cents: number
-          updated_at?: string
-        }
+          created_at?: string;
+          duration_minutes: number;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          price_cents: number;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          duration_minutes?: number
-          id?: string
-          is_active?: boolean
-          name?: string
-          price_cents?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          duration_minutes?: number;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          price_cents?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       subscription_plan_windows: {
         Row: {
-          barber_id: string | null
-          created_at: string
-          end_time: string
-          id: string
-          plan_id: string
-          start_time: string
-          weekday: number
-        }
+          barber_id: string | null;
+          created_at: string;
+          end_time: string;
+          id: string;
+          plan_id: string;
+          start_time: string;
+          weekday: number;
+        };
         Insert: {
-          barber_id?: string | null
-          created_at?: string
-          end_time: string
-          id?: string
-          plan_id: string
-          start_time: string
-          weekday: number
-        }
+          barber_id?: string | null;
+          created_at?: string;
+          end_time: string;
+          id?: string;
+          plan_id: string;
+          start_time: string;
+          weekday: number;
+        };
         Update: {
-          barber_id?: string | null
-          created_at?: string
-          end_time?: string
-          id?: string
-          plan_id?: string
-          start_time?: string
-          weekday?: number
-        }
+          barber_id?: string | null;
+          created_at?: string;
+          end_time?: string;
+          id?: string;
+          plan_id?: string;
+          start_time?: string;
+          weekday?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "subscription_plan_windows_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "subscription_plans"
-            referencedColumns: ["id"]
+            foreignKeyName: "subscription_plan_windows_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       subscription_plans: {
         Row: {
-          created_at: string
-          credits: number
-          description: string | null
-          id: string
-          is_active: boolean
-          monthly_price_cents: number
-          name: string
-          updated_at: string
-        }
+          created_at: string;
+          credits: number;
+          description: string | null;
+          id: string;
+          is_active: boolean;
+          monthly_price_cents: number;
+          name: string;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          credits?: number
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          monthly_price_cents: number
-          name: string
-          updated_at?: string
-        }
+          created_at?: string;
+          credits?: number;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          monthly_price_cents: number;
+          name: string;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          credits?: number
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          monthly_price_cents?: number
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          credits?: number;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          monthly_price_cents?: number;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       subscriptions: {
         Row: {
-          client_name: string
-          client_whatsapp: string
-          created_at: string
-          credits_remaining: number
-          id: string
-          is_active: boolean
-          monthly_price_cents: number
-          mp_init_point: string | null
-          mp_preapproval_id: string | null
-          mp_status: string | null
-          next_charge_at: string
-          plan_name: string
-        }
+          client_name: string;
+          client_whatsapp: string;
+          created_at: string;
+          credits_remaining: number;
+          id: string;
+          is_active: boolean;
+          monthly_price_cents: number;
+          mp_init_point: string | null;
+          mp_preapproval_id: string | null;
+          mp_status: string | null;
+          next_charge_at: string;
+          plan_name: string;
+        };
         Insert: {
-          client_name: string
-          client_whatsapp: string
-          created_at?: string
-          credits_remaining?: number
-          id?: string
-          is_active?: boolean
-          monthly_price_cents: number
-          mp_init_point?: string | null
-          mp_preapproval_id?: string | null
-          mp_status?: string | null
-          next_charge_at: string
-          plan_name: string
-        }
+          client_name: string;
+          client_whatsapp: string;
+          created_at?: string;
+          credits_remaining?: number;
+          id?: string;
+          is_active?: boolean;
+          monthly_price_cents: number;
+          mp_init_point?: string | null;
+          mp_preapproval_id?: string | null;
+          mp_status?: string | null;
+          next_charge_at: string;
+          plan_name: string;
+        };
         Update: {
-          client_name?: string
-          client_whatsapp?: string
-          created_at?: string
-          credits_remaining?: number
-          id?: string
-          is_active?: boolean
-          monthly_price_cents?: number
-          mp_init_point?: string | null
-          mp_preapproval_id?: string | null
-          mp_status?: string | null
-          next_charge_at?: string
-          plan_name?: string
-        }
-        Relationships: []
-      }
+          client_name?: string;
+          client_whatsapp?: string;
+          created_at?: string;
+          credits_remaining?: number;
+          id?: string;
+          is_active?: boolean;
+          monthly_price_cents?: number;
+          mp_init_point?: string | null;
+          mp_preapproval_id?: string | null;
+          mp_status?: string | null;
+          next_charge_at?: string;
+          plan_name?: string;
+        };
+        Relationships: [];
+      };
       time_off: {
         Row: {
-          barber_id: string
-          end_at: string
-          id: string
-          reason: string | null
-          start_at: string
-        }
+          barber_id: string;
+          end_at: string;
+          id: string;
+          reason: string | null;
+          start_at: string;
+        };
         Insert: {
-          barber_id: string
-          end_at: string
-          id?: string
-          reason?: string | null
-          start_at: string
-        }
+          barber_id: string;
+          end_at: string;
+          id?: string;
+          reason?: string | null;
+          start_at: string;
+        };
         Update: {
-          barber_id?: string
-          end_at?: string
-          id?: string
-          reason?: string | null
-          start_at?: string
-        }
+          barber_id?: string;
+          end_at?: string;
+          id?: string;
+          reason?: string | null;
+          start_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "time_off_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "time_off_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       user_roles: {
         Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       waitlist: {
         Row: {
-          barber_id: string
-          client_name: string
-          client_whatsapp: string
-          created_at: string
-          id: string
-          notified_at: string | null
-          preferred_period: string | null
-        }
+          barber_id: string;
+          client_name: string;
+          client_whatsapp: string;
+          created_at: string;
+          id: string;
+          notified_at: string | null;
+          preferred_period: string | null;
+        };
         Insert: {
-          barber_id: string
-          client_name: string
-          client_whatsapp: string
-          created_at?: string
-          id?: string
-          notified_at?: string | null
-          preferred_period?: string | null
-        }
+          barber_id: string;
+          client_name: string;
+          client_whatsapp: string;
+          created_at?: string;
+          id?: string;
+          notified_at?: string | null;
+          preferred_period?: string | null;
+        };
         Update: {
-          barber_id?: string
-          client_name?: string
-          client_whatsapp?: string
-          created_at?: string
-          id?: string
-          notified_at?: string | null
-          preferred_period?: string | null
-        }
+          barber_id?: string;
+          client_name?: string;
+          client_whatsapp?: string;
+          created_at?: string;
+          id?: string;
+          notified_at?: string | null;
+          preferred_period?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "waitlist_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "waitlist_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       working_hours: {
         Row: {
-          barber_id: string
-          end_time: string
-          id: string
-          start_time: string
-          weekday: number
-        }
+          barber_id: string;
+          end_time: string;
+          id: string;
+          start_time: string;
+          weekday: number;
+        };
         Insert: {
-          barber_id: string
-          end_time: string
-          id?: string
-          start_time: string
-          weekday: number
-        }
+          barber_id: string;
+          end_time: string;
+          id?: string;
+          start_time: string;
+          weekday: number;
+        };
         Update: {
-          barber_id?: string
-          end_time?: string
-          id?: string
-          start_time?: string
-          weekday?: number
-        }
+          barber_id?: string;
+          end_time?: string;
+          id?: string;
+          start_time?: string;
+          weekday?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "working_hours_barber_id_fkey"
-            columns: ["barber_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "working_hours_barber_id_fkey";
+            columns: ["barber_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-    }
+          _role: Database["public"]["Enums"]["app_role"];
+          _user_id: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: {
-      app_role: "owner" | "barber"
-      appointment_status:
-        | "pending_payment"
-        | "confirmed"
-        | "completed"
-        | "cancelled"
-        | "no_show"
+      app_role: "owner" | "barber";
+      appointment_status: "pending_payment" | "confirmed" | "completed" | "cancelled" | "no_show";
       message_kind:
         | "confirmation"
         | "reminder_24h"
@@ -1216,144 +1229,136 @@ export type Database = {
         | "waitlist"
         | "subscription"
         | "pix"
-        | "marketing"
-      order_status: "open" | "closed" | "cancelled"
-      payment_method: "pix" | "card" | "cash"
-    }
+        | "marketing";
+      order_status: "open" | "closed" | "cancelled";
+      payment_method: "pix" | "card" | "cash";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "barber"],
-      appointment_status: [
-        "pending_payment",
-        "confirmed",
-        "completed",
-        "cancelled",
-        "no_show",
-      ],
+      appointment_status: ["pending_payment", "confirmed", "completed", "cancelled", "no_show"],
       message_kind: [
         "confirmation",
         "reminder_24h",
@@ -1368,4 +1373,4 @@ export const Constants = {
       payment_method: ["pix", "card", "cash"],
     },
   },
-} as const
+} as const;

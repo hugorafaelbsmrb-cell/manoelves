@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,9 @@ import {
   createBarber,
   deleteBarber,
   updateBarberPassword,
+  listOwners,
+  grantOwnerByEmail,
+  removeOwnerAccess,
 } from "@/lib/barbers.functions";
 
 export const Route = createFileRoute("/barbeiros")({
@@ -29,12 +32,62 @@ export const Route = createFileRoute("/barbeiros")({
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function BarbeirosPage() {
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
   const createBarberFn = useServerFn(createBarber);
   const deleteBarberFn = useServerFn(deleteBarber);
   const updatePasswordFn = useServerFn(updateBarberPassword);
+  const listOwnersFn = useServerFn(listOwners);
+  const grantOwnerFn = useServerFn(grantOwnerByEmail);
+  const removeOwnerFn = useServerFn(removeOwnerAccess);
+
+  const [owners, setOwners] = useState<{ user_id: string; full_name: string; email: string }[]>([]);
+  const [ownerEmail, setOwnerEmail] = useState("");
+  const [ownerBusy, setOwnerBusy] = useState(false);
+
+  async function loadOwners() {
+    try {
+      setOwners(await listOwnersFn());
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  useEffect(() => {
+    listOwnersFn()
+      .then(setOwners)
+      .catch((e) => toast.error((e as Error).message));
+  }, [listOwnersFn]);
+
+  async function addOwner() {
+    const email = ownerEmail.trim();
+    if (!email) {
+      toast.error("Informe o e-mail da conta.");
+      return;
+    }
+    setOwnerBusy(true);
+    try {
+      await grantOwnerFn({ data: { email } });
+      toast.success("Acesso de dono concedido.");
+      setOwnerEmail("");
+      await loadOwners();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setOwnerBusy(false);
+    }
+  }
+
+  async function removeOwner(userId: string) {
+    try {
+      await removeOwnerFn({ data: { user_id: userId } });
+      toast.success("Acesso de dono removido.");
+      await loadOwners();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const { data: barbers } = useQuery({
     queryKey: ["barbers-list"],
@@ -45,11 +98,7 @@ function BarbeirosPage() {
         .eq("role", "barber");
       const ids = (roles ?? []).map((r) => r.user_id);
       if (!ids.length) return [];
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", ids)
-        .order("full_name");
+      const { data } = await supabase.from("profiles").select("*").in("id", ids).order("full_name");
       return data ?? [];
     },
   });
@@ -93,12 +142,21 @@ function BarbeirosPage() {
   }
 
   if (!isOwner) {
-    return (
-      <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar barbeiros.</p>
-    );
+    return <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar barbeiros.</p>;
   }
 
-  async function updateProfile(id: string, patch: Partial<{ full_name: string; slug: string | null; phone: string | null; avatar_url: string | null; banner_url: string | null; bio: string | null; is_active: boolean }>) {
+  async function updateProfile(
+    id: string,
+    patch: Partial<{
+      full_name: string;
+      slug: string | null;
+      phone: string | null;
+      avatar_url: string | null;
+      banner_url: string | null;
+      bio: string | null;
+      is_active: boolean;
+    }>,
+  ) {
     await supabase.from("profiles").update(patch).eq("id", id);
     qc.invalidateQueries({ queryKey: ["barbers-list"] });
   }
@@ -114,8 +172,18 @@ function BarbeirosPage() {
         onCreate={async (payload) => {
           await createBarberFn({ data: payload });
           await qc.invalidateQueries({ queryKey: ["barbers-list"] });
-          toast.success("Barbeiro cadastrado");
+          toast.success(payload.role === "owner" ? "Dono cadastrado" : "Barbeiro cadastrado");
         }}
+      />
+
+      <OwnersSection
+        owners={owners}
+        currentUserId={user?.id}
+        ownerEmail={ownerEmail}
+        ownerBusy={ownerBusy}
+        onEmailChange={setOwnerEmail}
+        onAdd={addOwner}
+        onRemove={removeOwner}
       />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -138,9 +206,7 @@ function BarbeirosPage() {
               </span>
               <span className="min-w-0">
                 <p className="truncate font-medium">{b.full_name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  /{b.slug ?? "—"}
-                </p>
+                <p className="truncate text-xs text-muted-foreground">/{b.slug ?? "—"}</p>
               </span>
             </button>
           ))}
@@ -148,11 +214,11 @@ function BarbeirosPage() {
 
         <div>
           {!selected ? (
-            <p className="text-sm text-muted-foreground">
-              Selecione um barbeiro à esquerda.
-            </p>
+            <p className="text-sm text-muted-foreground">Selecione um barbeiro à esquerda.</p>
           ) : (
-            (barbers ?? []).filter((x) => x.id === selected).map((b) => (
+            (barbers ?? [])
+              .filter((x) => x.id === selected)
+              .map((b) => (
                 <div key={b.id} className="space-y-6">
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Perfil</h2>
@@ -219,9 +285,7 @@ function BarbeirosPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          updateProfile(b.id, { is_active: !b.is_active })
-                        }
+                        onClick={() => updateProfile(b.id, { is_active: !b.is_active })}
                       >
                         {b.is_active ? "Desativar" : "Reativar"}
                       </Button>
@@ -246,7 +310,12 @@ function BarbeirosPage() {
                         size="sm"
                         className="text-destructive hover:text-destructive"
                         onClick={async () => {
-                          if (!window.confirm(`Remover ${b.full_name}? Esta ação não pode ser desfeita.`)) return;
+                          if (
+                            !window.confirm(
+                              `Remover ${b.full_name}? Esta ação não pode ser desfeita.`,
+                            )
+                          )
+                            return;
                           try {
                             await deleteBarberFn({ data: { barber_id: b.id } });
                             await qc.invalidateQueries({ queryKey: ["barbers-list"] });
@@ -269,14 +338,11 @@ function BarbeirosPage() {
                     onSave={(s, p) => saveCommission(b.id, s, p)}
                   />
 
-
-
-
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="font-display text-xl tracking-wide">Horários</h2>
                     <p className="text-xs text-muted-foreground">
-                      Defina os blocos disponíveis para cada dia. Você pode criar
-                      vários intervalos no mesmo dia (ex.: manhã e tarde).
+                      Defina os blocos disponíveis para cada dia. Você pode criar vários intervalos
+                      no mesmo dia (ex.: manhã e tarde).
                     </p>
                     <div className="mt-3 space-y-3">
                       {WEEKDAYS.map((label, wd) => {
@@ -379,7 +445,6 @@ function CommissionSection({
     </section>
   );
 }
-
 
 function Field({
   label,
@@ -497,7 +562,12 @@ function BlockRow({
   const [end, setEnd] = useState(block.end_time.slice(0, 5));
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="w-28" />
+      <Input
+        type="time"
+        value={start}
+        onChange={(e) => setStart(e.target.value)}
+        className="w-28"
+      />
       <span className="text-muted-foreground">→</span>
       <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} className="w-28" />
       <Button variant="outline" size="sm" onClick={() => onUpdate(start, end)}>
@@ -510,14 +580,12 @@ function BlockRow({
   );
 }
 
-
-
-
 interface NewBarberPayload {
   email: string;
   password: string;
   full_name: string;
   phone?: string | null;
+  role: "barber" | "owner";
 }
 
 function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promise<void> }) {
@@ -525,6 +593,7 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState<"barber" | "owner">("barber");
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
@@ -535,11 +604,12 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
     }
     setBusy(true);
     try {
-      await onCreate({ full_name, email, password, phone: phone || null });
+      await onCreate({ full_name, email, password, phone: phone || null, role });
       setName("");
       setEmail("");
       setPassword("");
       setPhone("");
+      setRole("barber");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -550,25 +620,128 @@ function NewBarberForm({ onCreate }: { onCreate: (p: NewBarberPayload) => Promis
   return (
     <form
       onSubmit={submit}
-      className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 sm:grid-cols-2 lg:grid-cols-5"
+      className="mt-6 grid gap-3 rounded-xl border border-border bg-card p-5 sm:grid-cols-2 lg:grid-cols-6"
     >
-      <div className="lg:col-span-5">
-        <h2 className="font-display text-lg tracking-wide">Cadastrar novo barbeiro</h2>
+      <div className="sm:col-span-2 lg:col-span-6">
+        <h2 className="font-display text-lg tracking-wide">Cadastrar novo acesso</h2>
         <p className="text-xs text-muted-foreground">
-          O barbeiro receberá acesso com este e-mail e senha. Compartilhe com ele para o primeiro login.
+          Crie a conta e escolha o papel: barbeiro (vê apenas a própria operação) ou dono (acesso
+          total ao sistema).
         </p>
       </div>
-      <Input placeholder="Nome completo" value={full_name} onChange={(e) => setName(e.target.value)} />
-      <Input placeholder="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <Input placeholder="Senha (mín. 8)" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <Input placeholder="WhatsApp (opcional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Input
+        placeholder="Nome completo"
+        value={full_name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        placeholder="E-mail"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <Input
+        placeholder="Senha (mín. 8)"
+        type="text"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <Input
+        placeholder="WhatsApp (opcional)"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      <select
+        value={role}
+        onChange={(e) => setRole(e.target.value as "barber" | "owner")}
+        className="rounded-md border border-border bg-background px-3 text-sm"
+      >
+        <option value="barber">Barbeiro</option>
+        <option value="owner">Dono (admin)</option>
+      </select>
       <Button type="submit" disabled={busy}>
         {busy ? "Criando..." : "Cadastrar"}
       </Button>
     </form>
   );
 }
+interface OwnerInfo {
+  user_id: string;
+  full_name: string;
+  email: string;
+}
 
+function OwnersSection({
+  owners,
+  currentUserId,
+  ownerEmail,
+  ownerBusy,
+  onEmailChange,
+  onAdd,
+  onRemove,
+}: {
+  owners: OwnerInfo[];
+  currentUserId?: string;
+  ownerEmail: string;
+  ownerBusy: boolean;
+  onEmailChange: (v: string) => void;
+  onAdd: () => void;
+  onRemove: (userId: string) => void;
+}) {
+  return (
+    <div className="mt-6 rounded-xl border border-border bg-card p-5">
+      <h2 className="font-display text-lg tracking-wide">Donos — acesso total</h2>
+      <p className="text-xs text-muted-foreground">
+        Quem tem acesso de dono vê e gerencia tudo: financeiro, assinaturas, marketing,
+        configurações e o cadastro da equipe.
+      </p>
+      <ul className="mt-3 space-y-2 text-sm">
+        {owners.map((o) => (
+          <li
+            key={o.user_id}
+            className="flex items-center justify-between gap-2 border-b border-border pb-2 last:border-0"
+          >
+            <div className="min-w-0">
+              <p className="font-medium">
+                {o.full_name}
+                {o.user_id === currentUserId && (
+                  <span className="ml-2 text-xs text-muted-foreground">(você)</span>
+                )}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">{o.email}</p>
+            </div>
+            {o.user_id !== currentUserId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => onRemove(o.user_id)}
+              >
+                Remover acesso
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <div className="min-w-56 flex-1">
+          <label className="text-xs text-muted-foreground">
+            Adicionar dono pelo e-mail da conta existente
+          </label>
+          <Input
+            type="email"
+            placeholder="email@cadastrado.com"
+            value={ownerEmail}
+            onChange={(e) => onEmailChange(e.target.value)}
+          />
+        </div>
+        <Button onClick={onAdd} disabled={ownerBusy}>
+          {ownerBusy ? "Adicionando..." : "Tornar dono"}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function AvatarUpload({
   barberId,

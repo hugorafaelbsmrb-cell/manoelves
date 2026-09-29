@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Hero } from "@/components/landing/Hero";
 import { Services } from "@/components/landing/Services";
@@ -17,8 +19,7 @@ export const Route = createFileRoute("/")({
       { title: "Barbearia Manoel Eves — Agendamento Online" },
       {
         name: "description",
-        content:
-          "Escolha seu barbeiro e agende seu corte na Barbearia Manoel Eves em segundos.",
+        content: "Escolha seu barbeiro e agende seu corte na Barbearia Manoel Eves em segundos.",
       },
     ],
   }),
@@ -26,6 +27,26 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const navigate = useNavigate();
+  const { user, loading, isOwner } = useAuth();
+
+  // No app instalado (PWA standalone), não mostramos a landing: quem não
+  // tem sessão vai direto ao login; quem já tem sessão salva vai direto
+  // ao painel (sem precisar logar de novo, até deslogar dentro do sistema).
+  useEffect(() => {
+    if (loading) return;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.matchMedia("(display-mode: fullscreen)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (!standalone) return;
+    if (!user) {
+      navigate({ to: "/login", replace: true });
+    } else {
+      navigate({ to: isOwner ? "/dashboard" : "/agenda", replace: true });
+    }
+  }, [loading, user, isOwner, navigate]);
+
   const { data: shop } = useQuery({
     queryKey: ["barbershop"],
     queryFn: async () => {
@@ -56,7 +77,7 @@ function HomePage() {
   return (
     <div className="dark min-h-screen bg-[#0a0a0a] text-gray-200 font-sans selection:bg-[#d4a857] selection:text-black">
       <Hero shop={shop} />
-      
+
       <div id="servicos">
         <Services />
       </div>
