@@ -149,7 +149,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh bg-background">
       {(isOwner || isBarber) && <PushNotificationManager />}
       {isOwner && <NewAppointmentNotifier />}
-      <header className="border-b border-border bg-sidebar">
+      <header
+        className="border-b border-border bg-sidebar"
+        style={{
+          // Recua da área segura (notch/status bar) em PWAs standalone no
+          // iPhone e Android — sem isso o header fica atrás da UI do sistema.
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
@@ -167,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="mr-1 h-3.5 w-3.5" /> <span className="hidden sm:inline">Sair</span>
+              <LogOut className="mr-1 h-3.5 w-3.5" /> <span>Sair</span>
             </Button>
           </div>
         </div>
