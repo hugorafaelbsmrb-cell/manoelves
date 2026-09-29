@@ -226,8 +226,8 @@ function Page() {
             histórico de agendamentos.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
@@ -247,7 +247,88 @@ function Page() {
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+      {/* Cards — celular */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {filtered.map((c) => {
+          const key = normalizePhone(c.whatsapp);
+          const cSubs = subsByPhone.get(key) ?? [];
+          const active = cSubs.find((s) => s.is_active);
+          const wa = waLink(c.whatsapp);
+          return (
+            <div key={c.id} className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.whatsapp || "—"}</p>
+                  {c.email && <p className="truncate text-xs text-muted-foreground">{c.email}</p>}
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {wa && (
+                    <a
+                      href={`https://wa.me/${wa}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Chamar no WhatsApp"
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </a>
+                  )}
+                  <button
+                    title="Editar cliente"
+                    onClick={() => {
+                      setEditing(c);
+                      setFormOpen(true);
+                    }}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    title="Remover cliente"
+                    onClick={() => setRemoving(c)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3 text-xs">
+                <div>
+                  <p className="text-[10px] uppercase text-muted-foreground">Visitas</p>
+                  <p className="font-medium">{c.visits}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase text-muted-foreground">Total gasto</p>
+                  <p className="font-medium">{brl(c.totalSpent)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase text-muted-foreground">Última visita</p>
+                  <p className="font-medium">
+                    {c.lastVisit ? new Date(c.lastVisit).toLocaleDateString("pt-BR") : "—"}
+                  </p>
+                </div>
+              </div>
+              {active && (
+                <div className="mt-3 flex items-center gap-1 text-xs">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-success">
+                    <CreditCard className="h-3 w-3" />
+                    {active.plan_name} · {active.credits_remaining} créd.
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            Nenhum cliente encontrado.
+          </div>
+        )}
+      </div>
+
+      {/* Tabela — desktop */}
+      <div className="mt-6 hidden overflow-hidden rounded-xl border border-border bg-card md:block">
         <table className="w-full text-sm">
           <thead className="bg-secondary/50 text-xs uppercase text-muted-foreground">
             <tr>

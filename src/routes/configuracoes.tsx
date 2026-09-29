@@ -11,7 +11,14 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { wapiStatus, wapiQr } from "@/lib/wapi.functions";
 import { getIntegrationSettings, saveIntegrationSettings } from "@/lib/settings.functions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { sendTestPush } from "@/lib/push.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { BannerUpload } from "@/components/banner-upload";
 import { HaircutCatalogManager } from "@/components/haircut-catalog-manager";
 import { Switch } from "@/components/ui/switch";
@@ -88,6 +95,7 @@ function Page() {
   const { isOwner, loading } = useAuth();
   const getSettingsFn = useServerFn(getIntegrationSettings);
   const saveSettingsFn = useServerFn(saveIntegrationSettings);
+  const sendTestPushFn = useServerFn(sendTestPush);
   const [s, setS] = useState<Settings>(empty);
   const [shop, setShop] = useState<Shop>({
     name: "",
@@ -109,6 +117,7 @@ function Page() {
   const [saving, setSaving] = useState(false);
   const [shopSaving, setShopSaving] = useState(false);
   const [galleryBusy, setGalleryBusy] = useState(false);
+  const [testPushBusy, setTestPushBusy] = useState(false);
   const galleryFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -154,9 +163,7 @@ function Page() {
           map_embed_url: (r.map_embed_url as string) ?? "",
           banner_url: (r.banner_url as string) ?? "",
           logo_url: (r.logo_url as string) ?? "",
-          gallery_urls: Array.isArray(r.gallery_urls)
-            ? (r.gallery_urls as string[])
-            : [],
+          gallery_urls: Array.isArray(r.gallery_urls) ? (r.gallery_urls as string[]) : [],
         });
       }
     })();
@@ -169,10 +176,7 @@ function Page() {
 
   async function persistShop(patch: Partial<Shop>) {
     if (shop.id) {
-      const { error } = await supabase
-        .from("barbershop")
-        .update(patch)
-        .eq("id", shop.id);
+      const { error } = await supabase.from("barbershop").update(patch).eq("id", shop.id);
       if (error) throw error;
     } else {
       const { data, error } = await supabase
@@ -290,9 +294,25 @@ function Page() {
   }
 
   const webhookUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/api/public/mercadopago`
-      : "";
+    typeof window !== "undefined" ? `${window.location.origin}/api/public/mercadopago` : "";
+
+  async function testPush() {
+    setTestPushBusy(true);
+    try {
+      const r = await sendTestPushFn();
+      if (r.sent > 0) {
+        toast.success("Notificação enviada! Olhe o celular.");
+      } else {
+        toast.info(
+          "Nenhum dispositivo registrado. Feche e reabra o app (ou o navegador) e aceite a permissão de notificações.",
+        );
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enviar teste");
+    } finally {
+      setTestPushBusy(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -325,10 +345,7 @@ function Page() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label className="text-xs">Nome</Label>
-            <Input
-              value={shop.name}
-              onChange={(e) => setShop({ ...shop, name: e.target.value })}
-            />
+            <Input value={shop.name} onChange={(e) => setShop({ ...shop, name: e.target.value })} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">WhatsApp (com DDI e DDD)</Label>
@@ -351,9 +368,7 @@ function Page() {
             <Textarea
               rows={3}
               value={shop.working_hours}
-              onChange={(e) =>
-                setShop({ ...shop, working_hours: e.target.value })
-              }
+              onChange={(e) => setShop({ ...shop, working_hours: e.target.value })}
               placeholder={"Seg a Sex: 09h às 20h\nSábado: 09h às 18h\nDomingo: Fechado"}
             />
           </div>
@@ -362,10 +377,10 @@ function Page() {
             <Textarea
               rows={3}
               value={shop.map_embed_url}
-              onChange={(e) =>
-                setShop({ ...shop, map_embed_url: e.target.value })
+              onChange={(e) => setShop({ ...shop, map_embed_url: e.target.value })}
+              placeholder={
+                "Cole o link src do embed (Google Maps → Compartilhar → Incorporar mapa). Vazio = mapa gerado pelo endereço."
               }
-              placeholder={"Cole o link src do embed (Google Maps → Compartilhar → Incorporar mapa). Vazio = mapa gerado pelo endereço."}
             />
           </div>
           <div className="sm:col-span-2">
@@ -373,6 +388,32 @@ function Page() {
               {shopSaving ? "Salvando..." : "Salvar dados do site"}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Notificações push (celular)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Alertas nativos no celular para novos agendamentos, pagamentos e assinaturas.
+            {typeof Notification !== "undefined"
+              ? ` Permissão atual neste dispositivo: ${Notification.permission}.`
+              : ""}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void testPush()}
+            disabled={testPushBusy}
+          >
+            {testPushBusy ? "Enviando..." : "Enviar notificação de teste"}
+          </Button>
+          <p className="text-[11px] text-muted-foreground">
+            Se nada chegar, feche o app e abra de novo para aparecer o pedido de permissão — e
+            confira se as notificações do navegador não estão bloqueadas no Android.
+          </p>
         </CardContent>
       </Card>
 
@@ -434,8 +475,6 @@ function Page() {
         </CardContent>
       </Card>
 
-
-
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Aniversários — mensagem automática</CardTitle>
@@ -476,7 +515,9 @@ function Page() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Mensagem (placeholders: {"{nome}"}, {"{desconto}"})</Label>
+            <Label className="text-xs">
+              Mensagem (placeholders: {"{nome}"}, {"{desconto}"})
+            </Label>
             <Textarea
               rows={5}
               value={bday.template}
@@ -515,12 +556,13 @@ function Page() {
             onClear={() => setS({ ...s, mp_webhook_secret: CLEAR })}
           />
           <div className="sm:col-span-2 rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
-            <p className="font-medium text-foreground">URL de notificação (cole no painel do Mercado Pago):</p>
+            <p className="font-medium text-foreground">
+              URL de notificação (cole no painel do Mercado Pago):
+            </p>
             <code className="mt-1 block break-all">{webhookUrl}</code>
           </div>
         </CardContent>
       </Card>
-
 
       <Card>
         <CardHeader>
@@ -569,9 +611,8 @@ function Page() {
             <TestWapi />
             <QrWapi />
             <p className="text-xs text-muted-foreground">
-              Salve antes de usar. O QR code expira em ~20s (feche e abra de
-              novo para atualizar). Também dá para conectar pelo painel da
-              W-API.
+              Salve antes de usar. O QR code expira em ~20s (feche e abra de novo para atualizar).
+              Também dá para conectar pelo painel da W-API.
             </p>
           </div>
         </CardContent>
@@ -594,8 +635,8 @@ function Page() {
           <div className="rounded-md border border-dashed border-border bg-secondary/30 p-3 text-xs">
             <p className="font-medium text-foreground">Como obter:</p>
             <p className="mt-1 text-muted-foreground">
-              plataforma.openai.com → API keys. Usada para escrever textos
-              (gpt-4o-mini) e gerar imagens (gpt-image-1) das campanhas.
+              plataforma.openai.com → API keys. Usada para escrever textos (gpt-4o-mini) e gerar
+              imagens (gpt-image-1) das campanhas.
             </p>
           </div>
         </CardContent>
@@ -668,8 +709,8 @@ function QrWapi() {
         <DialogHeader>
           <DialogTitle>Conectar WhatsApp</DialogTitle>
           <DialogDescription>
-            Escaneie no WhatsApp → Aparelhos conectados. O código expira em
-            ~20s — feche e abra de novo para atualizar.
+            Escaneie no WhatsApp → Aparelhos conectados. O código expira em ~20s — feche e abra de
+            novo para atualizar.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center">

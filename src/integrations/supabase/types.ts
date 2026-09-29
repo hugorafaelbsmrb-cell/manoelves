@@ -843,6 +843,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_logs: {
+        Row: {
+          body: string;
+          created_at: string;
+          error: string | null;
+          id: string;
+          status: string;
+          tag: string | null;
+          title: string;
+          url: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          status?: string;
+          tag?: string | null;
+          title: string;
+          url?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          status?: string;
+          tag?: string | null;
+          title?: string;
+          url?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       push_subscriptions: {
         Row: {
           created_at: string;

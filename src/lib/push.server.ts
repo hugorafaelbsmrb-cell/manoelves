@@ -37,10 +37,28 @@ type SubRow = {
   keys: { p256dh: string; auth: string };
 };
 
-export async function sendPushToUsers(
-  userIds: string[],
+async function logPush(
+  userId: string,
   payload: PushPayload,
-): Promise<number> {
+  status: "sent" | "expired" | "failed",
+  error?: string,
+): Promise<void> {
+  try {
+    await supabaseAdmin.from("push_logs").insert({
+      user_id: userId,
+      title: payload.title,
+      body: payload.body,
+      url: payload.url ?? "/",
+      tag: payload.tag,
+      status,
+      error: error ?? null,
+    });
+  } catch (e) {
+    console.error("[push] falha ao gravar log:", e);
+  }
+}
+
+export async function sendPushToUsers(userIds: string[], payload: PushPayload): Promise<number> {
   if (!ensureVapid()) return 0;
   const unique = [...new Set(userIds.filter(Boolean))];
   if (unique.length === 0) return 0;
@@ -70,6 +88,7 @@ export async function sendPushToUsers(
         { TTL: 3600 },
       );
       sent++;
+      await logPush(sub.user_id, payload, "sent");
       await supabaseAdmin
         .from("push_subscriptions")
         .update({ last_used_at: new Date().toISOString() })
@@ -78,8 +97,10 @@ export async function sendPushToUsers(
       const err = e as { statusCode?: number; message?: string };
       // 404/410 = subscrição expirada/inválida → remove do banco.
       if (err.statusCode === 404 || err.statusCode === 410) {
+        await logPush(sub.user_id, payload, "expired", String(err.statusCode));
         await supabaseAdmin.from("push_subscriptions").delete().eq("id", sub.id);
       } else {
+        await logPush(sub.user_id, payload, "failed", String(err.statusCode ?? err.message));
         console.error("[push] falha ao enviar:", err.statusCode ?? err.message ?? e);
       }
     }
@@ -91,10 +112,7 @@ export async function sendPushToRole(
   role: "owner" | "barber",
   payload: PushPayload,
 ): Promise<number> {
-  const { data: rows } = await supabaseAdmin
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", role);
+  const { data: rows } = await supabaseAdmin.from("user_roles").select("user_id").eq("role", role);
   return sendPushToUsers(
     (rows ?? []).map((r) => r.user_id),
     payload,

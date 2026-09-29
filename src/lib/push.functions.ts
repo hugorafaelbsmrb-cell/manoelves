@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { notifySubscriptionCreatedByStaff } from "@/lib/push.server";
+import { sendPushToUsers } from "@/lib/push.server";
 
 // ============================================================
 // Server fns de push — chamadas do navegador (o middleware
@@ -40,9 +41,7 @@ export const savePushSubscription = createServerFn({ method: "POST" })
  */
 export const notifySubscriptionCreated = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ subscriptionId: z.string().uuid() }).parse(d),
-  )
+  .inputValidator((d: unknown) => z.object({ subscriptionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<{ ok: boolean; notified: boolean }> => {
     const { data: sub } = await supabaseAdmin
       .from("subscriptions")
@@ -72,4 +71,20 @@ export const notifySubscriptionCreated = createServerFn({ method: "POST" })
       creatorName: creatorProfile?.full_name ?? "equipe",
     });
     return { ok: true, notified: true };
+  });
+
+/**
+ * Envia uma notificação de teste para o dispositivo do usuário logado.
+ * Usado na tela de Configurações para validar o push no celular.
+ */
+export const sendTestPush = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ ok: boolean; sent: number }> => {
+    const sent = await sendPushToUsers([context.userId], {
+      title: "Teste de notificação",
+      body: "Se você está vendo isto, as notificações push estão funcionando!",
+      url: "/",
+      tag: "test-push",
+    });
+    return { ok: true, sent };
   });
