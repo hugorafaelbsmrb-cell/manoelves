@@ -2,22 +2,30 @@ import { Link } from "@tanstack/react-router";
 import { LogIn, CalendarCheck } from "lucide-react";
 import logoUrl from "@/assets/manoelves-logo.png";
 import textureBg from "@/assets/texture-bg.jpg";
+import type { Database } from "@/integrations/supabase/types";
+
+type BarbershopRow = Database["public"]["Tables"]["barbershop"]["Row"];
 
 interface HeroProps {
-  shop: any;
+  shop: BarbershopRow | null | undefined;
 }
 
 export function Hero({ shop }: HeroProps) {
   const logo = shop?.logo_url || logoUrl;
-  // Banner salvo em Configurações tem prioridade; sem ele, usa a textura estática.
-  const banner = shop?.banner_url || textureBg;
+  // Banner salvo em Configurações tem prioridade; sem ele, usa a textura
+  // estática. Enquanto os dados do banco ainda não chegaram, o fundo fica
+  // apenas na cor escura sólida: assim a textura não "pisca" antes de o
+  // banner real aparecer (flash de imagem trocando na primeira carga).
+  const banner = shop ? shop.banner_url || textureBg : undefined;
 
   return (
     <div
       className="relative min-h-[90vh] flex flex-col"
       style={{
         backgroundColor: "#0a0a0a",
-        backgroundImage: `linear-gradient(to bottom, rgba(10,10,10,0.8), rgba(10,10,10,0.95)), url(${banner})`,
+        backgroundImage: banner
+          ? `linear-gradient(to bottom, rgba(10,10,10,0.8), rgba(10,10,10,0.95)), url(${banner})`
+          : undefined,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -54,9 +62,10 @@ export function Hero({ shop }: HeroProps) {
             A Arte da <span className="text-[#d4a857] italic">Barbearia</span> Clássica
           </h1>
           <p className="mt-8 text-lg sm:text-xl text-gray-400 font-light max-w-xl mx-auto leading-relaxed">
-            Mais do que um corte de cabelo, um ritual de cuidado masculino desenhado para o homem contemporâneo.
+            Mais do que um corte de cabelo, um ritual de cuidado masculino desenhado para o homem
+            contemporâneo.
           </p>
-          
+
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
             <Link
               to="/agendar"
