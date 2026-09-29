@@ -41,16 +41,41 @@ interface NavLink {
 
 // Operação do dia a dia
 const links: NavLink[] = [
-  { to: "/dashboard", label: "Dashboard", icon: <BarChart3 className="h-4 w-4" />, ownerOnly: true },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: <BarChart3 className="h-4 w-4" />,
+    ownerOnly: true,
+  },
   { to: "/agenda", label: "Agenda", icon: <Calendar className="h-4 w-4" /> },
   { to: "/comanda", label: "Comanda", icon: <Receipt className="h-4 w-4" /> },
   { to: "/clientes", label: "Clientes", icon: <Users className="h-4 w-4" /> },
   { to: "/fila-espera", label: "Fila", icon: <Clock className="h-4 w-4" /> },
   { to: "/financeiro", label: "Financeiro", icon: <Wallet className="h-4 w-4" />, ownerOnly: true },
-  { to: "/meu-financeiro", label: "Meu financeiro", icon: <Wallet className="h-4 w-4" />, barberOnly: true },
-  { to: "/assinaturas", label: "Assinaturas", icon: <CreditCard className="h-4 w-4" />, ownerOnly: true },
-  { to: "/reengajamento", label: "Reengajar", icon: <Heart className="h-4 w-4" />, ownerOnly: true },
-  { to: "/marketing", label: "Marketing", icon: <Megaphone className="h-4 w-4" />, ownerOnly: true },
+  {
+    to: "/meu-financeiro",
+    label: "Meu financeiro",
+    icon: <Wallet className="h-4 w-4" />,
+    barberOnly: true,
+  },
+  {
+    to: "/assinaturas",
+    label: "Assinaturas",
+    icon: <CreditCard className="h-4 w-4" />,
+    ownerOnly: true,
+  },
+  {
+    to: "/reengajamento",
+    label: "Reengajar",
+    icon: <Heart className="h-4 w-4" />,
+    ownerOnly: true,
+  },
+  {
+    to: "/marketing",
+    label: "Marketing",
+    icon: <Megaphone className="h-4 w-4" />,
+    ownerOnly: true,
+  },
   { to: "/signage", label: "Signage TV", icon: <Tv className="h-4 w-4" />, ownerOnly: true },
 ];
 
@@ -85,7 +110,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+      <div className="flex min-h-dvh items-center justify-center text-muted-foreground">
         Carregando...
       </div>
     );
@@ -121,7 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       {(isOwner || isBarber) && <PushNotificationManager />}
       {isOwner && <NewAppointmentNotifier />}
       <header className="border-b border-border bg-sidebar">
@@ -216,27 +241,39 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {visible.map((l) => (
                 <DropdownMenuItem key={l.to} asChild>
-                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
+                  <Link
+                    to={l.to}
+                    className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm"
+                  >
                     {l.icon} {l.label}
                   </Link>
                 </DropdownMenuItem>
               ))}
               {visibleCadastro.map((l) => (
                 <DropdownMenuItem key={l.to} asChild>
-                  <Link to={l.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
+                  <Link
+                    to={l.to}
+                    className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm"
+                  >
                     {l.icon} {l.label}
                   </Link>
                 </DropdownMenuItem>
               ))}
               {isOwner && (
                 <DropdownMenuItem asChild>
-                  <Link to={settingsLink.to} className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
+                  <Link
+                    to={settingsLink.to}
+                    className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm"
+                  >
                     {settingsLink.icon} {settingsLink.label}
                   </Link>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem asChild>
-                <Link to="/cliente" className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm">
+                <Link
+                  to="/cliente"
+                  className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-sm px-2 py-1.5 text-sm"
+                >
                   <Users className="h-4 w-4" /> Área do cliente
                 </Link>
               </DropdownMenuItem>
@@ -249,8 +286,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-sidebar md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-sidebar md:hidden"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom)",
+          // Garante o próprio layer de composição para nunca "sumir" atrás
+          // da UI do sistema em PWAs standalone no Android.
+          transform: "translateZ(0)",
+        }}
       >
         <ul className="mx-auto flex max-w-md items-stretch justify-between">
           {bottomNav.map((l) => {

@@ -129,6 +129,11 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    /* Altura dinâmica: corrige PWA standalone no Android, onde o layout
+       viewport pode ficar maior que a área visível no primeiro paint e
+       barras fixas "somem" atrás da UI do sistema até rolar a página. */
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   h1, h2, h3, .font-display {
