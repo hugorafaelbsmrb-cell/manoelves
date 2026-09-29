@@ -117,11 +117,12 @@ function ComandaPage() {
 
   const subtotal = items.reduce((s, i) => s + i.qty * i.unit_price_cents, 0);
 
-  function addItem(it: Item) {
+  function toggleItem(it: Item) {
     setItems((prev) => {
       const existing = prev.find((p) => p.ref_id === it.ref_id);
       if (existing) {
-        return prev.map((p) => (p.ref_id === it.ref_id ? { ...p, qty: p.qty + 1 } : p));
+        // Segundo clique: desmarca e remove o item da comanda.
+        return prev.filter((p) => p.ref_id !== it.ref_id);
       }
       return [...prev, it];
     });
@@ -131,9 +132,9 @@ function ComandaPage() {
     setItems((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  // Quantidade já adicionada de um item (0 = não selecionado).
-  function qtyOf(refId: string) {
-    return items.find((i) => i.ref_id === refId)?.qty ?? 0;
+  // Indica se o item já está na comanda (para destacar o cartão).
+  function isSelected(refId: string) {
+    return items.some((i) => i.ref_id === refId);
   }
 
   async function closeOrder() {
@@ -412,13 +413,12 @@ function ComandaPage() {
           <Section title="Serviços">
             <div className="flex flex-wrap gap-2">
               {(services ?? []).map((s) => {
-                const qty = qtyOf(s.id);
-                const selected = qty > 0;
+                const selected = isSelected(s.id);
                 return (
                   <button
                     key={s.id}
                     onClick={() =>
-                      addItem({
+                      toggleItem({
                         kind: "service",
                         ref_id: s.id,
                         description: s.name,
@@ -433,14 +433,7 @@ function ComandaPage() {
                         : "rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
                     }
                   >
-                    <p className="flex items-center gap-2 font-medium">
-                      {s.name}
-                      {selected && (
-                        <span className="rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold leading-none">
-                          {qty}×
-                        </span>
-                      )}
-                    </p>
+                    <p className="font-medium">{s.name}</p>
                     <p
                       className={selected ? "text-xs opacity-80" : "text-xs text-muted-foreground"}
                     >
@@ -458,13 +451,12 @@ function ComandaPage() {
           <Section title="Produtos">
             <div className="flex flex-wrap gap-2">
               {(products ?? []).map((p) => {
-                const qty = qtyOf(p.id);
-                const selected = qty > 0;
+                const selected = isSelected(p.id);
                 return (
                   <button
                     key={p.id}
                     onClick={() =>
-                      addItem({
+                      toggleItem({
                         kind: "product",
                         ref_id: p.id,
                         description: p.name,
@@ -479,14 +471,7 @@ function ComandaPage() {
                         : "rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
                     }
                   >
-                    <p className="flex items-center gap-2 font-medium">
-                      {p.name}
-                      {selected && (
-                        <span className="rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold leading-none">
-                          {qty}×
-                        </span>
-                      )}
-                    </p>
+                    <p className="font-medium">{p.name}</p>
                     <p
                       className={selected ? "text-xs opacity-80" : "text-xs text-muted-foreground"}
                     >
