@@ -8,30 +8,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      blocked_slots: {
-        Row: {
-          created_at: string;
-          created_by: string | null;
-          id: string;
-          slot_date: string;
-          start_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          slot_date: string;
-          start_at: string;
-        };
-        Update: {
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          slot_date?: string;
-          start_at?: string;
-        };
-        Relationships: [];
-      };
       appointment_items: {
         Row: {
           appointment_id: string;

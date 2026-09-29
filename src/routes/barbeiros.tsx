@@ -141,6 +141,28 @@ function BarbeirosPage() {
     toast.success("Comissão salva");
   }
 
+  async function saveWeekdayHours(barberId: string, wd: number, active: string[]) {
+    const { error: delErr } = await supabase
+      .from("working_hours")
+      .delete()
+      .eq("barber_id", barberId)
+      .eq("weekday", wd);
+    if (delErr) throw new Error(delErr.message);
+    const blocks = hoursToBlocks(active);
+    if (blocks.length > 0) {
+      const { error } = await supabase.from("working_hours").insert(
+        blocks.map((blk) => ({
+          barber_id: barberId,
+          weekday: wd,
+          start_time: blk.start_time,
+          end_time: blk.end_time,
+        })),
+      );
+      if (error) throw new Error(error.message);
+    }
+    await qc.invalidateQueries({ queryKey: ["working-hours", barberId] });
+  }
+
   if (!isOwner) {
     return <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar barbeiros.</p>;
   }
@@ -338,47 +360,11 @@ function BarbeirosPage() {
                     onSave={(s, p) => saveCommission(b.id, s, p)}
                   />
 
-                  <section className="rounded-xl border border-border bg-card p-5">
-                    <h2 className="font-display text-xl tracking-wide">Horários</h2>
-                    <p className="text-xs text-muted-foreground">
-                      Defina os blocos disponíveis para cada dia. Você pode criar vários intervalos
-                      no mesmo dia (ex.: manhã e tarde).
-                    </p>
-                    <div className="mt-3 space-y-3">
-                      {WEEKDAYS.map((label, wd) => {
-                        const blocks = (hours ?? []).filter((h) => h.weekday === wd);
-                        return (
-                          <WeekDayBlocks
-                            key={wd}
-                            label={label}
-                            blocks={blocks}
-                            onAdd={async (start, end) => {
-                              await supabase.from("working_hours").insert({
-                                barber_id: b.id,
-                                weekday: wd,
-                                start_time: start,
-                                end_time: end,
-                              });
-                              qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
-                              toast.success("Intervalo adicionado");
-                            }}
-                            onUpdate={async (id, start, end) => {
-                              await supabase
-                                .from("working_hours")
-                                .update({ start_time: start, end_time: end })
-                                .eq("id", id);
-                              qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
-                              toast.success("Horário salvo");
-                            }}
-                            onDelete={async (id) => {
-                              await supabase.from("working_hours").delete().eq("id", id);
-                              qc.invalidateQueries({ queryKey: ["working-hours", b.id] });
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </section>
+                  <HourAvailabilitySection
+                    key={`hours-${b.id}`}
+                    hours={hours ?? []}
+                    onSave={(wd, active) => saveWeekdayHours(b.id, wd, active)}
+                  />
                 </div>
               ))
           )}
@@ -469,114 +455,114 @@ function Field({
   );
 }
 
-interface HourBlock {
-  id: string;
-  start_time: string;
-  end_time: string;
+const HOURS_GRID = Array.from({ length: 12 }, (_, i) => `${9 + i}:00`);
+
+function hoursToBlocks(active: string[]): { start_time: string; end_time: string }[] {
+  const sorted = [...active].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const blocks: { start_time: string; end_time: string }[] = [];
+  for (const h of sorted) {
+    const n = parseInt(h, 10);
+    const last = blocks[blocks.length - 1];
+    if (last && parseInt(last.end_time, 10) === n) {
+      last.end_time = `${n + 1}:00`;
+    } else {
+      blocks.push({ start_time: h, end_time: `${n + 1}:00` });
+    }
+  }
+  return blocks;
 }
 
-function WeekDayBlocks({
-  label,
-  blocks,
-  onAdd,
-  onUpdate,
-  onDelete,
+function blocksToActiveHours(
+  blocks: { weekday: number; start_time: string; end_time: string }[],
+): Map<number, string[]> {
+  const byWd = new Map<number, Set<string>>();
+  for (const b of blocks) {
+    if (!byWd.has(b.weekday)) byWd.set(b.weekday, new Set());
+    const [sh] = b.start_time.split(":").map(Number);
+    const [eh] = b.end_time.split(":").map(Number);
+    for (let h = sh; h < eh; h++) byWd.get(b.weekday)!.add(`${h}:00`);
+  }
+  const out = new Map<number, string[]>();
+  for (const [wd, set] of byWd) out.set(wd, [...set]);
+  return out;
+}
+
+function HourAvailabilitySection({
+  hours,
+  onSave,
 }: {
-  label: string;
-  blocks: HourBlock[];
-  onAdd: (start: string, end: string) => void;
-  onUpdate: (id: string, start: string, end: string) => void;
-  onDelete: (id: string) => void;
+  hours: { weekday: number; start_time: string; end_time: string }[];
+  onSave: (weekday: number, active: string[]) => Promise<void>;
 }) {
-  const [newStart, setNewStart] = useState("09:00");
-  const [newEnd, setNewEnd] = useState("18:00");
-  const [adding, setAdding] = useState(false);
+  const [local, setLocal] = useState<Record<number, string[]>>({});
+  const [savingWd, setSavingWd] = useState<number | null>(null);
+
+  useEffect(() => {
+    const byWd = blocksToActiveHours(hours);
+    const next: Record<number, string[]> = {};
+    for (let wd = 0; wd < 7; wd++) {
+      const hasData = hours.some((h) => h.weekday === wd);
+      next[wd] = hasData ? (byWd.get(wd) ?? []) : [...HOURS_GRID];
+    }
+    setLocal(next);
+  }, [hours]);
+
+  async function toggle(wd: number, hour: string) {
+    const cur = local[wd] ?? [...HOURS_GRID];
+    const active = cur.includes(hour) ? cur.filter((h) => h !== hour) : [...cur, hour];
+    setLocal((p) => ({ ...p, [wd]: active }));
+    setSavingWd(wd);
+    try {
+      await onSave(wd, active);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingWd(null);
+    }
+  }
+
   return (
-    <div className="rounded-md border border-border p-3 text-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-medium">{label}</span>
-        {!adding && (
-          <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
-            + Adicionar intervalo
-          </Button>
-        )}
-      </div>
-      {blocks.length === 0 && !adding && (
-        <p className="text-xs text-muted-foreground">Folga / sem atendimento.</p>
-      )}
-      <div className="space-y-2">
-        {blocks.map((b) => (
-          <BlockRow
-            key={b.id}
-            block={b}
-            onUpdate={(s, e) => onUpdate(b.id, s, e)}
-            onDelete={() => onDelete(b.id)}
-          />
-        ))}
-        {adding && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="time"
-              value={newStart}
-              onChange={(e) => setNewStart(e.target.value)}
-              className="w-28"
-            />
-            <span className="text-muted-foreground">→</span>
-            <Input
-              type="time"
-              value={newEnd}
-              onChange={(e) => setNewEnd(e.target.value)}
-              className="w-28"
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                onAdd(newStart, newEnd);
-                setAdding(false);
-                setNewStart("09:00");
-                setNewEnd("18:00");
-              }}
-            >
-              Salvar
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
-              Cancelar
-            </Button>
+    <section className="rounded-xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl tracking-wide">Horários de atendimento</h2>
+      <p className="text-xs text-muted-foreground">
+        De hora em hora, das 09h às 20h. Barbeiro novo começa com tudo livre — toque numa hora para
+        bloquear (cinza) ou liberar de novo. Salvo automaticamente.
+      </p>
+      <div className="mt-3 space-y-3">
+        {WEEKDAYS.map((label, wd) => (
+          <div key={wd} className="rounded-md border border-border p-3 text-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-medium">{label}</span>
+              <span className="text-xs text-muted-foreground">
+                {savingWd === wd
+                  ? "Salvando..."
+                  : `${(local[wd] ?? HOURS_GRID).length} de 12 horas livres`}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {HOURS_GRID.map((hour) => {
+                const active = (local[wd] ?? HOURS_GRID).includes(hour);
+                return (
+                  <button
+                    key={hour}
+                    type="button"
+                    disabled={savingWd === wd}
+                    onClick={() => toggle(wd, hour)}
+                    className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+                      active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-muted text-muted-foreground line-through"
+                    }`}
+                  >
+                    {hour.slice(0, 5)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        )}
+        ))}
       </div>
-    </div>
-  );
-}
-
-function BlockRow({
-  block,
-  onUpdate,
-  onDelete,
-}: {
-  block: HourBlock;
-  onUpdate: (start: string, end: string) => void;
-  onDelete: () => void;
-}) {
-  const [start, setStart] = useState(block.start_time.slice(0, 5));
-  const [end, setEnd] = useState(block.end_time.slice(0, 5));
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Input
-        type="time"
-        value={start}
-        onChange={(e) => setStart(e.target.value)}
-        className="w-28"
-      />
-      <span className="text-muted-foreground">→</span>
-      <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} className="w-28" />
-      <Button variant="outline" size="sm" onClick={() => onUpdate(start, end)}>
-        Salvar
-      </Button>
-      <Button variant="ghost" size="sm" onClick={onDelete}>
-        Remover
-      </Button>
-    </div>
+    </section>
   );
 }
 
