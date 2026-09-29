@@ -117,14 +117,11 @@ function ComandaPage() {
 
   const subtotal = items.reduce((s, i) => s + i.qty * i.unit_price_cents, 0);
 
-
   function addItem(it: Item) {
     setItems((prev) => {
       const existing = prev.find((p) => p.ref_id === it.ref_id);
       if (existing) {
-        return prev.map((p) =>
-          p.ref_id === it.ref_id ? { ...p, qty: p.qty + 1 } : p
-        );
+        return prev.map((p) => (p.ref_id === it.ref_id ? { ...p, qty: p.qty + 1 } : p));
       }
       return [...prev, it];
     });
@@ -132,6 +129,11 @@ function ComandaPage() {
 
   function removeItem(idx: number) {
     setItems((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // Quantidade já adicionada de um item (0 = não selecionado).
+  function qtyOf(refId: string) {
+    return items.find((i) => i.ref_id === refId)?.qty ?? 0;
   }
 
   async function closeOrder() {
@@ -178,7 +180,7 @@ function ComandaPage() {
         qty: it.qty,
         unit_price_cents: it.unit_price_cents,
         total_cents: it.qty * it.unit_price_cents,
-      }))
+      })),
     );
 
     await supabase.from("payments").insert({
@@ -276,9 +278,7 @@ function ComandaPage() {
           <Row label="Dono da barbearia" value={brl(closed.owner)} />
         </div>
 
-        {generatingPix && (
-          <p className="mt-4 text-xs text-muted-foreground">Gerando PIX…</p>
-        )}
+        {generatingPix && <p className="mt-4 text-xs text-muted-foreground">Gerando PIX…</p>}
 
         {closed.pixCode && (
           <div className="mt-6 space-y-3 rounded-lg border border-border bg-background p-4 text-left">
@@ -334,7 +334,11 @@ function ComandaPage() {
           disabled={generatingLink}
         >
           <ExternalLink className="mr-1 h-4 w-4" />
-          {closed.initPoint ? "Reabrir checkout MP" : generatingLink ? "Gerando..." : "Pagar com Mercado Pago"}
+          {closed.initPoint
+            ? "Reabrir checkout MP"
+            : generatingLink
+              ? "Gerando..."
+              : "Pagar com Mercado Pago"}
         </Button>
         <Button className="mt-2 w-full" onClick={() => setClosed(null)}>
           Abrir nova comanda
@@ -347,8 +351,8 @@ function ComandaPage() {
     <>
       <h1 className="font-display text-3xl tracking-wider">Comanda / PDV</h1>
       <p className="text-sm text-muted-foreground">
-        Adicione serviços e produtos. Ao fechar, o sistema calcula o split entre dono e
-        barbeiro e simula a emissão da NFS-e.
+        Adicione serviços e produtos. Ao fechar, o sistema calcula o split entre dono e barbeiro e
+        simula a emissão da NFS-e.
       </p>
 
       {(nearby ?? []).length > 0 && (
@@ -395,36 +399,56 @@ function ComandaPage() {
         </div>
       )}
 
-
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <div className="rounded-xl border border-border bg-card p-4">
             <ClientCombobox value={clientPick} onChange={setClientPick} />
             <p className="mt-2 text-[10px] text-muted-foreground">
-              Selecione um cliente já cadastrado ou cadastre um novo. O WhatsApp é usado para envio automático do PIX.
+              Selecione um cliente já cadastrado ou cadastre um novo. O WhatsApp é usado para envio
+              automático do PIX.
             </p>
           </div>
 
           <Section title="Serviços">
             <div className="flex flex-wrap gap-2">
-              {(services ?? []).map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() =>
-                    addItem({
-                      kind: "service",
-                      ref_id: s.id,
-                      description: s.name,
-                      qty: 1,
-                      unit_price_cents: s.price_cents,
-                    })
-                  }
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
-                >
-                  <p className="font-medium">{s.name}</p>
-                  <p className="text-xs text-muted-foreground">{brl(s.price_cents)}</p>
-                </button>
-              ))}
+              {(services ?? []).map((s) => {
+                const qty = qtyOf(s.id);
+                const selected = qty > 0;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() =>
+                      addItem({
+                        kind: "service",
+                        ref_id: s.id,
+                        description: s.name,
+                        qty: 1,
+                        unit_price_cents: s.price_cents,
+                      })
+                    }
+                    aria-pressed={selected}
+                    className={
+                      selected
+                        ? "rounded-lg border border-primary bg-primary px-3 py-2 text-left text-sm text-primary-foreground shadow-sm"
+                        : "rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
+                    }
+                  >
+                    <p className="flex items-center gap-2 font-medium">
+                      {s.name}
+                      {selected && (
+                        <span className="rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold leading-none">
+                          {qty}×
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      className={selected ? "text-xs opacity-80" : "text-xs text-muted-foreground"}
+                    >
+                      {brl(s.price_cents)}
+                    </p>
+                  </button>
+                );
+              })}
               {(services ?? []).length === 0 && (
                 <p className="text-xs text-muted-foreground">Cadastre serviços primeiro.</p>
               )}
@@ -433,26 +457,44 @@ function ComandaPage() {
 
           <Section title="Produtos">
             <div className="flex flex-wrap gap-2">
-              {(products ?? []).map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() =>
-                    addItem({
-                      kind: "product",
-                      ref_id: p.id,
-                      description: p.name,
-                      qty: 1,
-                      unit_price_cents: p.price_cents,
-                    })
-                  }
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
-                >
-                  <p className="font-medium">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {brl(p.price_cents)} · estoque {p.stock}
-                  </p>
-                </button>
-              ))}
+              {(products ?? []).map((p) => {
+                const qty = qtyOf(p.id);
+                const selected = qty > 0;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() =>
+                      addItem({
+                        kind: "product",
+                        ref_id: p.id,
+                        description: p.name,
+                        qty: 1,
+                        unit_price_cents: p.price_cents,
+                      })
+                    }
+                    aria-pressed={selected}
+                    className={
+                      selected
+                        ? "rounded-lg border border-primary bg-primary px-3 py-2 text-left text-sm text-primary-foreground shadow-sm"
+                        : "rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:bg-secondary"
+                    }
+                  >
+                    <p className="flex items-center gap-2 font-medium">
+                      {p.name}
+                      {selected && (
+                        <span className="rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold leading-none">
+                          {qty}×
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      className={selected ? "text-xs opacity-80" : "text-xs text-muted-foreground"}
+                    >
+                      {brl(p.price_cents)} · estoque {p.stock}
+                    </p>
+                  </button>
+                );
+              })}
               {(products ?? []).length === 0 && (
                 <p className="text-xs text-muted-foreground">Sem produtos cadastrados.</p>
               )}
@@ -481,10 +523,7 @@ function ComandaPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">{brl(it.qty * it.unit_price_cents)}</p>
-                    <button
-                      className="text-xs text-destructive"
-                      onClick={() => removeItem(i)}
-                    >
+                    <button className="text-xs text-destructive" onClick={() => removeItem(i)}>
                       remover
                     </button>
                   </div>
