@@ -20,43 +20,62 @@ export function useAuth(): AuthState {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
+    const finishLoading = () => {
+      if (alive) setLoading(false);
+    };
+
+    const loadRoles = async (userId: string, onDone?: () => void) => {
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId);
+        if (alive) setRoles((data ?? []).map((r) => r.role as AppRole));
+      } catch (e) {
+        console.error("[auth] erro ao carregar roles:", e);
+      } finally {
+        onDone?.();
+      }
+    };
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!alive) return;
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
         // diferir para não chamar dentro do callback
-        setTimeout(() => {
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .then(({ data }) => {
-              setRoles((data ?? []).map((r) => r.role as AppRole));
-            });
-        }, 0);
+        setTimeout(() => loadRoles(s.user.id), 0);
       } else {
         setRoles([]);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", s.user.id)
-          .then(({ data }) => {
-            setRoles((data ?? []).map((r) => r.role as AppRole));
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
-      }
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: s } }) => {
+        if (!alive) return;
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) {
+          loadRoles(s.user.id, finishLoading);
+        } else {
+          finishLoading();
+        }
+      })
+      .catch((e) => {
+        console.error("[auth] getSession falhou:", e);
+        finishLoading();
+      });
 
-    return () => sub.subscription.unsubscribe();
+    // Rede/limite de segurança: nunca deixar a tela presa em "Carregando...".
+    const safety = setTimeout(finishLoading, 10000);
+
+    return () => {
+      alive = false;
+      clearTimeout(safety);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   return {
