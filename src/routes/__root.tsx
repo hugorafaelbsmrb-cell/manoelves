@@ -65,7 +65,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           onClick={() => {
             try {
               sessionStorage.removeItem("__stale_chunk_reloaded__");
-            } catch {}
+            } catch {
+              /* noop */
+            }
             router.invalidate();
             reset();
           }}
