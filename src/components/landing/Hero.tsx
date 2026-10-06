@@ -20,7 +20,7 @@ export function Hero({ shop }: HeroProps) {
 
   return (
     <div
-      className="relative min-h-[90vh] flex flex-col"
+      className="relative min-h-[90dvh] flex flex-col"
       style={{
         backgroundColor: "#0a0a0a",
         backgroundImage: banner
@@ -30,7 +30,14 @@ export function Hero({ shop }: HeroProps) {
         backgroundPosition: "center",
       }}
     >
-      <header className="relative border-b border-white/5 z-10">
+      <header
+        className="relative border-b border-white/5 z-10"
+        style={{
+          // Recua da área segura (notch/status bar) no iPhone e Android com
+          // viewport-fit=cover — sem isso o topo fica atrás da UI do sistema.
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <img

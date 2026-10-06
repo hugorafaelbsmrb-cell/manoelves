@@ -75,7 +75,7 @@ function HomePage() {
   });
 
   return (
-    <div className="dark min-h-screen bg-[#0a0a0a] text-gray-200 font-sans selection:bg-[#d4a857] selection:text-black">
+    <div className="dark min-h-dvh bg-[#0a0a0a] text-gray-200 font-sans selection:bg-[#d4a857] selection:text-black">
       <Hero shop={shop} />
 
       <div id="servicos">

@@ -38,8 +38,14 @@ function AgendarPage() {
   });
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40">
+    <div className="dark min-h-dvh bg-background text-foreground">
+      <header
+        className="border-b border-border/40"
+        style={{
+          // Recuo da área segura (notch/status bar) no iPhone e Android.
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
           <Link
             to="/"
@@ -55,15 +61,11 @@ function AgendarPage() {
       </header>
 
       <section className="mx-auto max-w-5xl px-5 py-12 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          Passo 1 de 3
-        </p>
-        <h1 className="mt-3 font-display text-4xl sm:text-5xl">
-          Escolha seu barbeiro
-        </h1>
+        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Passo 1 de 3</p>
+        <h1 className="mt-3 font-display text-4xl sm:text-5xl">Escolha seu barbeiro</h1>
         <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
-          Selecione o profissional de sua preferência para ver serviços, combos
-          e horários disponíveis.
+          Selecione o profissional de sua preferência para ver serviços, combos e horários
+          disponíveis.
         </p>
       </section>
 
@@ -98,18 +100,12 @@ function AgendarPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-display text-lg tracking-wide">
-                      {b.full_name}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      barber.me/{b.slug}
-                    </p>
+                    <p className="font-display text-lg tracking-wide">{b.full_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">barber.me/{b.slug}</p>
                   </div>
                 </div>
                 {b.bio && (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                    {b.bio}
-                  </p>
+                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{b.bio}</p>
                 )}
                 <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-foreground transition group-hover:gap-2">
                   Agendar com {b.full_name?.split(" ")[0]} →

@@ -331,15 +331,21 @@ function BookingPage() {
 
   if (!selection) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+      <div className="dark flex min-h-dvh items-center justify-center bg-background text-muted-foreground">
         Selecione um combo ou serviço.
       </div>
     );
   }
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40">
+    <div className="dark min-h-dvh bg-background text-foreground">
+      <header
+        className="border-b border-border/40"
+        style={{
+          // Recuo da área segura (notch/status bar) no iPhone e Android.
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <div className="mx-auto flex max-w-xl items-center justify-between px-5 py-4">
           <Link
             to="/$slug"

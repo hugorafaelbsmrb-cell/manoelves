@@ -41,7 +41,9 @@ function BarberPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("combos")
-        .select("id, name, price_cents, combo_services(service_id, services(duration_minutes, name))")
+        .select(
+          "id, name, price_cents, combo_services(service_id, services(duration_minutes, name))",
+        )
         .eq("is_active", true);
       return data ?? [];
     },
@@ -61,15 +63,21 @@ function BarberPage() {
 
   if (isLoading) {
     return (
-      <div className="dark flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+      <div className="dark flex min-h-dvh items-center justify-center bg-background text-muted-foreground">
         Carregando...
       </div>
     );
   }
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40">
+    <div className="dark min-h-dvh bg-background text-foreground">
+      <header
+        className="border-b border-border/40"
+        style={{
+          // Recuo da área segura (notch/status bar) no iPhone e Android.
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <div className="mx-auto flex max-w-xl items-center justify-between px-5 py-4">
           <Link
             to="/"
@@ -107,13 +115,9 @@ function BarberPage() {
             </div>
           )}
         </div>
-        <h1 className="mt-4 font-display text-4xl tracking-wide">
-          {barber?.full_name}
-        </h1>
+        <h1 className="mt-4 font-display text-4xl tracking-wide">{barber?.full_name}</h1>
         {barber?.bio && (
-          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
-            {barber.bio}
-          </p>
+          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">{barber.bio}</p>
         )}
       </section>
 
@@ -139,9 +143,7 @@ function BarberPage() {
               >
                 <div>
                   <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {minutesLabel(totalMin)}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{minutesLabel(totalMin)}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-display text-lg">{brl(c.price_cents)}</p>
@@ -187,9 +189,7 @@ function ServicePicker({
   }, [services, picked]);
 
   function toggle(id: string) {
-    setPicked((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+    setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
   return (
@@ -210,9 +210,7 @@ function ServicePicker({
               <div className="flex items-center gap-3">
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded border ${
-                    active
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border"
+                    active ? "border-foreground bg-foreground text-background" : "border-border"
                   }`}
                 >
                   {active && <Check className="h-3 w-3" />}

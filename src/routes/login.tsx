@@ -9,10 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  requestClientOtp,
-  verifyClientOtp,
-} from "@/lib/client-auth.functions";
+import { requestClientOtp, verifyClientOtp } from "@/lib/client-auth.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Entrar — Mano Elves" }] }),
@@ -22,16 +19,19 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   return (
     <div
-      className="dark min-h-screen text-foreground"
+      className="dark min-h-dvh text-foreground"
       style={{
         backgroundColor: "#1a0f08",
         backgroundImage: `linear-gradient(rgba(10,5,2,0.72), rgba(10,5,2,0.86)), url(${barbershopBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
+        // Recuo da área segura (notch/status bar) no iPhone e Android.
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10">
         <Link to="/" className="mb-8 flex flex-col items-center justify-center gap-3">
           <img src={logoUrl} alt="Mano Elves" className="h-20 w-auto" />
           <span className="font-display text-xl tracking-wider">MANO ELVES</span>
@@ -104,9 +104,7 @@ function ClientLoginForm() {
   return (
     <div>
       <h1 className="font-display text-2xl tracking-wide">Acesso do cliente</h1>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Entre apenas com seu número de WhatsApp.
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">Entre apenas com seu número de WhatsApp.</p>
 
       {step === "phone" ? (
         <form onSubmit={sendCode} className="mt-6 space-y-4">
@@ -189,9 +187,7 @@ function StaffLoginForm() {
   return (
     <div>
       <h1 className="font-display text-2xl tracking-wide">Entrar no painel</h1>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Acesso para dono e barbeiros.
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">Acesso para dono e barbeiros.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="space-y-1.5">
