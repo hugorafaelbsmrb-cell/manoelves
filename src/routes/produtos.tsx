@@ -44,11 +44,7 @@ function ProdutosPage() {
   });
 
   if (!isOwner) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Apenas o dono pode gerenciar produtos.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">Apenas o dono pode gerenciar produtos.</p>;
   }
 
   async function patch(
@@ -88,7 +84,113 @@ function ProdutosPage() {
 
       <ProductForm onCreated={() => qc.invalidateQueries({ queryKey: ["products-admin"] })} />
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+      {/* Cards — celular */}
+      <div className="mt-4 space-y-3 md:hidden">
+        {!products || products.length === 0 ? (
+          <p className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            Nenhum produto cadastrado.
+          </p>
+        ) : (
+          products.map((p) => {
+            const low = p.stock <= p.low_stock_alert;
+            return (
+              <div key={p.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <ImageCell
+                      url={p.image_url}
+                      onUpload={(file) => uploadAndPatch(p.id, file)}
+                      onClear={() => patch(p.id, { image_url: null })}
+                    />
+                    <div className="min-w-0">
+                      <EditCell value={p.name} onSave={(v) => patch(p.id, { name: v })} />
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <button
+                          onClick={() => patch(p.id, { is_internal_use: !p.is_internal_use })}
+                          className="rounded-full border border-border px-2 py-0.5 text-[10px]"
+                        >
+                          {p.is_internal_use ? "Uso interno" : "Revenda"}
+                        </button>
+                        <button
+                          onClick={() => patch(p.id, { is_active: !p.is_active })}
+                          className={`rounded-full px-2 py-0.5 text-[10px] ${
+                            p.is_active
+                              ? "bg-foreground text-background"
+                              : "border border-border text-muted-foreground"
+                          }`}
+                        >
+                          {p.is_active ? "Ativo" : "Inativo"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    title="Remover produto"
+                    onClick={async () => {
+                      if (!window.confirm(`Remover ${p.name}?`)) return;
+                      const { error } = await supabase.from("products").delete().eq("id", p.id);
+                      if (error) return toast.error(error.message);
+                      qc.invalidateQueries({ queryKey: ["products-admin"] });
+                    }}
+                    className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs">
+                  <div>
+                    <p className="text-[10px] uppercase text-muted-foreground">Preço</p>
+                    <EditCell
+                      value={(p.price_cents / 100).toFixed(2)}
+                      onSave={(v) =>
+                        patch(p.id, {
+                          price_cents: Math.round(parseFloat(v.replace(",", ".")) * 100),
+                        })
+                      }
+                      suffix={brl(p.price_cents)}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase text-muted-foreground">Custo</p>
+                    <EditCell
+                      value={(p.cost_cents / 100).toFixed(2)}
+                      onSave={(v) =>
+                        patch(p.id, {
+                          cost_cents: Math.round(parseFloat(v.replace(",", ".")) * 100),
+                        })
+                      }
+                      suffix={brl(p.cost_cents)}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase text-muted-foreground">Estoque</p>
+                    <EditCell
+                      value={String(p.stock)}
+                      onSave={(v) => patch(p.id, { stock: parseInt(v) || 0 })}
+                      suffix={
+                        <span className="inline-flex items-center gap-1">
+                          {low && <AlertTriangle className="h-3 w-3 text-destructive" />}
+                          {p.stock}
+                        </span>
+                      }
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase text-muted-foreground">Alerta</p>
+                    <EditCell
+                      value={String(p.low_stock_alert)}
+                      onSave={(v) => patch(p.id, { low_stock_alert: parseInt(v) || 0 })}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Tabela — desktop */}
+      <div className="mt-4 hidden overflow-hidden rounded-xl border border-border bg-card md:block">
         {!products || products.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted-foreground">
             Nenhum produto cadastrado.
@@ -189,10 +291,7 @@ function ProdutosPage() {
                         size="sm"
                         onClick={async () => {
                           if (!window.confirm(`Remover ${p.name}?`)) return;
-                          const { error } = await supabase
-                            .from("products")
-                            .delete()
-                            .eq("id", p.id);
+                          const { error } = await supabase.from("products").delete().eq("id", p.id);
                           if (error) return toast.error(error.message);
                           qc.invalidateQueries({ queryKey: ["products-admin"] });
                         }}
@@ -369,7 +468,11 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
     >
       <div className="flex-1 min-w-[180px]">
         <label className="text-xs text-muted-foreground">Nome</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Pomada modeladora" />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Pomada modeladora"
+        />
       </div>
       <div className="w-32">
         <label className="text-xs text-muted-foreground">Preço (R$)</label>
@@ -397,11 +500,7 @@ function ProductForm({ onCreated }: { onCreated: () => void }) {
         </label>
       </div>
       <label className="flex items-center gap-2 text-xs text-muted-foreground">
-        <input
-          type="checkbox"
-          checked={internal}
-          onChange={(e) => setInternal(e.target.checked)}
-        />
+        <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} />
         Uso interno
       </label>
       <Button type="submit" disabled={busy}>
