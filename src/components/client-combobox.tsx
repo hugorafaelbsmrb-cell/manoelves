@@ -1,22 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Check, ChevronsUpDown, Search, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { filterClients, loadKnownClients } from "@/lib/clients";
 
 export interface ClientPick {
@@ -32,12 +19,14 @@ interface Props {
 export function ClientCombobox({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"pick" | "new">(value.name ? "pick" : "pick");
+  const [mode, setMode] = useState<"pick" | "new">("pick");
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isPending } = useQuery({
     queryKey: ["known-clients"],
     queryFn: () => loadKnownClients(500),
-    staleTime: 60_000,
+    // Lista de clientes muda raramente durante o expediente; evita refetch
+    // (2 consultas) a cada abertura do combobox — importante no Android.
+    staleTime: 5 * 60_000,
   });
 
   const results = useMemo(() => filterClients(clients, query), [clients, query]);
@@ -81,67 +70,88 @@ export function ClientCombobox({ value, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="relative space-y-2">
       <Label>Cliente</Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            role="combobox"
-            className="w-full justify-between"
-          >
-            {value.name ? (
-              <span className="truncate">
-                {value.name}{" "}
-                <span className="text-xs text-muted-foreground">
-                  · {value.phone}
-                </span>
-              </span>
-            ) : (
-              <span className="text-muted-foreground">Buscar por nome ou telefone…</span>
-            )}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command shouldFilter={false}>
-            <CommandInput
-              placeholder="Buscar cliente…"
-              value={query}
-              onValueChange={setQuery}
-            />
-            <CommandList>
-              <CommandEmpty>
-                <div className="py-3 text-center text-xs text-muted-foreground">
+      <Button
+        type="button"
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className="w-full justify-between"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {value.name ? (
+          <span className="truncate">
+            {value.name} <span className="text-xs text-muted-foreground">· {value.phone}</span>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Buscar por nome ou telefone…</span>
+        )}
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+
+      {open && (
+        <>
+          {/* Painel inline (sem portal/posição fixa): o Radix Popover abria
+              fora da área visível em PWAs Android com viewport encolhido. */}
+          <div className="fixed inset-0 z-40" aria-hidden="true" onClick={() => setOpen(false)} />
+          <div className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md">
+            <div className="flex items-center border-b px-3">
+              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+              <input
+                autoFocus
+                className="h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+                placeholder="Buscar cliente…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Fechar"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[280px] overflow-y-auto p-1">
+              {isPending ? (
+                <div className="px-2 py-6 text-center text-xs text-muted-foreground">
+                  Carregando clientes…
+                </div>
+              ) : results.length === 0 ? (
+                <div className="px-2 py-6 text-center text-xs text-muted-foreground">
                   Nenhum cliente encontrado.
                 </div>
-              </CommandEmpty>
-              <CommandGroup>
-                {results.map((c) => {
-                  const selected =
-                    c.phone === value.phone && c.name === value.name;
+              ) : (
+                results.map((c) => {
+                  const selected = c.phone === value.phone && c.name === value.name;
                   return (
-                    <CommandItem
+                    <button
                       key={c.phone}
-                      value={`${c.name} ${c.phone}`}
-                      onSelect={() => {
+                      type="button"
+                      onClick={() => {
                         onChange({ name: c.name, phone: c.phone });
                         setOpen(false);
                       }}
+                      className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+                        selected ? "bg-accent text-accent-foreground" : ""
+                      }`}
                     >
                       <Check
-                        className={`mr-2 h-4 w-4 ${selected ? "opacity-100" : "opacity-0"}`}
+                        className={`h-4 w-4 shrink-0 ${selected ? "opacity-100" : "opacity-0"}`}
                       />
-                      <div className="flex flex-col">
-                        <span>{c.name || "—"}</span>
-                        <span className="text-xs text-muted-foreground">{c.phone}</span>
-                      </div>
-                    </CommandItem>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{c.name || "—"}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {c.phone}
+                        </span>
+                      </span>
+                    </button>
                   );
-                })}
-              </CommandGroup>
-            </CommandList>
+                })
+              )}
+            </div>
             <div className="border-t border-border p-2">
               <Button
                 type="button"
@@ -157,9 +167,9 @@ export function ClientCombobox({ value, onChange }: Props) {
                 <UserPlus className="mr-2 h-4 w-4" /> Cadastrar novo cliente
               </Button>
             </div>
-          </Command>
-        </PopoverContent>
-      </Popover>
+          </div>
+        </>
+      )}
     </div>
   );
 }

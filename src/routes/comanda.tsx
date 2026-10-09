@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Receipt, CheckCircle2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -11,7 +11,7 @@ import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClientCombobox, type ClientPick } from "@/components/client-combobox";
-import { upsertClient } from "@/lib/clients";
+import { loadKnownClients, upsertClient } from "@/lib/clients";
 import { createOrderCheckout, createOrderPix } from "@/lib/payments.functions";
 import { sendOrderPixWhatsApp } from "@/lib/wapi.functions";
 
@@ -115,6 +115,16 @@ function ComandaPage() {
     },
   });
 
+  // Pré-carrega a lista de clientes conhecidos assim que a comanda abre — o
+  // combobox abre instantâneo (no Android, a busca sob demanda deixava a
+  // lista vazia por alguns segundos até as 2 consultas terminarem).
+  useEffect(() => {
+    qc.prefetchQuery({
+      queryKey: ["known-clients"],
+      queryFn: () => loadKnownClients(500),
+    });
+  }, [qc]);
+
   const subtotal = items.reduce((s, i) => s + i.qty * i.unit_price_cents, 0);
 
   function toggleItem(it: Item) {
@@ -154,6 +164,8 @@ function ComandaPage() {
     // upsert do cliente se houver whatsapp (registra na tabela clients)
     if (clientWhats.trim()) {
       await upsertClient({ name: clientName, whatsapp: clientWhats });
+      // Mantém o combobox de clientes sincronizado com o cliente recém-criado.
+      qc.invalidateQueries({ queryKey: ["known-clients"] });
     }
 
     const { data: order, error } = await supabase

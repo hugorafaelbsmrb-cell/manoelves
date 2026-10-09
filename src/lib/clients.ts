@@ -40,12 +40,13 @@ export async function loadKnownClients(limit = 500): Promise<KnownClient[]> {
     });
   }
 
-  // 2) legado vindo de appointments
+  // 2) legado vindo de appointments (só os mais recentes — basta para cobrir
+  // quem ainda não foi migrado; mantém a consulta leve no Android)
   const { data: appts } = await supabase
     .from("appointments")
     .select("client_name, client_whatsapp, created_at")
     .order("created_at", { ascending: false })
-    .limit(1500);
+    .limit(300);
 
   for (const row of appts ?? []) {
     const key = normalizePhone(row.client_whatsapp);
@@ -55,7 +56,7 @@ export async function loadKnownClients(limit = 500): Promise<KnownClient[]> {
       phone: row.client_whatsapp ?? "",
       last_at: row.created_at,
     });
-    if (map.size >= limit + 200) break;
+    if (map.size >= limit + 50) break;
   }
 
   return Array.from(map.values());

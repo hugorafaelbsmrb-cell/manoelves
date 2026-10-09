@@ -25,7 +25,9 @@ function LoginPage() {
         backgroundImage: `linear-gradient(rgba(10,5,2,0.72), rgba(10,5,2,0.86)), url(${barbershopBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundAttachment: "fixed",
+        // "scroll" em vez de "fixed": no Android o repaint por frame da
+        // imagem de fundo fixa causava travamento ao rolar a tela.
+        backgroundAttachment: "scroll",
         // Recuo da área segura (notch/status bar) no iPhone e Android.
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
