@@ -31,12 +31,17 @@ interface SelectedService {
 }
 
 export function ManualBookingWizard() {
-  const { isOwner, user } = useAuth();
+  const { isOwner, user, loading } = useAuth();
   const qc = useQueryClient();
   const sendConfirmationFn = useServerFn(sendBookingConfirmation);
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<Step>(isOwner ? "barber" : "service");
-  const [barberId, setBarberId] = useState<string | null>(isOwner ? null : (user?.id ?? null));
+  // Passo/barbeiro iniciais NÃO podem usar isOwner/user do primeiro render:
+  // o useAuth carrega roles assíncronas e, ao remontar (sair e voltar para a
+  // tela), o dono caía no passo "service" com barberId null — sem escolha de
+  // barbeiro e sem horários. Aguardamos o carregamento e ajustamos abaixo.
+  const [step, setStep] = useState<Step>("barber");
+  const [barberId, setBarberId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
   const [selected, setSelected] = useState<SelectedService[]>([]);
   const [date, setDate] = useState(() => startOfDay(new Date()));
   const [slot, setSlot] = useState<Date | null>(null);
@@ -57,6 +62,14 @@ export function ManualBookingWizard() {
     setSlot(null);
     setClient({ name: "", phone: "" });
   }
+
+  // Inicializa passo/barbeiro apenas quando as roles terminam de carregar.
+  useEffect(() => {
+    if (loading || ready) return;
+    setReady(true);
+    setStep(isOwner ? "barber" : "service");
+    setBarberId(isOwner ? null : (user?.id ?? null));
+  }, [loading, ready, isOwner, user]);
 
   useEffect(() => {
     if (!open) reset();
