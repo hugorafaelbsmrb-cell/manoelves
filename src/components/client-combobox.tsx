@@ -106,12 +106,14 @@ export function ClientCombobox({ value, onChange }: Props) {
       </Button>
 
       {open && (
-        <div className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md">
+        <div className="overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md">
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
             <input
               autoFocus
-              className="h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+              // 16px (text-base): fontes menores fazem o Chrome/iOS darem
+              // auto-zoom ao focar, e o zoom persiste ao fechar o modal.
+              className="h-10 w-full bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground"
               placeholder="Buscar cliente…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

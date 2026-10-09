@@ -151,4 +151,14 @@
     font-family: var(--font-display);
     letter-spacing: 0.02em;
   }
+
+  /* No celular, inputs com fonte < 16px fazem o navegador dar auto-zoom ao
+     focar (o zoom persiste após fechar modais e “quebra” o layout do PWA). */
+  @media (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
 }
