@@ -382,7 +382,7 @@ export function ManualBookingWizard() {
                   Nenhum horário disponível neste dia.
                 </p>
               ) : (
-                <div className="grid grid-cols-6 gap-1.5">
+                <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
                   {slots.map((s) => (
                     <button
                       key={s.toISOString()}
@@ -390,7 +390,7 @@ export function ManualBookingWizard() {
                         setSlot(s);
                         setStep("client");
                       }}
-                      className="rounded-md border border-border py-1.5 text-xs hover:border-foreground"
+                      className="rounded-md border border-border py-2 text-xs hover:border-foreground"
                     >
                       {format(s, "HH:mm")}
                     </button>
