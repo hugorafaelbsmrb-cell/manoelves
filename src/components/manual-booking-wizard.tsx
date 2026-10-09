@@ -137,10 +137,12 @@ export function ManualBookingWizard() {
     },
   });
 
-  const [daysCount, setDaysCount] = useState(7);
+  // Janela de 7 dias exibida em grade fixa (sem arrastar para o lado no
+  // celular); os botões avançam/voltam a janela de semana em semana.
+  const [daysOffset, setDaysOffset] = useState(0);
   const days = useMemo(
-    () => Array.from({ length: daysCount }, (_, i) => addDays(startOfDay(new Date()), i)),
-    [daysCount],
+    () => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(new Date()), i + daysOffset)),
+    [daysOffset],
   );
 
   const slots = useMemo(() => {
@@ -346,14 +348,14 @@ export function ManualBookingWizard() {
             </div>
             <div>
               <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Dia</p>
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="grid grid-cols-7 gap-1">
                 {days.map((d) => {
                   const active = isSameDay(d, date);
                   return (
                     <button
                       key={d.toISOString()}
                       onClick={() => setDate(d)}
-                      className={`flex min-w-[56px] flex-col items-center rounded-md border px-2 py-1.5 text-[10px] ${
+                      className={`flex flex-col items-center rounded-md border px-1 py-1.5 text-[10px] ${
                         active
                           ? "border-foreground bg-foreground text-background"
                           : "border-border text-muted-foreground hover:text-foreground"
@@ -364,14 +366,22 @@ export function ManualBookingWizard() {
                     </button>
                   );
                 })}
+              </div>
+              <div className="mt-1.5 grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setDaysCount((n) => n + 7)}
-                  className="flex min-w-[56px] flex-col items-center justify-center rounded-md border border-dashed border-border px-2 py-1.5 text-[10px] text-muted-foreground hover:border-foreground hover:text-foreground"
-                  aria-label="Carregar mais dias"
+                  disabled={daysOffset === 0}
+                  onClick={() => setDaysOffset((o) => Math.max(0, o - 7))}
+                  className="rounded-md border border-dashed border-border py-1.5 text-[10px] text-muted-foreground hover:border-foreground hover:text-foreground disabled:opacity-40"
                 >
-                  <span className="text-base">→</span>
-                  <span>+7 dias</span>
+                  ← 7 dias
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDaysOffset((o) => o + 7)}
+                  className="rounded-md border border-dashed border-border py-1.5 text-[10px] text-muted-foreground hover:border-foreground hover:text-foreground"
+                >
+                  Próximos 7 dias →
                 </button>
               </div>
             </div>
