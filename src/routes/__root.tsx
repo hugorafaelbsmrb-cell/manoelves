@@ -12,6 +12,7 @@ import {
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -149,9 +150,14 @@ function AuthRefresher() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      router.invalidate();
-      queryClient.invalidateQueries();
+    } = supabase.auth.onAuthStateChange((event) => {
+      // Invalida as queries apenas quando a identidade muda de verdade. Antes
+      // invalidava em TODO evento (inclusive TOKEN_REFRESHED, a cada ~1h), o
+      // que disparava refetch de todas as telas e “travava” o PWA no Android.
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        router.invalidate();
+        queryClient.invalidateQueries();
+      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
@@ -162,9 +168,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthRefresher />
-      <Outlet />
-      <Toaster richColors position="top-center" />
+      <AuthProvider>
+        <AuthRefresher />
+        <Outlet />
+        <Toaster richColors position="top-center" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
